@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 
 const Search = ({ searchTerm, setSearchTerm, isDarkMode }) => {
@@ -12,8 +10,10 @@ const Search = ({ searchTerm, setSearchTerm, isDarkMode }) => {
   };
 
   return (
-    <div className={`p-6 rounded-lg shadow-sm border ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
-      <label htmlFor="search" className={`block text-lg font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>Search Shops</label>
+    <div className="max-w-md mx-auto md:mx-0">
+      <label htmlFor="search" className={`block text-lg font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+        Search Shops
+      </label>
       <div className="relative">
         <input
           id="search"
@@ -21,11 +21,12 @@ const Search = ({ searchTerm, setSearchTerm, isDarkMode }) => {
           value={searchTerm}
           onChange={handleChange}
           placeholder="Search by name, phone or postcode..."
-          className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+          className={`w-full sm:w-80 md:w-96 pl-10 pr-10 py-3 rounded-lg focus:ring-2 focus:ring-blue-500 ${
             isDarkMode 
-              ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-400' 
-              : 'border-gray-300 text-gray-900 focus:border-blue-500'
+              ? 'bg-transparent border-none text-white focus:border-blue-400 focus:ring-blue-400' 
+              : 'bg-transparent border-none text-gray-900 focus:border-blue-500 focus:ring-blue-500'
           }`}
+          style={{ outline: 'none', boxShadow: 'none' }}
         />
         <svg
           className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${isDarkMode ? 'text-gray-400' : 'text-gray-400'}`}
@@ -36,7 +37,12 @@ const Search = ({ searchTerm, setSearchTerm, isDarkMode }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         {searchTerm && (
-          <button onClick={handleClear} className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}>
+          <button
+            onClick={handleClear}
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+              isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'
+            }`}
+          >
             ×
           </button>
         )}

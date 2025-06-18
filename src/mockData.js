@@ -1,5 +1,3 @@
-
-
 const mockShopData = [
   {
     id: 1,
@@ -9,7 +7,16 @@ const mockShopData = [
     postcode: "SW1A 1AA",
     city: "London",
     website: "www.mariospizza.co.uk",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "9:00 AM - 8:00 PM",
+      Tuesday: "9:00 AM - 8:00 PM",
+      Wednesday: "9:00 AM - 8:00 PM",
+      Thursday: "9:00 AM - 8:00 PM",
+      Friday: "9:00 AM - 10:00 PM",
+      Saturday: "10:00 AM - 10:00 PM",
+      Sunday: "Closed"
+    }
   },
   {
     id: 2,
@@ -19,7 +26,16 @@ const mockShopData = [
     postcode: "SW1A 2BB",
     city: "London",
     website: "theroyalcafe.com",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "8:00 AM - 6:00 PM",
+      Tuesday: "8:00 AM - 6:00 PM",
+      Wednesday: "8:00 AM - 6:00 PM",
+      Thursday: "8:00 AM - 6:00 PM",
+      Friday: "8:00 AM - 8:00 PM",
+      Saturday: "9:00 AM - 6:00 PM",
+      Sunday: "Closed"
+    }
   },
   {
     id: 3,
@@ -29,7 +45,16 @@ const mockShopData = [
     postcode: "E1 6AN",
     city: "London",
     website: "dragonpalace.co.uk",
-    status: "Closed"
+    status: "Closed",
+    openingHours: {
+      Monday: "12:00 PM - 10:00 PM",
+      Tuesday: "12:00 PM - 10:00 PM",
+      Wednesday: "12:00 PM - 10:00 PM",
+      Thursday: "12:00 PM - 10:00 PM",
+      Friday: "12:00 PM - 11:00 PM",
+      Saturday: "12:00 PM - 11:00 PM",
+      Sunday: "Closed"
+    }
   },
   {
     id: 4,
@@ -39,7 +64,16 @@ const mockShopData = [
     postcode: "NW1 4NP",
     city: "London",
     website: "",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "10:00 AM - 9:00 PM",
+      Tuesday: "10:00 AM - 9:00 PM",
+      Wednesday: "10:00 AM - 9:00 PM",
+      Thursday: "10:00 AM - 9:00 PM",
+      Friday: "10:00 AM - 11:00 PM",
+      Saturday: "10:00 AM - 11:00 PM",
+      Sunday: "12:00 PM - 8:00 PM"
+    }
   },
   {
     id: 5,
@@ -49,7 +83,16 @@ const mockShopData = [
     postcode: "E1 7RT",
     city: "London",
     website: "quickbite.london",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "8:00 AM - 10:00 PM",
+      Tuesday: "8:00 AM - 10:00 PM",
+      Wednesday: "8:00 AM - 10:00 PM",
+      Thursday: "8:00 AM - 10:00 PM",
+      Friday: "8:00 AM - 12:00 AM",
+      Saturday: "8:00 AM - 12:00 AM",
+      Sunday: "12:00 PM - 8:00 PM"
+    }
   },
   {
     id: 6,
@@ -59,7 +102,16 @@ const mockShopData = [
     postcode: "SW1H 9AJ",
     city: "London",
     website: "",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "7:00 AM - 7:00 PM",
+      Tuesday: "7:00 AM - 7:00 PM",
+      Wednesday: "7:00 AM - 7:00 PM",
+      Thursday: "7:00 AM - 7:00 PM",
+      Friday: "7:00 AM - 9:00 PM",
+      Saturday: "8:00 AM - 6:00 PM",
+      Sunday: "Closed"
+    }
   },
   {
     id: 7,
@@ -69,7 +121,16 @@ const mockShopData = [
     postcode: "M1 1AA",
     city: "Manchester",
     website: "spicegarden.co.uk",
-    status: "Open"
+    status: "Open",
+    openingHours: {
+      Monday: "10:00 AM - 9:00 PM",
+      Tuesday: "10:00 AM - 9:00 PM",
+      Wednesday: "10:00 AM - 9:00 PM",
+      Thursday: "10:00 AM - 9:00 PM",
+      Friday: "10:00 AM - 11:00 PM",
+      Saturday: "10:00 AM - 11:00 PM",
+      Sunday: "Closed"
+    }
   },
   {
     id: 8,
@@ -79,7 +140,16 @@ const mockShopData = [
     postcode: "B1 1BB",
     city: "Birmingham",
     website: "birminghambistro.com",
-    status: "Closed"
+    status: "Closed",
+    openingHours: {
+      Monday: "Closed",
+      Tuesday: "Closed",
+      Wednesday: "Closed",
+      Thursday: "Closed",
+      Friday: "Closed",
+      Saturday: "Closed",
+      Sunday: "Closed"
+    }
   }
 ];
 
