@@ -7,6 +7,7 @@ import Pagination from './components/Pagination';
 import mockShopData from './mockData';
 import ShopDetails from './components/ShopDetails';
 import ShopDetailsPage from './components/ShopDetailsPage';
+import { RestaurantIcon } from './Icons';
 
 const Layout = ({ isDarkMode, toggleDarkMode }) => {
   return (
@@ -29,14 +30,14 @@ const App = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  const uniqueCities = [...new Set(mockShopData.map(shop => shop.city))];
-  const uniquePostcodes = [...new Set(mockShopData.map(shop => shop.postcode))];
-  const orderedCategories = ['Takeaway', 'Dine Restaurant', 'Café'];
+  const uniqueCities = [...new Set(mockShopData.map((shop) => shop.city))];
+  const uniquePostcodes = [...new Set(mockShopData.map((shop) => shop.postcode))];
+  const orderedCategories = ['Takeaway', 'Restaurant', 'Café'];
 
   const handleCategoryClick = (category) => {
     setFilters((prev) => ({
       ...prev,
-      category: prev.category === category ? '' : category
+      category: prev.category === category ? '' : category,
     }));
   };
 
@@ -45,7 +46,7 @@ const App = () => {
     setTempFilters({
       ...tempFilters,
       city,
-      postcode: ''
+      postcode: '',
     });
   };
 
@@ -53,7 +54,7 @@ const App = () => {
     const postcode = e.target.value;
     setTempFilters({
       ...tempFilters,
-      postcode
+      postcode,
     });
   };
 
@@ -61,7 +62,7 @@ const App = () => {
     setFilters((prev) => ({
       ...prev,
       city: tempFilters.city,
-      postcode: tempFilters.postcode
+      postcode: tempFilters.postcode,
     }));
     setShowFilters(false);
   };
@@ -71,16 +72,16 @@ const App = () => {
     setFilters((prev) => ({
       ...prev,
       city: '',
-      postcode: ''
+      postcode: '',
     }));
   };
 
-  const filteredShops = mockShopData.filter(shop => {
+  const filteredShops = mockShopData.filter((shop) => {
     const matchesCity = filters.city ? shop.city === filters.city : true;
     const matchesPostcode = filters.postcode ? shop.postcode === filters.postcode : true;
     const matchesCategory = filters.category ? shop.serviceType === filters.category : true;
     const matchesSearch = searchTerm
-      ? Object.values(shop).some(val =>
+      ? Object.values(shop).some((val) =>
           String(val).toLowerCase().includes(searchTerm.toLowerCase())
         )
       : true;
@@ -100,11 +101,24 @@ const App = () => {
   };
 
   const totalPages = Math.ceil(filteredShops.length / itemsPerPage);
-  const paginatedShops = filteredShops.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedShops = filteredShops.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
       setCurrentPage(newPage);
+    }
+  };
+
+  const getIconForCategory = (category) => {
+    switch (category) {
+      case 'Restaurant':
+        return <RestaurantIcon />;
+      // Add more cases here when you define other icons
+      default:
+        return null;
     }
   };
 
@@ -122,19 +136,19 @@ const App = () => {
                       <button
                         key={category}
                         onClick={() => handleCategoryClick(category)}
-                        className={`flex-1 text-lg border-0 transition-colors text-center py-4 ${
+                        className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-colors text-center py-4 ${
                           filters.category === category
                             ? 'bg-blue-500 text-white'
                             : `${isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-200'}`
                         }`}
                       >
-                        {category}
+                        {getIconForCategory(category)}
+                        <span>{category}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               </header>
-
               <main className={`container mx-auto p-4 space-y-6`}>
                 <div className="flex justify-between items-center">
                   <div className="max-w-md md:max-w-xl lg:max-w-2xl flex-grow">
@@ -156,7 +170,7 @@ const App = () => {
                         onClick={() => {
                           setTempFilters({
                             city: filters.city,
-                            postcode: filters.postcode
+                            postcode: filters.postcode,
                           });
                           setShowFilters(true);
                         }}
@@ -177,7 +191,7 @@ const App = () => {
                           >
                             <div className="p-4">
                               <h3 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                                Filter Shops
+                                Filters
                               </h3>
                               <div className="mb-4">
                                 <label htmlFor="filter-city" className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -192,7 +206,7 @@ const App = () => {
                                   }`}
                                 >
                                   <option value="">All Cities</option>
-                                  {uniqueCities.map(city => (
+                                  {uniqueCities.map((city) => (
                                     <option key={city} value={city}>{city}</option>
                                   ))}
                                 </select>
@@ -218,11 +232,11 @@ const App = () => {
                                   </option>
                                   {(tempFilters.city
                                     ? mockShopData
-                                        .filter(shop => shop.city === tempFilters.city)
-                                        .map(shop => shop.postcode)
+                                        .filter((shop) => shop.city === tempFilters.city)
+                                        .map((shop) => shop.postcode)
                                         .filter((pc, i, self) => self.indexOf(pc) === i)
                                     : uniquePostcodes
-                                  ).map(postcode => (
+                                  ).map((postcode) => (
                                     <option key={postcode} value={postcode}>
                                       {postcode}
                                     </option>
@@ -267,7 +281,6 @@ const App = () => {
                   isDarkMode={isDarkMode}
                 />
               </main>
-
               {selectedShop && (
                 <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
                   <div
@@ -296,10 +309,7 @@ const App = () => {
         <Route path="/history" element={<div>History</div>} />
         <Route path="/admin" element={<div>Admin Zone</div>} />
       </Route>
-      <Route
-        path="/shop/:id"
-        element={<ShopDetailsPage isDarkMode={isDarkMode} />}
-      />
+      <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
