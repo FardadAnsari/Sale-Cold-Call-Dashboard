@@ -150,8 +150,9 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                     ? 'bg-dark-700 border text-gray-200 hover:bg-gray-600'
                     : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                 }`}
-              >
-                <FilterIcon />
+              > 
+                
+                <FilterIcon fill={isDarkMode ? 'white' : 'gray'}/>
                 <span>Filter</span>
               </button>
               {showFilters && (
