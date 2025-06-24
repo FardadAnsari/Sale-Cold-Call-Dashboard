@@ -102,7 +102,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'text-gray-900'} min-h-screen`}>
       <header className={`p-0 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="container mx-auto">
-          <div className={`flex p-1 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+          <div className={`flex px-2 py-3 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
             {orderedCategories.map((category) => (
               <button
                 key={category}
@@ -168,7 +168,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                   >
                     <div className="p-4">
                       <h3 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                        Filters
+                      
                       </h3>
                       <div className="mb-4">
                         <label htmlFor="filter-city" className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
