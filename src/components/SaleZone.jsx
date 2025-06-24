@@ -102,15 +102,15 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
     <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} min-h-screen`}>
       <header className={`p-0 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="container mx-auto">
-          <div className="flex">
+          <div className={`flex p-1 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-gray-500'}`}>
             {orderedCategories.map((category) => (
               <button
                 key={category}
                 onClick={() => handleCategoryClick(category)}
-                className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-colors text-center py-4 ${
+                className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 ${
                   filters.category === category
-                    ? 'bg-blue-500 text-white'
-                    : `${isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'bg-white hover:bg-gray-200'}`
+                    ? 'bg-gray-600 text-white scale-95 rounded-lg'
+                    : `${isDarkMode ? 'bg-gray-700' : 'bg-gray-500'} text-white`
                 }`}
               >
                 {getIconForCategory(category)}

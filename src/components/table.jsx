@@ -1,14 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { OpenIcon, ClosedIcon } from '../Icons'; // Importing the status icons
+import { OpenIcon, ClosedIcon } from '../Icons';
 
 const Table = ({ shops = [], isDarkMode }) => {
   const navigate = useNavigate();
-  
+
   const handleRowClick = (shop) => {
     navigate(`/shop/${shop.id}`);
   };
-  
+
   const skeletonRows = Array.from({ length: 5 }, (_, index) => {
     const rowBgClass = index % 2 === 0
       ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'
@@ -24,9 +24,6 @@ const Table = ({ shops = [], isDarkMode }) => {
         <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
           <div className={`h-4 rounded w-1/3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
         </td>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm font-mono ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-          <div className={`h-4 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
         <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
           <div className={`h-4 rounded w-1/5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
         </td>
@@ -39,7 +36,7 @@ const Table = ({ shops = [], isDarkMode }) => {
       </tr>
     );
   });
-  
+
   const skeletonMobile = Array.from({ length: 5 }, (_, index) => {
     const cardBgClass = index % 2 === 0
       ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'
@@ -59,13 +56,12 @@ const Table = ({ shops = [], isDarkMode }) => {
           </div>
         </div>
         <p className="text-sm"><div className={`h-3 rounded w-1/3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
-        <p className="text-sm"><div className={`h-3 rounded w-1/3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
         <p className="text-sm"><div className={`h-3 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
         <p className="text-sm"><div className={`h-3 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
       </div>
     );
   });
-  
+
   if (!shops.length) {
     return (
       <div
@@ -81,7 +77,7 @@ const Table = ({ shops = [], isDarkMode }) => {
       </div>
     );
   }
-  
+
   const getStatusBadge = (status) => {
     const isOpen = status?.toLowerCase() === 'open';
     return (
@@ -90,22 +86,27 @@ const Table = ({ shops = [], isDarkMode }) => {
       </span>
     );
   };
-  
+
   const formatWebsite = (url) => {
     if (!url) return null;
-    const fullUrl = url.startsWith('http') ? url : `https://${url}`; 
+    const fullUrl = url.startsWith('http') ? url : `https://${url}`;
+
+    const handleClick = (e) => {
+      e.stopPropagation();
+      window.open(fullUrl, '_blank');
+    };
+
     return (
       <a
-        href={fullUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+        href="#"
+        onClick={handleClick}
         className={isDarkMode ? 'text-blue-400 hover:underline' : 'text-blue-600 hover:underline'}
       >
         Visit
       </a>
     );
   };
-  
+
   return (
     <div className={`shadow-sm rounded-lg border overflow-hidden ${
       isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
@@ -123,9 +124,8 @@ const Table = ({ shops = [], isDarkMode }) => {
             <tr>
               <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Shop Name</th>
               <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Service Type</th>
-              <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Phone</th>
               <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Postcode</th>
-              <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-blue-500'}`}>Website</th>
+              <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-blue-400' : 'text-blue-500'}`}>Website</th>
               <th scope="col" className={`px-6 py-3 text-left text-xs font-medium uppercase tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Status</th>
             </tr>
           </thead>
@@ -134,7 +134,6 @@ const Table = ({ shops = [], isDarkMode }) => {
               <tr key={shop.id} onClick={() => handleRowClick(shop)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{shop.name}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.serviceType}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.phone}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-mono ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.postcode}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{formatWebsite(shop.website)}</td>
                 <td className={`px-6 py-4 whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{getStatusBadge(shop.status)}</td>
@@ -152,7 +151,6 @@ const Table = ({ shops = [], isDarkMode }) => {
               {getStatusBadge(shop.status)}
             </div>
             <p className="text-sm">{shop.serviceType}</p>
-            <p className="text-sm">{shop.phone}</p>
             <p className="text-sm">{shop.postcode}</p>
             <p className="text-sm">{formatWebsite(shop.website)}</p>
           </div>
