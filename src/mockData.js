@@ -1,5 +1,6 @@
 const mockShopData = [
   {
+    
     id: 1,
     name: "Mario's Pizza Palace",
     serviceType: "Takeaway",

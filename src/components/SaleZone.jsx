@@ -9,7 +9,7 @@ import mockShopData from '../mockData';
 
 const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({ city: '', postcode: '', category: '' });
+  const [filters, setFilters] = useState({ city: '', postcode: '', category: 'Takeaway' });
   const [tempFilters, setTempFilters] = useState({ city: '', postcode: '' });
   const [showFilters, setShowFilters] = useState(false);
   const [selectedShop, setSelectedShop] = useState(null);
@@ -99,10 +99,10 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
   };
 
   return (
-    <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-900'} min-h-screen`}>
+    <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'text-gray-900'} min-h-screen`}>
       <header className={`p-0 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
         <div className="container mx-auto">
-          <div className={`flex p-1 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-gray-500'}`}>
+          <div className={`flex p-1 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
             {orderedCategories.map((category) => (
               <button
                 key={category}
@@ -110,7 +110,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                 className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 ${
                   filters.category === category
                     ? 'bg-gray-600 text-white scale-95 rounded-lg'
-                    : `${isDarkMode ? 'bg-gray-700' : 'bg-gray-500'} text-white`
+                    : `${isDarkMode ? 'bg-gray-700' : 'bg-white'} text-gray-900`
                 }`}
               >
                 {getIconForCategory(category)}
