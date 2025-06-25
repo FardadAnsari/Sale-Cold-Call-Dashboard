@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import Table from './Table';
-import Search from './Search';
-import Pagination from './Pagination';
-import ShopDetails from './ShopDetails';
+import Table from '../components/Table';
+import Search from '../components/Search';
+import Pagination from '../components/Pagination';
+import ShopDetails from '../components/ShopDetails';
 import { RestaurantIcon, CafeIcon, FilterIcon } from 'src/Icons';
 import takeawayImg from '../images/takeaway.png';
 import mockShopData from '../mockData';
 
-const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
+const SaleZone = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({ city: '', postcode: '', category: 'Takeaway' });
   const [tempFilters, setTempFilters] = useState({ city: '', postcode: '' });
@@ -15,6 +15,8 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
   const [selectedShop, setSelectedShop] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  const isDarkMode = true;
 
   const uniqueCities = [...new Set(mockShopData.map((shop) => shop.city))];
   const uniquePostcodes = [...new Set(mockShopData.map((shop) => shop.postcode))];
@@ -99,18 +101,18 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
   };
 
   return (
-    <div className={`${isDarkMode ? 'bg-gray-900 text-white' : 'text-gray-900'} min-h-screen`}>
-      <header className={`p-0 shadow-sm ${isDarkMode ? 'bg-gray-800' : 'bg-white'}`}>
+    <div className={`bg-gray-900 text-white min-h-screen`}>
+      <header className={`p-0 shadow-sm bg-gray-800`}>
         <div className="container mx-auto">
-          <div className={`flex px-2 py-3 rounded-b-2xl ${isDarkMode ? 'bg-gray-700' : 'bg-white'}`}>
+          <div className={`flex px-3 py-4 rounded-b-2xl bg-gray-700`}>
             {orderedCategories.map((category) => (
               <button
                 key={category}
                 onClick={() => handleCategoryClick(category)}
                 className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 ${
                   filters.category === category
-                    ? 'bg-gray-600 text-white scale-95 rounded-lg'
-                    : `${isDarkMode ? 'bg-gray-700' : 'bg-white'} text-gray-900`
+                    ? 'bg-gray-600 text-gray-200 scale-95 rounded-lg'
+                    : 'bg-gray-700 text-gray-400'
                 }`}
               >
                 {getIconForCategory(category)}
@@ -121,21 +123,11 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
         </div>
       </header>
       <main className={`container mx-auto p-4 space-y-6`}>
-        <div className="flex justify-between items-center">
+        <div className="flex justify-between items-center mt-5 pb-4">
           <div className="max-w-md md:max-w-xl lg:max-w-2xl flex-grow">
             <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} isDarkMode={isDarkMode} />
           </div>
           <div className="flex items-center space-x-3 ml-4">
-            <button
-              onClick={toggleDarkMode}
-              className={`px-4 py-2 text-sm rounded transition-colors ${
-                isDarkMode
-                  ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-              }`}
-            >
-              {isDarkMode ? 'Light Mode' : 'Dark Mode'}
-            </button>
             <div className="relative inline-block text-left">
               <button
                 onClick={() => {
@@ -145,14 +137,9 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                   });
                   setShowFilters(true);
                 }}
-                className={`flex items-center gap-2 px-4 py-2 rounded transition-colors ${
-                  isDarkMode
-                    ? 'bg-dark-700 border text-gray-200 hover:bg-gray-600'
-                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                }`}
-              > 
-                
-                <FilterIcon fill={isDarkMode ? 'white' : 'gray'}/>
+                className={`flex items-center gap-2 px-4 py-2 rounded transition-colors bg-gray-700 border text-gray-200 hover:bg-gray-600`}
+              >
+                <FilterIcon fill={'white'} />
                 <span>Filter</span>
               </button>
               {showFilters && (
@@ -162,25 +149,18 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                     onClick={() => setShowFilters(false)}
                   ></div>
                   <div
-                    className={`absolute right-4 mt-2 w-72 rounded-md shadow-lg z-50 ${
-                      isDarkMode ? 'bg-gray-800 border border-gray-700' : 'bg-white'
-                    }`}
+                    className={`absolute right-4 mt-2 w-72 rounded-md shadow-lg z-50 bg-gray-800 border border-gray-700`}
                   >
                     <div className="p-4">
-                      <h3 className={`text-sm font-medium mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                      
-                      </h3>
                       <div className="mb-4">
-                        <label htmlFor="filter-city" className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <label htmlFor="filter-city" className={`block text-xs font-medium mb-1 text-gray-300`}>
                           Select a city
                         </label>
                         <select
                           id="filter-city"
                           value={tempFilters.city}
                           onChange={handleCityChange}
-                          className={`w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isDarkMode ? 'bg-gray-700 border-gray-600' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600`}
                         >
                           <option value="">All Cities</option>
                           {uniqueCities.map((city) => (
@@ -189,7 +169,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                         </select>
                       </div>
                       <div className="mb-4">
-                        <label htmlFor="filter-postcode" className={`block text-xs font-medium mb-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                        <label htmlFor="filter-postcode" className={`block text-xs font-medium mb-1 text-gray-300`}>
                           Select a postcode
                           {tempFilters.city && <span className="text-xs ml-1 opacity-75">({tempFilters.city})</span>}
                         </label>
@@ -198,9 +178,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                           value={tempFilters.postcode}
                           onChange={handlePostcodeChange}
                           disabled={!tempFilters.city}
-                          className={`w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isDarkMode ? 'bg-gray-700 border-gray-600' : 'border-gray-300'
-                          }`}
+                          className={`w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600`}
                         >
                           <option value="">
                             {tempFilters.city
@@ -224,7 +202,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                               ))}
                         </select>
                         {!tempFilters.city && (
-                          <p className={`mt-1 text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                          <p className={`mt-1 text-xs text-gray-400`}>
                             Select a city to see postcodes
                           </p>
                         )}
@@ -232,11 +210,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
                       <div className="flex justify-between pt-2">
                         <button
                           onClick={() => setShowFilters(false)}
-                          className={`px-3 py-1.5 text-sm rounded transition-colors ${
-                            isDarkMode
-                              ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                              : 'bg-gray-200 hover:bg-gray-300 text-gray-800'
-                          }`}
+                          className={`px-3 py-1.5 text-sm rounded transition-colors bg-gray-700 hover:bg-gray-600 text-gray-300`}
                         >
                           Close
                         </button>
@@ -265,9 +239,7 @@ const SaleZone = ({ isDarkMode, toggleDarkMode }) => {
       {selectedShop && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
           <div
-            className={`relative rounded-lg shadow-xl overflow-auto max-w-5xl w-full ${
-              isDarkMode ? 'bg-gray-800' : 'bg-white'
-            }`}
+            className={`relative rounded-lg shadow-xl overflow-auto max-w-5xl w-full bg-gray-800`}
             style={{ maxHeight: '90vh' }}
           >
             <button

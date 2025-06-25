@@ -8,10 +8,10 @@ const Sidebar = ({ isDarkMode }) => {
           <li>
             <Link
               to="/"
-              className={`block w-full text-center py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`block w-full text-center py-3 px-4 rounded-lg font-medium transition-all duration-300 transform ${
                 isDarkMode
-                  ? 'hover:bg-gray-600 text-white'
-                  : 'hover:bg-gray-100 text-gray-800 shadow-sm'
+                  ? 'hover:bg-gray-700 hover:scale-105 hover:shadow-lg text-white focus:outline-none focus:ring-4 focus:ring-gray-500/50 focus:ring-offset-2 focus:ring-offset-gray-800 focus:bg-gray-600 active:bg-gray-600'
+                  : 'hover:bg-gray-300 hover:scale-105 hover:shadow-xl text-gray-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-gray-200 focus:bg-gray-300 active:bg-gray-400'
               }`}
             >
               Sale Zone
@@ -20,10 +20,10 @@ const Sidebar = ({ isDarkMode }) => {
           <li>
             <Link
               to="/history"
-              className={`block w-full text-center py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`block w-full text-center py-3 px-4 rounded-lg font-medium transition-all duration-300 transform ${
                 isDarkMode
-                  ? 'hover:bg-gray-600 text-white'
-                  : 'hover:bg-gray-100 text-gray-800 shadow-sm'
+                  ? 'hover:bg-gray-700 hover:scale-105 hover:shadow-lg text-white focus:outline-none focus:ring-4 focus:ring-gray-500/50 focus:ring-offset-2 focus:ring-offset-gray-800 focus:bg-gray-600 active:bg-gray-600'
+                  : 'hover:bg-gray-300 hover:scale-105 hover:shadow-xl text-gray-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-gray-200 focus:bg-gray-300 active:bg-gray-400'
               }`}
             >
               History
@@ -32,10 +32,10 @@ const Sidebar = ({ isDarkMode }) => {
           <li>
             <Link
               to="/admin"
-              className={`block w-full text-center py-3 px-4 rounded-md font-medium transition-colors ${
+              className={`block w-full text-center py-3 px-4 rounded-lg font-medium transition-all duration-300 transform ${
                 isDarkMode
-                  ? 'hover:bg-gray-600 text-white'
-                  : 'hover:bg-gray-100 text-gray-800 shadow-sm'
+                  ? 'hover:bg-gray-700 hover:scale-105 hover:shadow-lg text-white focus:outline-none focus:ring-4 focus:ring-gray-500/50 focus:ring-offset-2 focus:ring-offset-gray-800 focus:bg-gray-600 active:bg-gray-600'
+                  : 'hover:bg-gray-300 hover:scale-105 hover:shadow-xl text-gray-800 shadow-sm focus:outline-none focus:ring-4 focus:ring-gray-400/50 focus:ring-offset-2 focus:ring-offset-gray-200 focus:bg-gray-300 active:bg-gray-400'
               }`}
             >
               Admin Zone

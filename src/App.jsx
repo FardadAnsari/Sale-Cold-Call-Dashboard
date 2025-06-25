@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
-import SaleZone from './components/SaleZone';
+import SaleZone from './Pages/SaleZone';
 import ShopDetailsPage from './components/ShopDetailsPage';
 
 const Layout = ({ isDarkMode, toggleDarkMode }) => {
@@ -16,7 +16,7 @@ const Layout = ({ isDarkMode, toggleDarkMode }) => {
 };
 
 const App = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Changed from false to true
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
