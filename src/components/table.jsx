@@ -117,26 +117,27 @@ const Table = ({ shops = [], isDarkMode }) => {
         <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
           <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
             <tr>
-              <th scope="col" className={`px-6 py-6 text-left text-l font-medium  tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Shop Name</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium  tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Service Type</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium  tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Postcode</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium  tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Website</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium  tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Status</th>
+              <th scope="col" className={`px-6 py-6 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Shop Name</th>
+              <th scope="col" className={`px-6 py-3 text-right text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Service Type</th>
+              <th scope="col" className={`px-6 py-3 text-right text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Postcode</th>
+              <th scope="col" className={`px-6 py-3 text-right text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Website</th>
+              <th scope="col" className={`px-6 py-3 text-right text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Status</th>
             </tr>
           </thead>
           <tbody className={isDarkMode ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
             {shops.map((shop, index) => (
               <tr key={shop.id} onClick={() => handleRowClick(shop)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'} `}>{shop.name}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.serviceType}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm font-mono ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.postcode}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{formatWebsite(shop.website)}</td>
-                <td className={`px-6 py-4 whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{getStatusBadge(shop.status)}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{shop.name}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.serviceType}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm font-mono text-right ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.postcode}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{formatWebsite(shop.website)}</td>
+                <td className={`px-6 py-4 whitespace-nowrap text-right ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{getStatusBadge(shop.status)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+
       {/* Mobile View */}
       <div className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}>
         {shops.map((shop) => (
@@ -145,9 +146,13 @@ const Table = ({ shops = [], isDarkMode }) => {
               <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{shop.name}</h3>
               {getStatusBadge(shop.status)}
             </div>
-            <p className="text-sm">{shop.serviceType}</p>
-            <p className="text-sm">{shop.postcode}</p>
-            <p className="text-sm">{formatWebsite(shop.website)}</p>
+            <div className="flex justify-between">
+              <p className="text-sm">{shop.serviceType}</p>
+              <p className="text-sm">{shop.postcode}</p>
+            </div>
+            <div className="text-right">
+              {formatWebsite(shop.website)}
+            </div>
           </div>
         ))}
       </div>
