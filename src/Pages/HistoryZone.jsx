@@ -1,4 +1,4 @@
-// HistoryZone.jsx
+// HistoryZ
 const HistoryZone = () => {
   return <div>History Zone Content</div>;
 };

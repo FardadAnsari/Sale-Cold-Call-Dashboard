@@ -5,6 +5,7 @@ import Pagination from '../components/Pagination';
 import ShopDetails from '../components/ShopDetails';
 import { RestaurantIcon, CafeIcon, FilterIcon } from 'src/Icons';
 import takeawayImg from '../images/takeaway.png';
+import sadMaskImg from '../images/sad-mask.png';
 import mockShopData from '../mockData';
 
 const SaleZone = () => {
@@ -228,13 +229,24 @@ const SaleZone = () => {
             </div>
           </div>
         </div>
-        <Table shops={paginatedShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          isDarkMode={isDarkMode}
-        />
+        {filteredShops.length === 0 ? (
+          <div className="flex flex-col items-center justify-center p-8">
+            <img src={sadMaskImg} alt="Sad Mask" className="w-32 h-32 mb-4" />
+            <p className="text-white text-2xl font-medium text-center" style={{ lineHeight: '1.5' }}>
+              Sorry! No results match your search or filters. <br /> Please try again.
+            </p>
+          </div>
+        ) : (
+          <>
+            <Table shops={paginatedShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              isDarkMode={isDarkMode}
+            />
+          </>
+        )}
       </main>
       {selectedShop && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50 p-4">
