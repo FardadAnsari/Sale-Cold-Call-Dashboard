@@ -1,13 +1,8 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+// Removed useNavigate as we are handling navigation/modal display in parent
 import { OpenIcon, ClosedIcon } from '../Icons';
 
-const Table = ({ shops = [], isDarkMode }) => {
-  const navigate = useNavigate();
-
-  const handleRowClick = (shop) => {
-    navigate(`/shop/${shop.id}`);
-  };
+const Table = ({ shops = [], isDarkMode, onRowClick }) => { // Added onRowClick prop
 
   const skeletonRows = Array.from({ length: 5 }, (_, index) => {
     const rowBgClass = index % 2 === 0
@@ -126,7 +121,7 @@ const Table = ({ shops = [], isDarkMode }) => {
           </thead>
           <tbody className={isDarkMode ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
             {shops.map((shop, index) => (
-              <tr key={shop.id} onClick={() => handleRowClick(shop)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+              <tr key={shop.id} onClick={() => onRowClick(shop.id)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{shop.name}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm text-right ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.serviceType}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-mono text-right ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{shop.postcode}</td>
@@ -141,7 +136,7 @@ const Table = ({ shops = [], isDarkMode }) => {
       {/* Mobile View */}
       <div className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}>
         {shops.map((shop) => (
-          <div key={shop.id} onClick={() => handleRowClick(shop)} className={`px-6 py-4 space-y-3 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
+          <div key={shop.id} onClick={() => onRowClick(shop.id)} className={`px-6 py-4 space-y-3 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
             <div className="flex justify-between items-center">
               <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{shop.name}</h3>
               {getStatusBadge(shop.status)}
