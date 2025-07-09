@@ -75,13 +75,13 @@ const Login = () => {
       if (userResponse.ok) {
         // If user data is fetched successfully (200 OK), authentication is valid
         console.log('User verification successful');
-        localStorage.setItem('authToken', accessToken);
+        sessionStorage.setItem('authToken', accessToken);
         navigate('/', { replace: true });
       } else if (userResponse.status === 401) {
         // If token is invalid (401 Unauthorized)
         console.error('User verification failed: Token is invalid.');
         setLoginError('Authentication failed. Please log in again.');
-        localStorage.removeItem('authToken'); // Ensure no invalid token is stored
+        sessionStorage.removeItem('authToken'); // Ensure no invalid token is stored
       } else {
         // Handle other potential errors from the user endpoint
         const errorData = await userResponse.json();
