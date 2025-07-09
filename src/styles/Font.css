@@ -1,13 +1,3 @@
-@import 'tailwindcss';
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* @plugin '@tailwindcss/forms';
-@plugin '@tailwindcss/typography'; */
-
-/* @import './styles.css'; */
-
 @font-face {
   font-family: 'CustomFont';
   src: url('./fonts/CustomFont-Regular.ttf') format('truetype');
@@ -18,4 +8,8 @@
   font-family: 'CustomFont';
   src: url('./fonts/CustomFont-Bold.ttf') format('truetype');
   font-weight: bold;
+}
+
+.font-custom {
+  font-family: 'CustomFont', sans-serif;
 }
