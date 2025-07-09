@@ -63,8 +63,8 @@ const Lead = () => {
       Area: '',
       Interest_Rate: '',
       Last_Caller: '',
-      // nextFollowUpDate: '',
-      // nextFollowUpTime: '',
+      nextFollowUpDate: '',
+      nextFollowUpTime: '',
       leadOwnerEmail: '',
       Street: '',
       City_Pick_List: '',
@@ -179,31 +179,31 @@ const Lead = () => {
       Owner: {
         email: data.leadOwnerEmail,
       },
-      Tag: [
-        {
-          name: "Onboarding Zone App",
-          id: "458329000059988037"
-        }
-      ],
+      // Tag: [
+      //   {
+      //     name: "Onboarding Zone App",
+      //     id: "458329000059988037"
+      //   }
+      // ],
       Company: data.Company,
       Previous_Name: data.Previous_Name,
       Company_Registered_Name: data.Company_Registered_Name,
       Phone: cleanPhoneNumbers[0] || "",
       Phone2: cleanPhoneNumbers[1] || "",
-      Salutation: data.Title,
+      //Salutation: data.Title,
       First_Name: data.First_Name,
       Last_Name: data.Last_Name,
       Mobile: data.Mobile,
       Email: data.Email,
-      Website: data.Website, // Added Website to the payload
+      //Website: data.Website, // Added Website to the payload
       Lead_Status: data.Lead_Status,
       stage: data.stage,
       Lead_Source: data.Lead_Source,
       Industry: data.Industry,
       Area: data.Area,
       Interest_Rate: data.Interest_Rate,
-      Last_Caller: data.Last_Caller,
-      Next_Follow_Up: nextFollowUpFormatted,
+      //Last_Caller: data.Last_Caller,
+      //Next_Follow_Up: nextFollowUpFormatted,
       Lead_Owner: data.leadOwnerEmail,
       Street: data.Street,
       City_Pick_List: data.City_Pick_List,
@@ -214,7 +214,7 @@ const Lead = () => {
       Longitude: data.Longitude,
       Description: data.Description,
       Internet_Connection_Status: data.Internet_Connection_Status,
-      Master_Socket_To_Counter: data.Master_Socket_To_Counter,
+      //Master_Socket_To_Counter: data.Master_Socket_To_Counter,
       Premises_Condition: data.Premises_Condition,
       Business_Start_Date: businessStartDateFormatted,
       Has_Kitchen_Printer: Boolean(data.hasKitchenPrinter),
@@ -224,11 +224,11 @@ const Lead = () => {
 
     const leadPayload = {
       data: [leadData],
-      apply_feature_execution: [
-        {
-          name: "layout_rules"
-        }
-      ],
+      // apply_feature_execution: [
+      //   {
+      //     name: "layout_rules"
+      //   }
+      // ],
       skip_feature_execution: [],
       trigger: []
     };
@@ -251,7 +251,7 @@ const Lead = () => {
       const csrfToken = getCsrfToken();
       const headers = {
         'Content-Type': 'application/json',
-        // 'accept': 'application/json',
+         'accept': 'application/json',
         'Authorization': `Bearer ${authToken}`,
       };
 

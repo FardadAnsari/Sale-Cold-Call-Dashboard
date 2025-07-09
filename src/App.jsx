@@ -8,6 +8,7 @@ import HistoryZone from './Pages/HistoryZone';
 import Login from './Pages/Login';
 import ShopDetailsPage from './components/ShopDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import LeadZone from './Pages/LeadZone'; // Import the LeadZone component
 
 // Create a client
 const queryClient = new QueryClient({
@@ -37,7 +38,6 @@ const App = () => {
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
-
   return (
     <QueryClientProvider client={queryClient}>
       <ScrollBar /> {/* Apply custom scrollbar styles globally */}
@@ -51,6 +51,7 @@ const App = () => {
             <Route path="/history" element={<HistoryZone />} />
             <Route path="/admin" element={<div className="p-4 text-white">Admin Zone Content</div>} />
             <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
+            <Route path="/leads" element={<LeadZone />} /> {/* New route for Leads */}
           </Route>
         </Route>
         {/* Redirect any unhandled routes to login if not authenticated */}
