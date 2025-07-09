@@ -56,6 +56,8 @@ const CallHistory = ({ isDarkMode = true }) => {
     availabilityDayContent: `mt-3 space-y-2`,
     timeSlotContainer: `flex items-center gap-2`,
     timeInput: `bg-gray-600 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-orange-400`,
+    // Enhanced scrollable area with custom scrollbar
+    scrollableArea: `flex-1 overflow-y-auto pr-2 pb-4 custom-scrollbar`,
   };
 
   const handleClear = (setter) => () => setter('');
@@ -102,6 +104,31 @@ const CallHistory = ({ isDarkMode = true }) => {
 
   return (
     <div className={formClasses.container}>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #374151;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 4px;
+          transition: background 0.2s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #6b7280 #374151;
+        }
+        .custom-scrollbar {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+      
       {/* Tab-like buttons */}
       <div className="flex mb-4 -mt-2 -mx-4 px-4 pt-2 border-b border-gray-600">
         <button
@@ -130,14 +157,14 @@ const CallHistory = ({ isDarkMode = true }) => {
       {activeInternalTab === 'createLead' ? (
         <>
           <h2 className={formClasses.heading}>Create Lead Form</h2>
-          <div className="flex-1 overflow-y-auto pr-2 pb-4">
+          <div className={formClasses.scrollableArea}>
             <Lead isDarkMode={isDarkMode} />
           </div>
         </>
       ) : showAvailabilityForm ? (
         <>
           <h2 className={formClasses.heading}>Set Owner Availability</h2>
-          <div className="flex-1 overflow-y-auto pr-2 pb-4">
+          <div className={formClasses.scrollableArea}>
             <div className="h-full">
               {daysOfWeek.map((day) => (
                 <div key={day} className={formClasses.availabilitySection}>
@@ -221,7 +248,7 @@ const CallHistory = ({ isDarkMode = true }) => {
       ) : (
         <>
           <h2 className={formClasses.heading}>Call Summary Form</h2>
-          <div className="flex-1 overflow-y-auto pr-2 pb-4">
+          <div className={formClasses.scrollableArea}>
             <form onSubmit={handleSubmit} className="flex flex-col h-full">
               <div className="mb-3">
                 <label htmlFor="callDescription" className={formClasses.label}>
@@ -278,36 +305,38 @@ const CallHistory = ({ isDarkMode = true }) => {
                     {shopOwnerName && (
                       <button
                         type="button"
-                        className={formClasses.clearButton}
                         onClick={handleClear(setShopOwnerName)}
+                        className={formClasses.clearButton}
                       >
-                        x
+                        ×
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="shopOwnerPhone" className={formClasses.label}>Shop Owner's Phone No.</label>
+                  <label htmlFor="shopOwnerPhone" className={formClasses.label}>Shop Owner's Phone</label>
                   <div className={formClasses.inputGroup}>
                     <input
-                      type="text"
+                      type="tel"
                       id="shopOwnerPhone"
                       className={formClasses.inputBase}
-                      placeholder="Enter owner's phone number"
+                      placeholder="Enter owner's phone"
                       value={shopOwnerPhone}
                       onChange={(e) => setShopOwnerPhone(e.target.value)}
                     />
                     {shopOwnerPhone && (
                       <button
                         type="button"
-                        className={formClasses.clearButton}
                         onClick={handleClear(setShopOwnerPhone)}
+                        className={formClasses.clearButton}
                       >
-                        x
+                        ×
                       </button>
                     )}
                   </div>
                 </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div>
                   <label htmlFor="gateKeeperName" className={formClasses.label}>Gate Keeper's Name</label>
                   <div className={formClasses.inputGroup}>
@@ -315,57 +344,60 @@ const CallHistory = ({ isDarkMode = true }) => {
                       type="text"
                       id="gateKeeperName"
                       className={formClasses.inputBase}
-                      placeholder="Enter gate keeper's name"
+                      placeholder="Enter gatekeeper's name"
                       value={gateKeeperName}
                       onChange={(e) => setGateKeeperName(e.target.value)}
                     />
                     {gateKeeperName && (
                       <button
                         type="button"
-                        className={formClasses.clearButton}
                         onClick={handleClear(setGateKeeperName)}
+                        className={formClasses.clearButton}
                       >
-                        x
+                        ×
                       </button>
                     )}
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="gateKeeperPhone" className={formClasses.label}>Gate Keeper's Phone No.</label>
+                  <label htmlFor="gateKeeperPhone" className={formClasses.label}>Gate Keeper's Phone</label>
                   <div className={formClasses.inputGroup}>
                     <input
-                      type="text"
+                      type="tel"
                       id="gateKeeperPhone"
                       className={formClasses.inputBase}
-                      placeholder="Enter gate keeper's phone number"
+                      placeholder="Enter gatekeeper's phone"
                       value={gateKeeperPhone}
                       onChange={(e) => setGateKeeperPhone(e.target.value)}
                     />
                     {gateKeeperPhone && (
                       <button
                         type="button"
-                        className={formClasses.clearButton}
                         onClick={handleClear(setGateKeeperPhone)}
+                        className={formClasses.clearButton}
                       >
-                        x
+                        ×
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-              <div className="flex gap-3 mb-3">
+              <div className="mb-6">
                 <button
                   type="button"
-                  className={formClasses.buttonAddAvailability}
                   onClick={toggleAvailabilityForm}
+                  className={formClasses.buttonAddAvailability}
                 >
-                  <img src={plusIcon} alt="Add" className="h-3 w-3" />
+                  <img src={plusIcon} alt="Add" className="h-4 w-4 mr-1" />
                   Add Owner Availability
                 </button>
               </div>
-              <div className="flex justify-center mt-auto">
-                <button type="submit" className={formClasses.buttonSubmit}>
-                  Submit
+              <div className="mt-auto">
+                <button
+                  type="submit"
+                  className={formClasses.buttonSubmit}
+                >
+                  Submit Call Summary
                 </button>
               </div>
             </form>

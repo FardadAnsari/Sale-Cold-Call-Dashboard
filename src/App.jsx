@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import ScrollBar from './components/ScrollBar';  // Import ScrollBar component
 import Sidebar from './components/Sidebar';
 import SaleZone from './Pages/SaleZone';
 import HistoryZone from './Pages/HistoryZone';
@@ -33,17 +34,16 @@ const Layout = ({ isDarkMode, toggleDarkMode }) => {
 
 const App = () => {
   const [isDarkMode, setIsDarkMode] = useState(true);
-
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode);
   };
 
   return (
     <QueryClientProvider client={queryClient}>
+      <ScrollBar /> {/* Apply custom scrollbar styles globally */}
       <Routes>
         {/* Login route - accessible without authentication */}
         <Route path="/login" element={<Login />} />
-
         {/* Protected routes - wrapped by ProtectedRoute */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
@@ -53,7 +53,6 @@ const App = () => {
             <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
           </Route>
         </Route>
-
         {/* Redirect any unhandled routes to login if not authenticated */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

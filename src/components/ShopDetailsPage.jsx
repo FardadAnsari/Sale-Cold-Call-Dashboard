@@ -116,8 +116,8 @@ const ShopDetailsPage = ({ isDarkMode }) => {
     container: `flex flex-col lg:flex-row gap-6 p-6 mx-auto relative h-screen w-full lg:max-w-7xl overflow-hidden`,
     // Card container is now simply flex-1 and a flex column to hold its content and button
     cardContainer: `flex-1 bg-gray-700 rounded-lg shadow-md p-6 flex flex-col min-w-0`,
-    // Card content has flex-1 to take available space and overflow-y-auto for scrolling
-    cardContent: `flex-1 pb-4 overflow-y-auto`,
+    // Card content with enhanced scrollbar styling
+    cardContent: `flex-1 pb-4 overflow-y-auto pr-2 custom-scrollbar`,
     heading: `text-xl font-semibold mb-4 text-gray-200`,
     // Reduced margin for detail items
     detailItem: `mb-4 flex items-start`,
@@ -169,6 +169,31 @@ const ShopDetailsPage = ({ isDarkMode }) => {
 
   return (
     <div className={commonClasses.container}>
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #374151;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #6b7280;
+          border-radius: 4px;
+          transition: background 0.2s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #6b7280 #374151;
+        }
+        .custom-scrollbar {
+          scroll-behavior: smooth;
+        }
+      `}</style>
+      
       <button
         onClick={() => navigate('/')}
         className="absolute top-4 left-4 z-10 p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
@@ -201,7 +226,7 @@ const ShopDetailsPage = ({ isDarkMode }) => {
               <label className={commonClasses.label}>Opening Hours</label>
               <ul className="space-y-1">
                 {Object.entries(shop.openingHours).map(([day, hours]) => (
-                  <li key={day} className="text-gray-300 text-sm"> {/* Added text-sm here for smaller list items */}
+                  <li key={day} className="text-gray-300 text-sm">
                     <span className="font-medium">{day}:</span> {hours}
                   </li>
                 ))}
