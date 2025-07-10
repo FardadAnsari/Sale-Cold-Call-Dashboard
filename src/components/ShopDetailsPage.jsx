@@ -92,7 +92,7 @@ const ShopDetailsPage = ({ isDarkMode }) => {
     queryKey: ['singleShop', id],
     queryFn: async () => {
       if (!id) return null;
-      const url = `https://sale.mega-data.co.uk/google-map-data/?id=${id}`;
+      const url = `https://sale.mega-data.co.uk/Shops/?id=${id}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: { 'accept': 'application/json' },

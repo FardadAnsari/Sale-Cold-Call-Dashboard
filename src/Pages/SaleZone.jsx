@@ -137,7 +137,7 @@ const SaleZone = () => {
     queryKey: ['shops', filters.category, currentPage],
     queryFn: async () => {
       const currentSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
-      const url = `https://sale.mega-data.co.uk/google-map-data/?search=${currentSearchText}&page=${currentPage}`;
+      const url = `https://sale.mega-data.co.uk/Shops/?search=${currentSearchText}&page=${currentPage}`;
 
       const response = await fetch(url, {
         method: 'GET',
@@ -181,7 +181,7 @@ const SaleZone = () => {
 
       // Fetch multiple pages for search to cover more results
       const searchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/google-map-data/?search=${searchText}&page=${page}`;
+        const url = `https://sale.mega-data.co.uk/Shops/?search=${searchText}&page=${page}`;
         try {
           const response = await fetch(url, {
             method: 'GET',
@@ -255,7 +255,7 @@ const SaleZone = () => {
     queryFn: async () => {
       const initialSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
       const fetchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/google-map-data/?search=${initialSearchText}&page=${page}`;
+        const url = `https://sale.mega-data.co.uk/Shops/?search=${initialSearchText}&page=${page}`;
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
