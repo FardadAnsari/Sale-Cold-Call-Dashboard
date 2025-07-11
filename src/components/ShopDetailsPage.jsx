@@ -81,8 +81,12 @@ const transformSingleShopData = (apiItem) => {
 };
 
 const ShopDetailsPage = ({ isDarkMode }) => {
+
   const { id } = useParams();
   const navigate = useNavigate();
+
+const authToken = sessionStorage.getItem("authToken")
+
   const {
     data: shop,
     isLoading,
@@ -95,7 +99,7 @@ const ShopDetailsPage = ({ isDarkMode }) => {
       const url = `https://sale.mega-data.co.uk/Shops/?id=${id}`;
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'accept': 'application/json' },
+        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
       });
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status} for ID: ${id}`);

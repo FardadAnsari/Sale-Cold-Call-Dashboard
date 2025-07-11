@@ -105,6 +105,7 @@ const parseOpeningHours = (openingHoursData) => {
 const OnboardingZone = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const authToken = sessionStorage.getItem("authToken")
 
   // State for search term and filters
   const [searchInput, setSearchInput] = useState('');
@@ -141,7 +142,7 @@ const OnboardingZone = () => {
 
       const response = await fetch(url, {
         method: 'GET',
-        headers: { 'accept': 'application/json' },
+        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
       });
 
       if (!response.ok) {
@@ -185,7 +186,7 @@ const OnboardingZone = () => {
         try {
           const response = await fetch(url, {
             method: 'GET',
-            headers: { 'accept': 'application/json' },
+            headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
           });
           if (response.ok) {
             const data = await response.json();
