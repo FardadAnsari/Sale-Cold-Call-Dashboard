@@ -102,7 +102,7 @@ const parseOpeningHours = (openingHoursData) => {
 
 
 // Main component for displaying and managing shop data
-const SaleZone = () => {
+const OnboardingZone = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -568,4 +568,4 @@ const SaleZone = () => {
   );
 };
 
-export default SaleZone;
+export default OnboardingZone;

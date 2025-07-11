@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ScrollBar from './components/ScrollBar';  // Import ScrollBar component
 import Sidebar from './components/Sidebar';
-import SaleZone from './Pages/SaleZone';
-import HistoryZone from './Pages/HistoryZone';
+import OnboardingZone from './Pages/OnboardingZone';
+import YourHistory from './Pages/YourHistory';
 import Login from './Pages/Login';
 import ShopDetailsPage from './components/ShopDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import LeadZone from './Pages/LeadZone'; // Import the LeadZone component
+import Leads from './Pages/Leads'; // Import the Leads component
 
 // Create a client
 const queryClient = new QueryClient({
@@ -47,11 +47,11 @@ const App = () => {
         {/* Protected routes - wrapped by ProtectedRoute */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
-            <Route path="/" element={<SaleZone />} />
-            <Route path="/history" element={<HistoryZone />} />
+            <Route path="/" element={<OnboardingZone />} />
+            <Route path="/your-history" element={<YourHistory />} />
             <Route path="/admin" element={<div className="p-4 text-white">Admin Zone Content</div>} />
             <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
-            <Route path="/leads" element={<LeadZone />} /> {/* New route for Leads */}
+            <Route path="/leads" element={<Leads />} /> {/* New route for Leads */}
           </Route>
         </Route>
         {/* Redirect any unhandled routes to login if not authenticated */}

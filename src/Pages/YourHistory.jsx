@@ -79,7 +79,7 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-const HistoryZone = () => {
+const YourHistory = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchInput, setSearchInput] = useState('');
@@ -505,4 +505,4 @@ const HistoryZone = () => {
   );
 };
 
-export default HistoryZone;
+export default YourHistory;

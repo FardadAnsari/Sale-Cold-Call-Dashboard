@@ -83,8 +83,8 @@ const Sidebar = ({ isDarkMode }) => {
           </li>
           <li>
             <Link
-              to="/history"
-              className={linkStyle(isActiveLink('/history'), isDarkMode)}
+              to="/your-history"
+              className={linkStyle(isActiveLink('/your-history'), isDarkMode)}
             >
               <img src={historyPng} alt="History" className="w-6 h-6" />
               <span>Your History</span>
