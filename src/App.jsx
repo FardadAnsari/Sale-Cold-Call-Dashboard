@@ -3,12 +3,13 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ScrollBar from './components/ScrollBar';  // Import ScrollBar component
 import Sidebar from './components/Sidebar';
-import OnboardingZone from './Pages/OnboardingZone';
-import YourHistory from './Pages/YourHistory';
-import Login from './Pages/Login';
+import OnboardingZone from './pages/OnboardingZone';
+import YourHistory from './pages/YourHistory';
+import Login from './pages/Login';
 import ShopDetailsPage from './components/ShopDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
-import Leads from './Pages/Leads'; // Import the Leads component
+import Leads from './pages/Leads'; // Import the Leads component
+import AdminZone from './pages/AdminZone'; // Import AdminZone component
 
 // Create a client
 const queryClient = new QueryClient({
@@ -49,7 +50,7 @@ const App = () => {
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
             <Route path="/" element={<OnboardingZone />} />
             <Route path="/your-history" element={<YourHistory />} />
-            <Route path="/admin" element={<div className="p-4 text-white">Admin Zone Content</div>} />
+            <Route path="/admin" element={<AdminZone />} /> {/* Updated route to use AdminZone */}
             <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
             <Route path="/leads" element={<Leads />} /> {/* New route for Leads */}
           </Route>
