@@ -82,7 +82,7 @@ const Lead = () => {
   const { handleSubmit, setValue, watch, reset } = methods; // Destructure only what's needed directly in Lead
   // State to manage the open/closed status of each accordion section
   const [sections, setSections] = useState({
-    isLeadInfoOpen: false, // This is now false by default
+    isLeadInfoOpen: false, // 
     isAddressOpen: false,
     isDescriptionOpen: false,
     isInstallationTeamOpen: false,
@@ -237,7 +237,7 @@ const Lead = () => {
         headers['X-CSRFTOKEN'] = csrfToken;
       }
       console.log('Request headers:', headers);
-      const response = await fetch('https://sale.mega-data.co.uk/zoho/create-lead/', {
+      const response = await fetch('https://sale.mega-data.co.uk/zoho/create-lead', {
         method: 'POST',
         headers: headers,
         body: JSON.stringify(leadPayload)

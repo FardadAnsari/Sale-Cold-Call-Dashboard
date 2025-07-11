@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import Table from '../components/Table';
+import CaseTable from '../components/CaseTable'; // Changed import
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
 import { FilterIcon } from '../Icons';
@@ -17,30 +17,20 @@ const sanitizeString = (value, defaultValue = 'N/A') => {
 
 // Helper to transform API data for table display
 const transformApiData = (apiResults) => {
-  return apiResults.map((item, index) => ({
-    id: item.id || item.shop_id_company || `shop-${Date.now()}-${index}`,
-    name: sanitizeString(item.shop_name, 'Unknown Shop'),
-    serviceType: sanitizeString(item.category, 'Unknown'),
-    postcode: sanitizeString(item.postcode, 'N/A'),
-    city: extractCityFromAddress(item.address) || 'Unknown',
-    website: sanitizeString(item.website, ''),
-    status: item.is_open_now ? 'open' : 'closed',
-    address: sanitizeString(item.address, ''),
-    phone: sanitizeString(item.phone, ''),
-    rating: sanitizeString(item.rating, 'N/A'),
-    total_reviews: item.total_reviews || 0,
-    latitude: item.latitude || '',
-    longitude: item.longitude || '',
-    opening_hours: item.opening_hours || {}, // Ensure it's an object for safety
-    services: sanitizeString(item.services, ''),
-    providers: item.providers || [],
-    provider_url: sanitizeString(item.provider_url, ''),
-    search_txt: sanitizeString(item.search_txt, ''),
-    category: sanitizeString(item.category, 'Unknown')
-  })).filter(item => item.id !== null && item.id !== undefined); // Ensure IDs are not null/undefined
+  return apiResults.map((item) => ({
+    id: item.id || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    name: sanitizeString(item.customer, 'Unknown Customer'),
+    // Mapping item.stage to case_stage based on the image's "Case Stage" column
+    case_stage: sanitizeString(item.stage, 'Unknown Stage'),
+    // Assuming postcode might be in shop or customer data, defaulting to 'N/A' if not available
+    postcode: sanitizeString(item.post_code || 'N/A'), // Adjusted to directly use item.post_code
+    created_by: sanitizeString(item.created_by, 'Unknown Creator'),
+    start_time: item.start_time, // Keep as is, format in CaseTable
+    last_update: item.last_update, // Keep as is, format in CaseTable
+  })).filter(item => item.id !== null && item.id !== undefined);
 };
 
-// Helper to extract city from address string
+// Helper to extract city from address string (No longer directly used for CaseTable but kept for other potential uses in AdminZone)
 const extractCityFromAddress = (address) => {
   const sanitizedAddress = sanitizeString(address, '');
   if (!sanitizedAddress || sanitizedAddress === 'N/A') return 'Unknown';
@@ -48,52 +38,23 @@ const extractCityFromAddress = (address) => {
   return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
 };
 
-// Helper to transform single shop API data (kept for consistency, though now used in ShopDetailsPage)
-const transformSingleShopData = (apiItem) => {
-  if (!apiItem) return null;
-  return {
-    id: apiItem.id || apiItem.shop_id_company, // Use the integer ID first
-    name: sanitizeString(apiItem.shop_name, 'Unknown Shop'),
-    serviceType: sanitizeString(apiItem.category, 'Unknown'),
-    postcode: sanitizeString(apiItem.postcode, 'N/A'),
-    city: extractCityFromAddress(apiItem.address) || 'Unknown',
-    website: sanitizeString(apiItem.website, ''),
-    status: apiItem.is_open_now ? 'open' : 'closed',
-    address: sanitizeString(apiItem.address, ''),
-    phone: sanitizeString(apiItem.phone, ''),
-    rating: sanitizeString(apiItem.rating, 'N/A'),
-    total_reviews: apiItem.total_reviews || 0,
-    latitude: apiItem.latitude || '',
-    longitude: apiItem.longitude || '',
-    // Use the parseOpeningHours helper
-    openingHours: parseOpeningHours(apiItem.opening_hours),
-    services: sanitizeString(apiItem.services, ''),
-    providers: apiItem.providers || [],
-    provider_url: sanitizeString(apiItem.provider_url, ''),
-    search_txt: sanitizeString(apiItem.search_txt, ''),
-    category: sanitizeString(apiItem.category, 'Unknown')
-  };
-};
-
-// Helper to parse opening hours string/object (kept for consistency, though now used in ShopDetailsPage)
+// Helper to parse opening hours string/object (No longer directly used for CaseTable but kept for other potential uses in AdminZone)
 const parseOpeningHours = (openingHoursData) => {
   const defaultHours = {
     Monday: 'N/A', Tuesday: 'N/A', Wednesday: 'N/A',
     Thursday: 'N/A', Friday: 'N/A', Saturday: 'N/A', Sunday: 'N/A'
   };
   if (typeof openingHoursData === 'object' && openingHoursData !== null) {
-    // If it's an object (like your sample), clean "None" and empty arrays
     const parsed = {};
     for (const day in defaultHours) {
       if (openingHoursData[day] && Array.isArray(openingHoursData[day]) && openingHoursData[day].length > 0) {
         parsed[day] = openingHoursData[day].map(hour => sanitizeString(hour, 'N/A')).join(', ');
       } else {
-        parsed[day] = 'Closed'; // Or N/A if you prefer
+        parsed[day] = 'Closed';
       }
     }
     return parsed;
   }
-  // If it's a string, or any other unexpected format
   return defaultHours;
 };
 
@@ -101,7 +62,7 @@ const parseOpeningHours = (openingHoursData) => {
 const AdminZone = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const authToken = sessionStorage.getItem("authToken")
+  const authToken = sessionStorage.getItem("authToken");
 
   // State for search term and filters
   const [searchInput, setSearchInput] = useState('');
@@ -113,27 +74,24 @@ const AdminZone = () => {
 
   // Constants
   const itemsPerPage = 10;
-  const isDarkMode = true; // Assuming dark mode is always on for this component based on previous contexts
+  const isDarkMode = true;
 
   // Mapping for categories to their labels and search texts
-  const categoryMapping = {
-    // Categories removed
-  };
+  const categoryMapping = {}; // This mapping seems unused in the context of the new CaseTable
 
   const orderedCategories = Object.keys(categoryMapping);
 
-  // --- React Query for Main Shop Data ---
+  // --- React Query for Main Shop Data (now Case Data) ---
   const {
-    data: mainShopData,
+    data: mainCaseData, // Renamed from mainShopData
     isLoading: isMainDataLoading,
     isFetching: isMainDataFetching,
     error: mainDataError,
     refetch: refetchMainData
   } = useQuery({
-    queryKey: ['shops', filters.category, currentPage],
+    queryKey: ['sale-sessions', filters.category, currentPage],
     queryFn: async () => {
-      const currentSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
-      const url = `https://sale.mega-data.co.uk/Shops/?search=${currentSearchText}&page=${currentPage}`;
+      const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${currentPage}`;
       const response = await fetch(url, {
         method: 'GET',
         headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
@@ -142,11 +100,11 @@ const AdminZone = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (data.results && Array.isArray(data.results)) {
+      if (data && Array.isArray(data)) {
         return {
-          transformedData: transformApiData(data.results),
-          totalPages: data.totalPages || 0,
-          currentPage: data.currentPage || currentPage,
+          transformedData: transformApiData(data),
+          totalPages: Math.ceil(data.length / itemsPerPage) || 1, // This totalPages calculation might not be accurate if the API only returns a subset per page. Consider if API provides total count.
+          currentPage: currentPage,
         };
       } else {
         throw new Error('Invalid API response format or no results array.');
@@ -166,14 +124,14 @@ const AdminZone = () => {
     refetch: refetchSearchResults,
     isFetched: searchResultsFetched,
   } = useQuery({
-    queryKey: ['searchResults', filters.category, debouncedSearchQuery],
+    queryKey: ['searchSaleSessions', filters.category, debouncedSearchQuery],
     queryFn: async () => {
       if (!debouncedSearchQuery.trim()) return [];
-      const currentCategory = filters.category;
-      const searchText = categoryMapping[currentCategory]?.searchText || 'takeaway';
-      // Fetch multiple pages for search to cover more results
-      const searchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/Shops/?search=${searchText}&page=${page}`;
+      // Fetch all available pages to search comprehensively if API doesn't support server-side search
+      // NOTE: This approach fetches multiple pages for client-side search.
+      // For large datasets, a server-side search API would be more efficient.
+      const searchPromises = [1, 2, 3].map(async (page) => { // Assuming up to 3 pages for search, adjust as needed
+        const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`;
         try {
           const response = await fetch(url, {
             method: 'GET',
@@ -181,32 +139,29 @@ const AdminZone = () => {
           });
           if (response.ok) {
             const data = await response.json();
-            if (data.results && Array.isArray(data.results)) {
-              return transformApiData(data.results);
+            if (Array.isArray(data)) {
+              return transformApiData(data);
             }
           }
           return [];
         } catch (err) {
-          console.error(`Error searching ${currentCategory} page ${page}:`, err);
+          console.error(`Error fetching page ${page}:`, err);
           return [];
         }
       });
       const allResults = await Promise.all(searchPromises);
       const combinedResults = allResults.flat();
-      // Filter results by search query client-side from combined results
-      const filteredResults = combinedResults.filter((shop) => {
+      const filteredResults = combinedResults.filter((caseItem) => { // Changed 'shop' to 'caseItem'
         const searchLower = debouncedSearchQuery.toLowerCase();
         return (
-          shop.name.toLowerCase().includes(searchLower) ||
-          shop.phone.toLowerCase().includes(searchLower) ||
-          shop.postcode.toLowerCase().includes(searchLower) ||
-          shop.address.toLowerCase().includes(searchLower) ||
-          shop.city.toLowerCase().includes(searchLower)
+          caseItem.name.toLowerCase().includes(searchLower) ||
+          caseItem.created_by.toLowerCase().includes(searchLower) ||
+          caseItem.case_stage.toLowerCase().includes(searchLower) || // Changed 'category' to 'case_stage'
+          caseItem.postcode.toLowerCase().includes(searchLower) // Added postcode to search
         );
       });
-      // Remove duplicates
-      const uniqueResults = filteredResults.filter((shop, index, self) =>
-        index === self.findIndex((s) => s.id === shop.id)
+      const uniqueResults = filteredResults.filter((caseItem, index, self) => // Changed 'shop' to 'caseItem'
+        index === self.findIndex((s) => s.id === caseItem.id)
       );
       return uniqueResults;
     },
@@ -230,41 +185,46 @@ const AdminZone = () => {
     };
   }, [searchInput]);
 
-  // Clear debouncedSearchQuery and searchInput when category changes
+  // Clear debouncedSearchQuery and searchInput when category changes (this might not be needed for 'cases' table)
   useEffect(() => {
     setSearchInput('');
     setDebouncedSearchQuery('');
-    queryClient.invalidateQueries(['searchResults']);
-  }, [filters.category, queryClient]);
+    queryClient.invalidateQueries(['searchSaleSessions']);
+  }, [filters.category, queryClient]); // Keeping filters.category for now, though it might not apply directly to 'cases'
 
   // --- React Query for All Shops for Filters (Cached for select options) ---
-  const { data: allShopsForFiltersData } = useQuery({
-    queryKey: ['allShopsForFilters', filters.category],
+  // This query will now fetch all cases for filter options
+  const { data: allCasesForFiltersData } = useQuery({ // Renamed from allShopsForFiltersData
+    queryKey: ['allCasesForFilters', filters.category], // Retaining filters.category as part of key
     queryFn: async () => {
-      const initialSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
-      const fetchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/Shops/?search=${initialSearchText}&page=${page}`;
-        const response = await fetch(url);
+      const fetchPromises = [1, 2, 3].map(async (page) => { // Fetching multiple pages for filter options
+        const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`;
+        const response = await fetch(url, { // Added headers for authentication
+          method: 'GET',
+          headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
+        });
         if (response.ok) {
           const data = await response.json();
-          // Make sure to filter out items without a proper ID here too for consistency
-          return data.results ? transformApiData(data.results) : [];
+          return Array.isArray(data) ? transformApiData(data) : [];
         }
         return [];
       });
       const allData = (await Promise.all(fetchPromises)).flat();
-      return allData;
+      // Ensure unique case_stage and postcodes for filters
+      const uniqueCaseStages = [...new Set(allData.map(item => item.case_stage))].filter(Boolean);
+      const uniquePostcodes = [...new Set(allData.map(item => item.postcode))].filter(Boolean);
+      return { allData, uniqueCaseStages, uniquePostcodes };
     },
     staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
   });
 
   // Derive state from React Query
-  const shopData = mainShopData?.transformedData || [];
-  const totalPages = mainShopData?.totalPages || 0;
-  const totalCount = totalPages * itemsPerPage;
+  const caseData = mainCaseData?.transformedData || []; // Renamed from shopData
+  const totalPages = mainCaseData?.totalPages || 1;
+  const totalCount = totalPages * itemsPerPage; // This might be inaccurate without a total count from API
   const isPageLoading = isMainDataFetching;
-  const isLoadingInitial = isMainDataLoading && !mainShopData;
+  const isLoadingInitial = isMainDataLoading && !mainCaseData;
 
   // Combined loading state for UI
   const overallLoading = isLoadingInitial || isPageLoading || isSearchFetching;
@@ -277,21 +237,22 @@ const AdminZone = () => {
     }
   };
 
-  // Handle category click to filter shops by category
+  // Handle category click (No direct "category" for cases, but maintaining the prop for consistency or future use)
   const handleCategoryClick = (category) => {
-    // We remove category logic here since the categories are removed
     setCurrentPage(1);
-    queryClient.invalidateQueries(['shops']);
-    queryClient.invalidateQueries(['allShopsForFilters']);
+    // filters.category is currently not directly used in the API call for 'sale-sessions',
+    // but invalidate queries might be useful if category implied a different endpoint.
+    queryClient.invalidateQueries(['sale-sessions']);
+    queryClient.invalidateQueries(['allCasesForFilters']);
   };
 
   // Handle city and postcode filter changes
-  const handleCityChange = (e) => {
-    const city = e.target.value;
+  const handleCaseStageChange = (e) => { // Renamed from handleCityChange
+    const caseStage = e.target.value;
     setTempFilters({
       ...tempFilters,
-      city,
-      postcode: '',
+      category: caseStage, // Using 'category' field for case_stage filter
+      postcode: '', // Reset postcode if case stage changes
     });
   };
 
@@ -307,36 +268,36 @@ const AdminZone = () => {
   const handleApplyFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      city: tempFilters.city,
+      category: tempFilters.category, // Applying case_stage to the 'category' filter
       postcode: tempFilters.postcode,
     }));
     setShowFilters(false);
     setCurrentPage(1);
-    queryClient.invalidateQueries(['shops']);
+    queryClient.invalidateQueries(['sale-sessions']);
   };
 
-  // Get unique cities and postcodes for filter options
-  const uniqueCities = [...new Set(allShopsForFiltersData?.map((shop) => shop.city) || [])];
-  const uniquePostcodes = [...new Set(allShopsForFiltersData?.map((shop) => shop.postcode) || [])];
-  const filteredPostcodesByCity = tempFilters.city
-    ? [...new Set(allShopsForFiltersData?.filter((shop) => shop.city === tempFilters.city).map((shop) => shop.postcode) || [])]
+  // Get unique case stages and postcodes for filter options
+  const uniqueCaseStages = allCasesForFiltersData?.uniqueCaseStages || []; // Renamed from uniqueCities
+  const uniquePostcodes = allCasesForFiltersData?.uniquePostcodes || [];
+
+  const filteredPostcodesByCaseStage = tempFilters.category
+    ? [...new Set(allCasesForFiltersData?.allData.filter((item) => item.case_stage === tempFilters.category).map((item) => item.postcode) || [])]
     : uniquePostcodes;
 
-  // Determine which shops to display: search results or main category data
+  // Determine which cases to display: search results or main category data
   const isSearchMode = debouncedSearchQuery.trim().length > 0 && searchResultsFetched;
-  const displayShops = (isSearchMode ? (searchResultsData || []) : shopData).filter((shop) => {
-    const matchesCity = filters.city ? shop.city === filters.city : true;
-    const matchesPostcode = filters.postcode ? shop.postcode === filters.postcode : true;
-    return matchesCity && matchesPostcode;
+  const displayCases = (isSearchMode ? (searchResultsData || []) : caseData).filter((caseItem) => { // Renamed from displayShops
+    const matchesCaseStage = filters.category ? caseItem.case_stage === filters.category : true; // Using filters.category for case_stage
+    const matchesPostcode = filters.postcode ? caseItem.postcode === filters.postcode : true;
+    return matchesCaseStage && matchesPostcode;
   });
 
-  // Handle row click to navigate to shop details page
-  const handleRowClick = (shopId) => {
-    console.log("Attempting to navigate to shopId:", shopId); // Diagnostic log
-    if (shopId) {
-      navigate(`/shop/${shopId}`); // Navigate to the new route
+  // Handle row click to navigate to case details page
+  const handleRowClick = (caseId) => { // Renamed from shopId
+    if (caseId) {
+      navigate(`/case/${caseId}`); // Assuming a new route for case details
     } else {
-      console.warn("Attempted to navigate to shop details with a null or undefined shopId.");
+      console.warn("Attempted to navigate to case details with a null or undefined caseId.");
     }
   };
 
@@ -348,7 +309,7 @@ const AdminZone = () => {
           <div className="flex justify-center items-center mt-20">
             <div className="text-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-              <p className="text-xl text-gray-300">Loading shop data...</p>
+              <p className="text-xl text-gray-300">Loading session data...</p>
             </div>
           </div>
         </main>
@@ -364,7 +325,7 @@ const AdminZone = () => {
           <div className="flex flex-col items-center justify-center p-8 mt-20">
             <img src={sadMaskImg} alt="Error" className="w-32 h-32 mb-4" />
             <p className="text-white text-2xl font-medium text-center mb-4" style={{ lineHeight: '1.5' }}>
-              Sorry! Unable to load shop data.
+              Sorry! Unable to load session data.
             </p>
             <p className="text-gray-400 text-center mb-6">Error: {mainDataError.message}</p>
             <button onClick={() => refetchMainData()} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">
@@ -386,7 +347,7 @@ const AdminZone = () => {
           </div>
           <div className="flex items-center space-x-3 ml-4">
             <div className="relative inline-block text-left">
-              <button onClick={() => { setTempFilters({ city: filters.city, postcode: filters.postcode }); setShowFilters(true); }} disabled={overallLoading} className={`flex items-center gap-2 px-4 py-2 rounded transition-colors bg-gray-700 border text-gray-200 hover:bg-gray-600 ${overallLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+              <button onClick={() => { setTempFilters({ category: filters.category, postcode: filters.postcode }); setShowFilters(true); }} disabled={overallLoading} className={`flex items-center gap-2 px-4 py-2 rounded transition-colors bg-gray-700 border text-gray-200 hover:bg-gray-600 ${overallLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                 <FilterIcon fill={'white'} />
                 <span>Filter</span>
               </button>
@@ -395,26 +356,22 @@ const AdminZone = () => {
                   <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40" onClick={() => setShowFilters(false)}></div>
                   <div className="absolute right-4 mt-2 w-72 rounded-md shadow-lg z-50 bg-gray-800 border border-gray-700">
                     <div className="p-4">
-                      {/* Select a City */}
                       <div className="mb-4">
-                        <label htmlFor="filter-city" className="block text-sm font-medium mb-1 text-gray-300">Select a City</label>
-                        <select id="filter-city" value={tempFilters.city} onChange={handleCityChange} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
-                          <option value="">e.g. London</option>
-                          {uniqueCities.map((city) => <option key={city} value={city}>{city}</option>)}
+                        <label htmlFor="filter-case-stage" className="block text-sm font-medium mb-1 text-gray-300">Select Case Stage</label>
+                        <select id="filter-case-stage" value={tempFilters.category} onChange={handleCaseStageChange} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
+                          <option value="">Select a Case Stage</option>
+                          {uniqueCaseStages.map((stage) => <option key={stage} value={stage}>{stage}</option>)}
                         </select>
                       </div>
-                      {/* Select a Postcode */}
                       <div className="mb-4">
                         <label htmlFor="filter-postcode" className="block text-sm font-medium mb-1 text-gray-300">Select a Postcode</label>
-                        <select id="filter-postcode" value={tempFilters.postcode} onChange={handlePostcodeChange} disabled={!tempFilters.city} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
-                          <option value="">e.g. ML66JQ</option>
-                          {filteredPostcodesByCity.map((postcode) => <option key={postcode} value={postcode}>{postcode}</option>)}
+                        <select id="filter-postcode" value={tempFilters.postcode} onChange={handlePostcodeChange} disabled={!tempFilters.category && uniquePostcodes.length === 0} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
+                          <option value="">Select a Postcode</option>
+                          {filteredPostcodesByCaseStage.map((postcode) => <option key={postcode} value={postcode}>{postcode}</option>)}
                         </select>
                       </div>
                       <div className="flex justify-between pt-2">
-                        {/* Cancel Button */}
                         <button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm rounded transition-colors bg-gray-800 border border-gray-600 text-gray-200 hover:bg-gray-700">Cancel</button>
-                        {/* Apply Button */}
                         <button onClick={handleApplyFilters} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded transition-colors whitespace-nowrap">Apply</button>
                       </div>
                     </div>
@@ -428,12 +385,9 @@ const AdminZone = () => {
           {isSearchMode ? (
             <div>
               <h2 className="text-xl font-semibold text-gray-200 mb-2">Search Results for "{debouncedSearchQuery}"</h2>
-              <p className="text-sm text-gray-400">{isSearchLoading || isSearchFetching ? 'Searching...' : `Found ${displayShops.length} results`}</p>
+              <p className="text-sm text-gray-400">{isSearchLoading || isSearchFetching ? 'Searching...' : `Found ${displayCases.length} results`}</p>
             </div>
-          ) : (
-            // This entire block is now removed as per your request.
-            null
-          )}
+          ) : null}
         </div>
         {(isSearchLoading || isSearchFetching) && (
           <div className="flex justify-center items-center py-8">
@@ -459,7 +413,7 @@ const AdminZone = () => {
             <button onClick={() => refetchSearchResults()} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">Try Again</button>
           </div>
         )}
-        {!overallLoading && !mainDataError && !searchError && displayShops.length === 0 ? (
+        {!overallLoading && !mainDataError && !searchError && displayCases.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8">
             <img src={sadMaskImg} alt="Sad Mask" className="w-32 h-32 mb-4" />
             <p className="text-white text-2xl font-medium text-center" style={{ lineHeight: '1.5' }}>{isSearchMode ? `No results found for "${debouncedSearchQuery}"` : "Sorry! No results match your filters."} <br /> Please try again.</p>
@@ -467,15 +421,15 @@ const AdminZone = () => {
         ) : (
           !overallLoading && !mainDataError && !searchError && (
             <>
-              {!isSearchMode && ( // Only show this if not in search mode
+              {!isSearchMode && (
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-400">Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} shops</p>
+                  <p className="text-sm text-gray-400">Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} sessions</p>
                   <p className="text-sm text-gray-400">Page {currentPage} of {totalPages}</p>
                 </div>
               )}
               <div className="space-y-8">
                 <div className="bg-gray-800 rounded-lg p-6">
-                  <Table shops={displayShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
+                  <CaseTable cases={displayCases} isDarkMode={isDarkMode} onRowClick={handleRowClick} /> {/* Changed component and prop */}
                 </div>
               </div>
               {!isSearchMode && (
