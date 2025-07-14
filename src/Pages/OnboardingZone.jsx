@@ -356,8 +356,7 @@ const OnboardingZone = () => {
   if (isLoadingInitial) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-800">
-          <div className="container mx-auto">
+        <header className="p-0 shadow-sm bg-gray-900"> 
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -366,7 +365,6 @@ const OnboardingZone = () => {
                 </button>
               ))}
             </div>
-          </div>
         </header>
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex justify-center items-center mt-20">
@@ -384,8 +382,7 @@ const OnboardingZone = () => {
   if (mainDataError) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-800">
-          <div className="container mx-auto">
+        <header className="p-0 shadow-sm bg-gray-900">
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -394,7 +391,6 @@ const OnboardingZone = () => {
                 </button>
               ))}
             </div>
-          </div>
         </header>
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex flex-col items-center justify-center p-8 mt-20">
@@ -415,8 +411,7 @@ const OnboardingZone = () => {
   // Render main content
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <header className="p-0 shadow-sm bg-gray-800">
-        <div className="container mx-auto">
+      <header className="p-0 shadow-sm bg-gray-900">
           <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
             {orderedCategories.map((category) => (
               <button key={category} onClick={() => handleCategoryClick(category)} disabled={overallLoading} className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 ${filters.category === category ? 'bg-gray-600 text-gray-200 scale-95 rounded-lg' : 'bg-gray-700 text-gray-400'} ${overallLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -425,7 +420,6 @@ const OnboardingZone = () => {
               </button>
             ))}
           </div>
-        </div>
       </header>
       <main className="container mx-auto p-4 space-y-6">
         <div className="flex justify-between items-center mt-5 pb-4">
