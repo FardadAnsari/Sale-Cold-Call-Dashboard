@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for row click navigation
 
 const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
+  const navigate = useNavigate(); // Initialize navigate
+
   const skeletonRows = Array.from({ length: 5 }, (_, index) => {
     const rowBgClass = index % 2 === 0
       ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'
@@ -79,6 +82,14 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
     }
   };
 
+  // Modify onRowClick to navigate to the /case/:id route
+  const handleRowClick = (caseId) => {
+    navigate(`/case/${caseId}`);
+    if (onRowClick) {
+      onRowClick(caseId); // Still call the prop if it exists
+    }
+  };
+
   return (
     <div className={`shadow-sm rounded-lg border overflow-hidden ${
       isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
@@ -98,7 +109,7 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
           </thead>
           <tbody className={isDarkMode ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
             {cases.map((caseItem, index) => (
-              <tr key={caseItem.id} onClick={() => onRowClick(caseItem.id)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
+              <tr key={caseItem.id} onClick={() => handleRowClick(caseItem.id)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{caseItem.name}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{formatDateTime(caseItem.start_time)}</td>
                 <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{caseItem.case_stage}</td>
@@ -113,7 +124,7 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
       {/* Mobile View */}
       <div className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}>
         {cases.map((caseItem) => (
-          <div key={caseItem.id} onClick={() => onRowClick(caseItem.id)} className={`px-6 py-4 space-y-3 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
+          <div key={caseItem.id} onClick={() => handleRowClick(caseItem.id)} className={`px-6 py-4 space-y-3 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
             <div className="flex justify-between items-center">
               <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{caseItem.name}</h3>
               <p className="text-sm">{formatDateTime(caseItem.start_time)}</p>

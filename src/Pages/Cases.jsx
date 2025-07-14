@@ -423,12 +423,12 @@ const Cases = () => {
                   <div className='absolute right-4 z-50 mt-2 w-72 rounded-md border border-gray-700 bg-gray-800 shadow-lg'>
                     <div className='p-4'>
                       <div className='mb-4'>
-                        <label
+                        {/* <label
                           htmlFor='filter-case-stage'
                           className='mb-1 block text-sm font-medium text-gray-300'
                         >
                           Select Case Stage
-                        </label>
+                        </label> */}
                         <select
                           id='filter-case-stage'
                           value={tempFilters.category}
@@ -438,7 +438,7 @@ const Cases = () => {
                             backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")`,
                           }}
                         >
-                          <option value=''>Select a Case Stage</option>
+                          <option value=''>Select a City</option>
                           {uniqueCaseStages.map((stage) => (
                             <option key={stage} value={stage}>
                               {stage}
