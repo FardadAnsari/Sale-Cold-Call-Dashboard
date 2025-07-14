@@ -9,7 +9,7 @@ import Login from './pages/Login';
 import ShopDetailsPage from './components/ShopDetailsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import Leads from './pages/Leads'; // Import the Leads component
-import AdminZone from './pages/AdminZone'; // Import AdminZone component
+import Cases from './Pages/Cases'; // Import Cases component
 
 // Create a client
 const queryClient = new QueryClient({
@@ -50,7 +50,7 @@ const App = () => {
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
             <Route path="/" element={<OnboardingZone />} />
             <Route path="/your-history" element={<YourHistory />} />
-            <Route path="/admin" element={<AdminZone />} /> {/* Updated route to use AdminZone */}
+            <Route path="/cases" element={<Cases />} /> {/* Updated route to use Cases */}
             <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
             <Route path="/leads" element={<Leads />} /> {/* New route for Leads */}
           </Route>

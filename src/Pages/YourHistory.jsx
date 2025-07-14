@@ -339,8 +339,7 @@ const YourHistory = () => {
   if (isLoadingInitial) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-800">
-          <div className="container mx-auto">
+        {/* <header className="p-0 shadow-sm bg-gray-900">
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -349,8 +348,7 @@ const YourHistory = () => {
                 </button>
               ))}
             </div>
-          </div>
-        </header>
+        </header> */}
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex justify-center items-center mt-20">
             <div className="text-center">
@@ -366,8 +364,7 @@ const YourHistory = () => {
   if (historyError) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-800">
-          <div className="container mx-auto">
+        {/* <header className="p-0 shadow-sm bg-gray-900"> 
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -375,9 +372,8 @@ const YourHistory = () => {
                   <span>{categoryMapping[category]?.label}</span>
                 </button>
               ))}
-            </div>
-          </div>
-        </header>
+            </div>       
+        </header> */}
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex flex-col items-center justify-center p-8 mt-20">
             <img src={sadMaskImg} alt="Error" className="w-32 h-32 mb-4" />
@@ -396,8 +392,7 @@ const YourHistory = () => {
 
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <header className="p-0 shadow-sm bg-gray-800">
-        <div className="container mx-auto">
+      {/* <header className="p-0 shadow-sm bg-gray-900">
           <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
             {orderedCategories.map((category) => (
               <button
@@ -411,8 +406,7 @@ const YourHistory = () => {
               </button>
             ))}
           </div>
-        </div>
-      </header>
+      </header> */}
       <main className="container mx-auto p-4 space-y-6">
         <div className="flex justify-between items-center mt-5 pb-4">
           <div className="max-w-md md:max-w-xl lg:max-w-2xl flex-grow">

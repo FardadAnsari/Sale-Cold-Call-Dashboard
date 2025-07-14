@@ -92,8 +92,8 @@ const Sidebar = ({ isDarkMode }) => {
           </li>
           <li>
             <Link
-              to="/admin"
-              className={linkStyle(isActiveLink('/admin'), isDarkMode)}
+              to="/cases"
+              className={linkStyle(isActiveLink('/cases'), isDarkMode)}
             >
               <img src={casesPng} alt="Cases" className="w-6 h-6" />
               <span>Cases</span>
