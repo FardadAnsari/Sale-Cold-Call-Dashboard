@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import CaseTable from '../components/CaseTable'; // Changed import
+import CaseTable from '../components/CaseTable';
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
 import { FilterIcon } from '../Icons';
@@ -25,19 +25,17 @@ const transformApiData = (apiResults) => {
   return apiResults
     .map((item) => ({
       id: item.id || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: sanitizeString(item.customer, 'Unknown Customer'),
-      // Mapping item.stage to case_stage based on the image's "Case Stage" column
+      name: sanitizeString(item.shop, 'Unknown Shop'), // Changed from item.customer to item.shop
       case_stage: sanitizeString(item.stage, 'Unknown Stage'),
-      // Assuming postcode might be in shop or customer data, defaulting to 'N/A' if not available
-      postcode: sanitizeString(item.post_code || 'N/A'), // Adjusted to directly use item.post_code
+      postcode: sanitizeString(item.post_code || 'N/A'),
       created_by: sanitizeString(item.created_by, 'Unknown Creator'),
-      start_time: item.start_time, // Keep as is, format in CaseTable
-      last_update: item.last_update, // Keep as is, format in CaseTable
+      start_time: item.start_time,
+      last_update: item.last_update,
     }))
     .filter((item) => item.id !== null && item.id !== undefined);
 };
 
-// Helper to extract city from address string (No longer directly used for CaseTable but kept for other potential uses in Cases)
+// Helper to extract city from address string (kept for potential future use)
 const extractCityFromAddress = (address) => {
   const sanitizedAddress = sanitizeString(address, '');
   if (!sanitizedAddress || sanitizedAddress === 'N/A') return 'Unknown';
@@ -45,7 +43,7 @@ const extractCityFromAddress = (address) => {
   return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
 };
 
-// Helper to parse opening hours string/object (No longer directly used for CaseTable but kept for other potential uses in Cases)
+// Helper to parse opening hours string/object (kept for potential future use)
 const parseOpeningHours = (openingHoursData) => {
   const defaultHours = {
     Monday: 'N/A',
@@ -74,7 +72,7 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-// Main component for displaying and managing shop data
+// Main component for displaying and managing case data
 const Cases = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -92,14 +90,9 @@ const Cases = () => {
   const itemsPerPage = 10;
   const isDarkMode = true;
 
-  // Mapping for categories to their labels and search texts
-  const categoryMapping = {}; // This mapping seems unused in the context of the new CaseTable
-
-  const orderedCategories = Object.keys(categoryMapping);
-
-  // --- React Query for Main Shop Data (now Case Data) ---
+  // --- React Query for Main Case Data ---
   const {
-    data: mainCaseData, // Renamed from mainShopData
+    data: mainCaseData,
     isLoading: isMainDataLoading,
     isFetching: isMainDataFetching,
     error: mainDataError,
@@ -116,11 +109,12 @@ const Cases = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      if (data && Array.isArray(data)) {
+      if (data && data.results && Array.isArray(data.results)) {
         return {
-          transformedData: transformApiData(data),
-          totalPages: Math.ceil(data.length / itemsPerPage) || 1, // This totalPages calculation might not be accurate if the API only returns a subset per page. Consider if API provides total count.
-          currentPage: currentPage,
+          transformedData: transformApiData(data.results),
+          totalPages: data.totalPages || 1,
+          currentPage: data.currentPage || currentPage,
+          totalCount: data.count || 0,
         };
       } else {
         throw new Error('Invalid API response format or no results array.');
@@ -129,6 +123,27 @@ const Cases = () => {
     placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     keepPreviousData: true,
+  });
+
+  // --- React Query for getting total pages (used for search and filters) ---
+  const {
+    data: totalPagesData,
+  } = useQuery({
+    queryKey: ['total-pages'],
+    queryFn: async () => {
+      const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=1`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.totalPages || 1;
+    },
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
   });
 
   // --- React Query for Search Results ---
@@ -143,51 +158,46 @@ const Cases = () => {
     queryKey: ['searchSaleSessions', filters.category, debouncedSearchQuery],
     queryFn: async () => {
       if (!debouncedSearchQuery.trim()) return [];
-      // Fetch all available pages to search comprehensively if API doesn't support server-side search
-      // NOTE: This approach fetches multiple pages for client-side search.
-      // For large datasets, a server-side search API would be more efficient.
-      const searchPromises = [1, 2, 3].map(async (page) => {
-        // Assuming up to 3 pages for search, adjust as needed
-        const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`;
-        try {
-          const response = await fetch(url, {
+      
+      const maxPages = totalPagesData || 1;
+      const searchPromises = [];
+      
+      // Fetch all available pages dynamically
+      for (let page = 1; page <= maxPages; page++) {
+        searchPromises.push(
+          fetch(`https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`, {
             method: 'GET',
             headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (Array.isArray(data)) {
-              return transformApiData(data);
-            }
-          }
-          return [];
-        } catch (err) {
-          console.error(`Error fetching page ${page}:`, err);
-          return [];
-        }
-      });
+          })
+            .then(response => response.ok ? response.json() : null)
+            .then(data => data && data.results ? transformApiData(data.results) : [])
+            .catch(err => {
+              console.error(`Error fetching page ${page}:`, err);
+              return [];
+            })
+        );
+      }
+      
       const allResults = await Promise.all(searchPromises);
       const combinedResults = allResults.flat();
+      
       const filteredResults = combinedResults.filter((caseItem) => {
-        // Changed 'shop' to 'caseItem'
         const searchLower = debouncedSearchQuery.toLowerCase();
         return (
           caseItem.name.toLowerCase().includes(searchLower) ||
           caseItem.created_by.toLowerCase().includes(searchLower) ||
-          caseItem.case_stage.toLowerCase().includes(searchLower) || // Changed 'category' to 'case_stage'
-          caseItem.postcode.toLowerCase().includes(searchLower) // Added postcode to search
+          caseItem.case_stage.toLowerCase().includes(searchLower) ||
+          caseItem.postcode.toLowerCase().includes(searchLower)
         );
       });
+      
       const uniqueResults = filteredResults.filter(
-        (
-          caseItem,
-          index,
-          self // Changed 'shop' to 'caseItem'
-        ) => index === self.findIndex((s) => s.id === caseItem.id)
+        (caseItem, index, self) => index === self.findIndex((s) => s.id === caseItem.id)
       );
+      
       return uniqueResults;
     },
-    enabled: !!debouncedSearchQuery.trim(),
+    enabled: !!debouncedSearchQuery.trim() && !!totalPagesData,
     staleTime: 1 * 60 * 1000,
   });
 
@@ -207,47 +217,53 @@ const Cases = () => {
     };
   }, [searchInput]);
 
-  // Clear debouncedSearchQuery and searchInput when category changes (this might not be needed for 'cases' table)
+  // Clear debouncedSearchQuery and searchInput when category changes
   useEffect(() => {
     setSearchInput('');
     setDebouncedSearchQuery('');
     queryClient.invalidateQueries(['searchSaleSessions']);
-  }, [filters.category, queryClient]); // Keeping filters.category for now, though it might not apply directly to 'cases'
+  }, [filters.category, queryClient]);
 
-  // --- React Query for All Shops for Filters (Cached for select options) ---
-  // This query will now fetch all cases for filter options
+  // --- React Query for All Cases for Filters (Cached for select options) ---
   const { data: allCasesForFiltersData } = useQuery({
-    // Renamed from allShopsForFiltersData
-    queryKey: ['allCasesForFilters', filters.category], // Retaining filters.category as part of key
+    queryKey: ['allCasesForFilters', filters.category],
     queryFn: async () => {
-      const fetchPromises = [1, 2, 3].map(async (page) => {
-        // Fetching multiple pages for filter options
-        const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`;
-        const response = await fetch(url, {
-          // Added headers for authentication
-          method: 'GET',
-          headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-        });
-        if (response.ok) {
-          const data = await response.json();
-          return Array.isArray(data) ? transformApiData(data) : [];
-        }
-        return [];
-      });
+      const maxPages = totalPagesData || 1;
+      const fetchPromises = [];
+      
+      // Fetch all available pages dynamically
+      for (let page = 1; page <= maxPages; page++) {
+        fetchPromises.push(
+          fetch(`https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`, {
+            method: 'GET',
+            headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
+          })
+            .then(response => response.ok ? response.json() : null)
+            .then(data => data && data.results ? transformApiData(data.results) : [])
+            .catch(err => {
+              console.error(`Error fetching page ${page}:`, err);
+              return [];
+            })
+        );
+      }
+      
       const allData = (await Promise.all(fetchPromises)).flat();
+      
       // Ensure unique case_stage and postcodes for filters
       const uniqueCaseStages = [...new Set(allData.map((item) => item.case_stage))].filter(Boolean);
       const uniquePostcodes = [...new Set(allData.map((item) => item.postcode))].filter(Boolean);
+      
       return { allData, uniqueCaseStages, uniquePostcodes };
     },
+    enabled: !!totalPagesData,
     staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
   });
 
   // Derive state from React Query
-  const caseData = mainCaseData?.transformedData || []; // Renamed from shopData
+  const caseData = mainCaseData?.transformedData || [];
   const totalPages = mainCaseData?.totalPages || 1;
-  const totalCount = totalPages * itemsPerPage; // This might be inaccurate without a total count from API
+  const totalCount = mainCaseData?.totalCount || 0;
   const isPageLoading = isMainDataFetching;
   const isLoadingInitial = isMainDataLoading && !mainCaseData;
 
@@ -262,22 +278,19 @@ const Cases = () => {
     }
   };
 
-  // Handle category click (No direct "category" for cases, but maintaining the prop for consistency or future use)
+  // Handle category click
   const handleCategoryClick = (category) => {
     setCurrentPage(1);
-    // filters.category is currently not directly used in the API call for 'sale-sessions',
-    // but invalidate queries might be useful if category implied a different endpoint.
     queryClient.invalidateQueries(['sale-sessions']);
     queryClient.invalidateQueries(['allCasesForFilters']);
   };
 
-  // Handle city and postcode filter changes
+  // Handle case stage filter changes
   const handleCaseStageChange = (e) => {
-    // Renamed from handleCityChange
     const caseStage = e.target.value;
     setTempFilters({
       ...tempFilters,
-      category: caseStage, // Using 'category' field for case_stage filter
+      category: caseStage,
       postcode: '', // Reset postcode if case stage changes
     });
   };
@@ -294,7 +307,7 @@ const Cases = () => {
   const handleApplyFilters = () => {
     setFilters((prev) => ({
       ...prev,
-      category: tempFilters.category, // Applying case_stage to the 'category' filter
+      category: tempFilters.category,
       postcode: tempFilters.postcode,
     }));
     setShowFilters(false);
@@ -303,7 +316,7 @@ const Cases = () => {
   };
 
   // Get unique case stages and postcodes for filter options
-  const uniqueCaseStages = allCasesForFiltersData?.uniqueCaseStages || []; // Renamed from uniqueCities
+  const uniqueCaseStages = allCasesForFiltersData?.uniqueCaseStages || [];
   const uniquePostcodes = allCasesForFiltersData?.uniquePostcodes || [];
 
   const filteredPostcodesByCaseStage = tempFilters.category
@@ -319,17 +332,15 @@ const Cases = () => {
   // Determine which cases to display: search results or main category data
   const isSearchMode = debouncedSearchQuery.trim().length > 0 && searchResultsFetched;
   const displayCases = (isSearchMode ? searchResultsData || [] : caseData).filter((caseItem) => {
-    // Renamed from displayShops
-    const matchesCaseStage = filters.category ? caseItem.case_stage === filters.category : true; // Using filters.category for case_stage
+    const matchesCaseStage = filters.category ? caseItem.case_stage === filters.category : true;
     const matchesPostcode = filters.postcode ? caseItem.postcode === filters.postcode : true;
     return matchesCaseStage && matchesPostcode;
   });
 
   // Handle row click to navigate to case details page
   const handleRowClick = (caseId) => {
-    // Renamed from shopId
     if (caseId) {
-      navigate(`/case/${caseId}`); // Assuming a new route for case details
+      navigate(`/case/${caseId}`);
     } else {
       console.warn('Attempted to navigate to case details with a null or undefined caseId.');
     }
@@ -564,8 +575,7 @@ const Cases = () => {
                     cases={displayCases}
                     isDarkMode={isDarkMode}
                     onRowClick={handleRowClick}
-                  />{' '}
-                  {/* Changed component and prop */}
+                  />
                 </div>
               </div>
               {!isSearchMode && (

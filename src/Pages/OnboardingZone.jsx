@@ -6,7 +6,6 @@ import { RestaurantIcon, CafeIcon, FilterIcon } from '../Icons';
 import takeawayImg from '../images/takeaway.png';
 import sadMaskImg from '../images/sad-mask.png';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-//import mockCallHistory from '../mockCallHistory';
 import { useNavigate } from 'react-router-dom';
 
 // Helper to sanitize string values, replacing "None" or empty strings with default
@@ -33,13 +32,13 @@ const transformApiData = (apiResults) => {
     total_reviews: item.total_reviews || 0,
     latitude: item.latitude || '',
     longitude: item.longitude || '',
-    opening_hours: item.opening_hours || {}, // Ensure it's an object for safety
+    opening_hours: item.opening_hours || {},
     services: sanitizeString(item.services, ''),
     providers: item.providers || [],
     provider_url: sanitizeString(item.provider_url, ''),
     search_txt: sanitizeString(item.search_txt, ''),
     category: sanitizeString(item.category, 'Unknown')
-  })).filter(item => item.id !== null && item.id !== undefined); // Ensure IDs are not null/undefined
+  })).filter(item => item.id !== null && item.id !== undefined);
 };
 
 // Helper to extract city from address string
@@ -50,11 +49,11 @@ const extractCityFromAddress = (address) => {
   return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
 };
 
-// Helper to transform single shop API data (kept for consistency, though now used in ShopDetailsPage)
+// Helper to transform single shop API data
 const transformSingleShopData = (apiItem) => {
   if (!apiItem) return null;
   return {
-    id: apiItem.id || apiItem.shop_id_company, // Use the integer ID first
+    id: apiItem.id || apiItem.shop_id_company,
     name: sanitizeString(apiItem.shop_name, 'Unknown Shop'),
     serviceType: sanitizeString(apiItem.category, 'Unknown'),
     postcode: sanitizeString(apiItem.postcode, 'N/A'),
@@ -67,7 +66,6 @@ const transformSingleShopData = (apiItem) => {
     total_reviews: apiItem.total_reviews || 0,
     latitude: apiItem.latitude || '',
     longitude: apiItem.longitude || '',
-    // Use the parseOpeningHours helper
     openingHours: parseOpeningHours(apiItem.opening_hours),
     services: sanitizeString(apiItem.services, ''),
     providers: apiItem.providers || [],
@@ -77,35 +75,31 @@ const transformSingleShopData = (apiItem) => {
   };
 };
 
-// Helper to parse opening hours string/object (kept for consistency, though now used in ShopDetailsPage)
+// Helper to parse opening hours string/object
 const parseOpeningHours = (openingHoursData) => {
   const defaultHours = {
     Monday: 'N/A', Tuesday: 'N/A', Wednesday: 'N/A',
     Thursday: 'N/A', Friday: 'N/A', Saturday: 'N/A', Sunday: 'N/A'
   };
-
   if (typeof openingHoursData === 'object' && openingHoursData !== null) {
-    // If it's an object (like your sample), clean "None" and empty arrays
     const parsed = {};
     for (const day in defaultHours) {
       if (openingHoursData[day] && Array.isArray(openingHoursData[day]) && openingHoursData[day].length > 0) {
         parsed[day] = openingHoursData[day].map(hour => sanitizeString(hour, 'N/A')).join(', ');
       } else {
-        parsed[day] = 'Closed'; // Or N/A if you prefer
+        parsed[day] = 'Closed';
       }
     }
     return parsed;
   }
-  // If it's a string, or any other unexpected format
   return defaultHours;
 };
-
 
 // Main component for displaying and managing shop data
 const OnboardingZone = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const authToken = sessionStorage.getItem("authToken")
+  const authToken = sessionStorage.getItem("authToken");
 
   // State for search term and filters
   const [searchInput, setSearchInput] = useState('');
@@ -117,7 +111,7 @@ const OnboardingZone = () => {
 
   // Constants
   const itemsPerPage = 10;
-  const isDarkMode = true; // Assuming dark mode is always on for this component based on previous contexts
+  const isDarkMode = true;
 
   // Mapping for categories to their labels and search texts
   const categoryMapping = {
@@ -125,6 +119,7 @@ const OnboardingZone = () => {
     'restaurants': { label: 'Restaurant', searchText: 'restaurants' },
     'cafe': { label: 'Café', searchText: 'cafe' }
   };
+
   const orderedCategories = Object.keys(categoryMapping);
 
   // --- React Query for Main Shop Data ---
@@ -139,12 +134,10 @@ const OnboardingZone = () => {
     queryFn: async () => {
       const currentSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
       const url = `https://sale.mega-data.co.uk/Shops/?search=${currentSearchText}&page=${currentPage}`;
-
       const response = await fetch(url, {
         method: 'GET',
         headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
       });
-
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -176,51 +169,39 @@ const OnboardingZone = () => {
     queryKey: ['searchResults', filters.category, debouncedSearchQuery],
     queryFn: async () => {
       if (!debouncedSearchQuery.trim()) return [];
-
       const currentCategory = filters.category;
       const searchText = categoryMapping[currentCategory]?.searchText || 'takeaway';
-
-      // Fetch multiple pages for search to cover more results
-      const searchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/Shops/?search=${searchText}&page=${page}`;
-        try {
-          const response = await fetch(url, {
-            method: 'GET',
-            headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-          });
-          if (response.ok) {
-            const data = await response.json();
-            if (data.results && Array.isArray(data.results)) {
-              return transformApiData(data.results);
-            }
+      const url = `https://sale.mega-data.co.uk/Shops/?search=${searchText}&page=1`;
+      try {
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.results && Array.isArray(data.results)) {
+            const combinedResults = transformApiData(data.results);
+            const filteredResults = combinedResults.filter((shop) => {
+              const searchLower = debouncedSearchQuery.toLowerCase();
+              return (
+                shop.name.toLowerCase().includes(searchLower) ||
+                shop.phone.toLowerCase().includes(searchLower) ||
+                shop.postcode.toLowerCase().includes(searchLower) ||
+                shop.address.toLowerCase().includes(searchLower) ||
+                shop.city.toLowerCase().includes(searchLower)
+              );
+            });
+            const uniqueResults = filteredResults.filter((shop, index, self) =>
+              index === self.findIndex((s) => s.id === shop.id)
+            );
+            return uniqueResults;
           }
-          return [];
-        } catch (err) {
-          console.error(`Error searching ${currentCategory} page ${page}:`, err);
-          return [];
         }
-      });
-
-      const allResults = await Promise.all(searchPromises);
-      const combinedResults = allResults.flat();
-
-      // Filter results by search query client-side from combined results
-      const filteredResults = combinedResults.filter((shop) => {
-        const searchLower = debouncedSearchQuery.toLowerCase();
-        return (
-          shop.name.toLowerCase().includes(searchLower) ||
-          shop.phone.toLowerCase().includes(searchLower) ||
-          shop.postcode.toLowerCase().includes(searchLower) ||
-          shop.address.toLowerCase().includes(searchLower) ||
-          shop.city.toLowerCase().includes(searchLower)
-        );
-      });
-
-      // Remove duplicates
-      const uniqueResults = filteredResults.filter((shop, index, self) =>
-        index === self.findIndex((s) => s.id === shop.id)
-      );
-      return uniqueResults;
+        return [];
+      } catch (err) {
+        console.error(`Error searching ${currentCategory}:`, err);
+        return [];
+      }
     },
     enabled: !!debouncedSearchQuery.trim(),
     staleTime: 1 * 60 * 1000,
@@ -228,7 +209,6 @@ const OnboardingZone = () => {
 
   // Debounce logic for setting the actual query term
   const debounceTimer = useRef(null);
-
   useEffect(() => {
     if (debounceTimer.current) {
       clearTimeout(debounceTimer.current);
@@ -250,24 +230,22 @@ const OnboardingZone = () => {
     queryClient.invalidateQueries(['searchResults']);
   }, [filters.category, queryClient]);
 
-  // ERROR ---- Please explain it
   // --- React Query for All Shops for Filters (Cached for select options) ---
   const { data: allShopsForFiltersData } = useQuery({
     queryKey: ['allShopsForFilters', filters.category],
     queryFn: async () => {
       const initialSearchText = categoryMapping[filters.category]?.searchText || 'takeaway';
-      const fetchPromises = [1, 2, 3].map(async (page) => {
-        const url = `https://sale.mega-data.co.uk/Shops/?search=${initialSearchText}&page=${page}`;
-        const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          // Make sure to filter out items without a proper ID here too for consistency
-          return data.results ? transformApiData(data.results) : [];
-        }
-        return [];
+      const url = `https://sale.mega-data.co.uk/Shops/?search=${initialSearchText}&page=1`;
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
       });
-      const allData = (await Promise.all(fetchPromises)).flat();
-      return allData;
+
+      if (response.ok) {
+        const data = await response.json();
+        return data.results ? transformApiData(data.results) : [];
+      }
+      return [];
     },
     staleTime: 10 * 60 * 1000,
     cacheTime: 30 * 60 * 1000,
@@ -339,7 +317,6 @@ const OnboardingZone = () => {
   // Get unique cities and postcodes for filter options
   const uniqueCities = [...new Set(allShopsForFiltersData?.map((shop) => shop.city) || [])];
   const uniquePostcodes = [...new Set(allShopsForFiltersData?.map((shop) => shop.postcode) || [])];
-
   const filteredPostcodesByCity = tempFilters.city
     ? [...new Set(allShopsForFiltersData?.filter((shop) => shop.city === tempFilters.city).map((shop) => shop.postcode) || [])]
     : uniquePostcodes;
@@ -354,9 +331,8 @@ const OnboardingZone = () => {
 
   // Handle row click to navigate to shop details page
   const handleRowClick = (shopId) => {
-    console.log("Attempting to navigate to shopId:", shopId); // Diagnostic log
     if (shopId) {
-      navigate(`/shop/${shopId}`); // Navigate to the new route
+      navigate(`/shop/${shopId}`);
     } else {
       console.warn("Attempted to navigate to shop details with a null or undefined shopId.");
     }
@@ -380,8 +356,8 @@ const OnboardingZone = () => {
   if (isLoadingInitial) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-900">
-          
+        <header className="p-0 shadow-sm bg-gray-800">
+          <div className="container mx-auto">
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -390,7 +366,7 @@ const OnboardingZone = () => {
                 </button>
               ))}
             </div>
-          
+          </div>
         </header>
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex justify-center items-center mt-20">
@@ -408,7 +384,8 @@ const OnboardingZone = () => {
   if (mainDataError) {
     return (
       <div className="bg-gray-900 text-white min-h-screen">
-        <header className="p-0 shadow-sm bg-gray-900">
+        <header className="p-0 shadow-sm bg-gray-800">
+          <div className="container mx-auto">
             <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
               {orderedCategories.map((category) => (
                 <button key={category} disabled className="flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 bg-gray-700 text-gray-400 opacity-50">
@@ -417,6 +394,7 @@ const OnboardingZone = () => {
                 </button>
               ))}
             </div>
+          </div>
         </header>
         <main className="container mx-auto p-4 space-y-6">
           <div className="flex flex-col items-center justify-center p-8 mt-20">
@@ -437,7 +415,8 @@ const OnboardingZone = () => {
   // Render main content
   return (
     <div className="bg-gray-900 text-white min-h-screen">
-      <header className="p-0 shadow-sm bg-gray-900">
+      <header className="p-0 shadow-sm bg-gray-800">
+        <div className="container mx-auto">
           <div className="flex px-3 py-4 rounded-b-2xl bg-gray-700">
             {orderedCategories.map((category) => (
               <button key={category} onClick={() => handleCategoryClick(category)} disabled={overallLoading} className={`flex-1 flex items-center justify-center gap-2 text-lg border-0 transition-all duration-300 text-center py-4 ${filters.category === category ? 'bg-gray-600 text-gray-200 scale-95 rounded-lg' : 'bg-gray-700 text-gray-400'} ${overallLoading ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -446,7 +425,7 @@ const OnboardingZone = () => {
               </button>
             ))}
           </div>
-        
+        </div>
       </header>
       <main className="container mx-auto p-4 space-y-6">
         <div className="flex justify-between items-center mt-5 pb-4">
@@ -464,7 +443,6 @@ const OnboardingZone = () => {
                   <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40" onClick={() => setShowFilters(false)}></div>
                   <div className="absolute right-4 mt-2 w-72 rounded-md shadow-lg z-50 bg-gray-800 border border-gray-700">
                     <div className="p-4">
-                      {/* Select a City */}
                       <div className="mb-4">
                         <label htmlFor="filter-city" className="block text-sm font-medium mb-1 text-gray-300">Select a City</label>
                         <select id="filter-city" value={tempFilters.city} onChange={handleCityChange} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
@@ -472,7 +450,6 @@ const OnboardingZone = () => {
                           {uniqueCities.map((city) => <option key={city} value={city}>{city}</option>)}
                         </select>
                       </div>
-                      {/* Select a Postcode */}
                       <div className="mb-4">
                         <label htmlFor="filter-postcode" className="block text-sm font-medium mb-1 text-gray-300">Select a Postcode</label>
                         <select id="filter-postcode" value={tempFilters.postcode} onChange={handlePostcodeChange} disabled={!tempFilters.city} className="w-full px-3 py-2 text-sm rounded border focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-700 border-gray-600 appearance-none bg-no-repeat bg-[length:1em] bg-[position:right_0.75rem_center] pr-10" style={{ backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3e%3cpath d='M7 7l3-3 3 3m0 6l-3 3-3-3' stroke='%23d1d5db' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3e%3c/svg%3e")` }}>
@@ -481,9 +458,7 @@ const OnboardingZone = () => {
                         </select>
                       </div>
                       <div className="flex justify-between pt-2">
-                        {/* Cancel Button */}
                         <button onClick={() => setShowFilters(false)} className="px-4 py-2 text-sm rounded transition-colors bg-gray-800 border border-gray-600 text-gray-200 hover:bg-gray-700">Cancel</button>
-                        {/* Apply Button */}
                         <button onClick={handleApplyFilters} className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm rounded transition-colors whitespace-nowrap">Apply</button>
                       </div>
                     </div>
@@ -493,19 +468,14 @@ const OnboardingZone = () => {
             </div>
           </div>
         </div>
-
         <div className="mb-4">
           {isSearchMode ? (
             <div>
               <h2 className="text-xl font-semibold text-gray-200 mb-2">Search Results for "{debouncedSearchQuery}" in {categoryMapping[filters.category]?.label}</h2>
               <p className="text-sm text-gray-400">{isSearchLoading || isSearchFetching ? 'Searching...' : `Found ${displayShops.length} results in ${categoryMapping[filters.category]?.label} category`}</p>
             </div>
-          ) : (
-            // This entire block is now removed as per your request.
-            null
-          )}
+          ) : null}
         </div>
-
         {(isSearchLoading || isSearchFetching) && (
           <div className="flex justify-center items-center py-8">
             <div className="text-center">
@@ -514,7 +484,6 @@ const OnboardingZone = () => {
             </div>
           </div>
         )}
-
         {isPageLoading && !isSearchMode && (
           <div className="flex justify-center items-center py-8">
             <div className="text-center">
@@ -523,7 +492,6 @@ const OnboardingZone = () => {
             </div>
           </div>
         )}
-
         {searchError && (
           <div className="flex flex-col items-center justify-center p-8">
             <img src={sadMaskImg} alt="Error" className="w-32 h-32 mb-4" />
@@ -532,7 +500,6 @@ const OnboardingZone = () => {
             <button onClick={() => refetchSearchResults()} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">Try Again</button>
           </div>
         )}
-
         {!overallLoading && !mainDataError && !searchError && displayShops.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-8">
             <img src={sadMaskImg} alt="Sad Mask" className="w-32 h-32 mb-4" />
@@ -541,19 +508,17 @@ const OnboardingZone = () => {
         ) : (
           !overallLoading && !mainDataError && !searchError && (
             <>
-              {!isSearchMode && ( // Only show this if not in search mode
+              {!isSearchMode && (
                 <div className="flex justify-between items-center mb-4">
                   <p className="text-sm text-gray-400">Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, totalCount)} of {totalCount} shops</p>
                   <p className="text-sm text-gray-400">Page {currentPage} of {totalPages}</p>
                 </div>
               )}
-
               <div className="space-y-8">
                 <div className="bg-gray-800 rounded-lg p-6">
                   <Table shops={displayShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
                 </div>
               </div>
-
               {!isSearchMode && (
                 <div className="mt-12 mb-8">
                   <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} isDarkMode={isDarkMode} />
