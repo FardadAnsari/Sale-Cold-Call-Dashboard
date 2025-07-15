@@ -229,6 +229,7 @@ const YourHistory = () => {
         });
         if (response.ok) {
           const data = await response.json();
+          
           if (data.results && Array.isArray(data.results)) {
             const combinedResults = transformApiData(data.results);
             return combinedResults.filter((shop) => {
@@ -322,6 +323,8 @@ const YourHistory = () => {
 
   const isSearchMode = debouncedSearchQuery.trim().length > 0 && searchResultsFetched;
   const displayShops = isSearchMode ? (searchResultsData || []) : displayData;
+  // console.log(displayShops);
+  
 
   const getIconForCategory = (category) => {
     switch (category) {

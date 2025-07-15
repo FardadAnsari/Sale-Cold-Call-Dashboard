@@ -1,9 +1,11 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 const HistoryContent = ({ historyItems }) => {
   if (!historyItems || historyItems.length === 0) {
     return null;
   }
+// console.log(historyItems);
 
   const formatCallDuration = (durationInMinutes) => {
     if (typeof durationInMinutes !== 'number' || isNaN(durationInMinutes)) {
@@ -66,9 +68,9 @@ const HistoryContent = ({ historyItems }) => {
             </div>
           </div>
           <div className="mt-6 flex justify-center">
-            <button className="text-blue-400 hover:text-blue-300 font-medium text-sm bg-gray-800 hover:bg-gray-700 w-[95%] py-2 rounded-lg border border-gray-600">
+            <Link className="text-blue-400 hover:text-blue-300 font-medium text-sm bg-gray-800 hover:bg-gray-700 w-[95%] py-2 rounded-lg border border-gray-600" to={`/case/${item.id}`}>
               Details
-            </button>
+            </Link>
           </div>
         </div>
       ))}
