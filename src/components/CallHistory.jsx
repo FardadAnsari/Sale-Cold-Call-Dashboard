@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Lead from './Lead';
 import plusIcon from '../images/plus.png';
 import deleteContainerImg from '../images/deletecontainer.png';
-import userIcon from '../images/user.png';
+// import userIcon from '../images/user.png';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
-const CallHistory = ({ isDarkMode = true }) => {
+const CallHistory = ({ isDarkMode = true , shopId}) => {
   const [callDescription, setCallDescription] = useState('');
   const [callResult, setCallResult] = useState('Intrested');
   const [shopOwnerName, setShopOwnerName] = useState('');
@@ -27,7 +27,9 @@ const CallHistory = ({ isDarkMode = true }) => {
   const [activeInternalTab, setActiveInternalTab] = useState('callSummary');
   const [caseCreated, setCaseCreated] = useState(false);
   const [userDetails, setUserDetails] = useState(null);
-
+useEffect(() => {
+  console.log('Received shopId in CallHistory:', shopId);
+}, [shopId]);
   const formClasses = {
     container: `flex-1 bg-gray-700 rounded-lg shadow-md p-4 flex flex-col h-full relative`,
     heading: `text-lg font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`,
@@ -87,7 +89,7 @@ const CallHistory = ({ isDarkMode = true }) => {
       close_time: new Date().toISOString(),
       created_by: userDetails?.id || 0,
       customer: {
-        shop_id_company: 'string',
+        shop_id_company: shopId,
         customer_name: shopOwnerName,
         customer_phone: shopOwnerPhone,
         customer_assistant_phone: gateKeeperPhone,
@@ -95,19 +97,6 @@ const CallHistory = ({ isDarkMode = true }) => {
         customer_availability: JSON.stringify(availability),
       },
     };
-
-    console.log('Shop Owner Details:', {
-      name: shopOwnerName,
-      phone: shopOwnerPhone,
-    });
-
-    console.log('Gatekeeper Details:', {
-      name: gateKeeperName,
-      phone: gateKeeperPhone,
-    });
-
-    console.log('Owner Availability:', JSON.stringify(availability, null, 2));
-    console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
 
     const authToken = sessionStorage.getItem('authToken');
 
@@ -117,46 +106,56 @@ const CallHistory = ({ isDarkMode = true }) => {
         leadPayload,
         {
           headers: {
-            Accept: 'application/json',
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
         }
       );
 
-      console.log('Response data:', JSON.stringify(response.data, null, 2));
+      console.log('✅ Submission successful:', response.data);
 
       Swal.fire({
         icon: 'success',
-        title: 'Success!',
-        text: 'Call Summary Submitted!',
+        title: 'Submitted!',
+        text: 'Call summary submitted successfully.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#F6AD55',
       });
+
+      // Optional: Reset form fields if needed
+      // setCallDescription('');
+      // setShopOwnerName('');
+      // setShopOwnerPhone('');
+      // setGateKeeperName('');
+      // setGateKeeperPhone('');
+      // setAvailability({...});
     } catch (error) {
-      console.error('Submission failed:', error.response?.data || error.message);
-  if (error.response) {
-    // Server responded with non-2xx
-    console.error('❌ Server Error:', error.response.status); // e.g., 400, 500
-    console.error('Error data:', error.response.data);
-  } else if (error.request) {
-    // No response received
-    console.error('❌ No response received:', error.request);
-  } else {
-    // Other errors
-    console.error('❌ Request setup error:', error.message);
-  }
+      console.error('❌ Submission failed:', error);
+
+      let errorMessage = 'An unexpected error occurred.';
+      if (error.response) {
+        // Server responded with error
+        errorMessage = error.response.data?.detail || `Server error ${error.response.status}`;
+      } else if (error.request) {
+        // No response
+        errorMessage = 'No response received from the server.';
+      } else {
+        // Axios setup error
+        errorMessage = error.message;
+      }
+
       Swal.fire({
         icon: 'error',
-        title: 'Error!',
-        text: 'Failed to submit call summary.',
+        title: 'Submission Failed',
+        text: errorMessage,
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#F6AD55',
       });
     }
   };
+
 
   const handleTimeChange = (day, index, field, value) => {
     setAvailability(prev => ({
@@ -200,13 +199,13 @@ const CallHistory = ({ isDarkMode = true }) => {
 
   const handleCreateCase = async () => {
     try {
-      const authToken = sessionStorage.getItem("authToken");
+      const authToken = sessionStorage.getItem('authToken');
 
       const response = await fetch('https://sale.mega-data.co.uk/user/info/', {
         method: 'GET',
         headers: {
-          'accept': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          accept: 'application/json',
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -215,17 +214,37 @@ const CallHistory = ({ isDarkMode = true }) => {
 
       if (response.ok) {
         setUserDetails(data);
-        setCaseCreated(true);
 
-        // Log the required information in JSON format
-        const caseDetailsToLog = {
-          customer_name: shopOwnerName,
-          customer_phone: shopOwnerPhone,
-          customer_assistant_name: gateKeeperName,
-          customer_assistant_phone: gateKeeperPhone,
-          customer_availability: availability
+        const leadPayload = {
+          start_time: new Date().toISOString(),
+          last_update: new Date().toISOString(),
+          close_time: new Date().toISOString(),
+          created_by: data?.id || 0,
+          customer: {
+            shop_id_company: shopId,
+            customer_name: shopOwnerName,
+            customer_phone: shopOwnerPhone,
+            customer_assistant_phone: gateKeeperPhone,
+            customer_assistant_name: gateKeeperName,
+            customer_availability: JSON.stringify(availability),
+          },
         };
-        console.log('Case Creation Details:', JSON.stringify(caseDetailsToLog, null, 2));
+
+        // Send the POST request
+        const createResponse = await axios.post(
+          'https://sale.mega-data.co.uk/history/create-sale-session/',
+          leadPayload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+        console.log(createResponse.status);
+
+        console.log('✅ Sale session created:', createResponse.data);
+        setCaseCreated(true);
 
         Swal.fire({
           icon: 'info',
@@ -236,21 +255,14 @@ const CallHistory = ({ isDarkMode = true }) => {
           confirmButtonColor: '#A78BFA',
         });
       } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Failed to fetch user details.',
-          background: isDarkMode ? '#4A5568' : '#fff',
-          color: isDarkMode ? '#E2E8F0' : '#1A202C',
-          confirmButtonColor: '#A78BFA',
-        });
+        throw new Error('Failed to fetch user details');
       }
     } catch (error) {
-      console.error('Error fetching user details:', error);
+      console.error('Error creating sale session:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error!',
-        text: 'An error occurred while fetching user details.',
+        text: 'An error occurred while creating the sale session.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
@@ -293,24 +305,29 @@ const CallHistory = ({ isDarkMode = true }) => {
         }
       `}</style>
 
-      <div className="flex mb-4 -mt-2 -mx-4 px-4 pt-2 border-b border-gray-600">
+      <div className='-mx-4 -mt-2 mb-4 flex border-b border-gray-600 px-4 pt-2'>
         <button
-          className={`py-2 px-4 text-sm font-medium focus:outline-none ${
+          className={`px-4 py-2 text-sm font-medium focus:outline-none ${
             activeInternalTab === 'callSummary'
               ? 'border-b-2 border-blue-500 text-blue-500'
               : `${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`
           }`}
-          onClick={() => { setActiveInternalTab('callSummary'); }}
+          onClick={() => {
+            setActiveInternalTab('callSummary');
+          }}
         >
           Call Summary
         </button>
         <button
-          className={`py-2 px-4 text-sm font-medium focus:outline-none ${
+          className={`px-4 py-2 text-sm font-medium focus:outline-none ${
             activeInternalTab === 'createLead'
               ? 'border-b-2 border-blue-500 text-blue-500'
               : `${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`
           }`}
-          onClick={() => { setActiveInternalTab('createLead'); setShowAvailabilityForm(false); }}
+          onClick={() => {
+            setActiveInternalTab('createLead');
+            setShowAvailabilityForm(false);
+          }}
         >
           Create Lead
         </button>
@@ -326,25 +343,25 @@ const CallHistory = ({ isDarkMode = true }) => {
         <>
           <h2 className={formClasses.heading}>Set Owner Availability</h2>
           <div className={formClasses.scrollableArea}>
-            <div className="h-full flex flex-col">
-              <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+            <div className='flex h-full flex-col'>
+              <div className='custom-scrollbar flex-1 overflow-y-auto pr-2'>
                 {daysOfWeek.map((day) => (
                   <div key={day} className={formClasses.availabilitySection}>
                     <div
                       className={formClasses.availabilityDayHeader}
                       onClick={() => setOpenDay(openDay === day ? null : day)}
                     >
-                      <span className="font-medium text-gray-200">{day}</span>
+                      <span className='font-medium text-gray-200'>{day}</span>
                       <svg
-                        className={`w-5 h-5 transition-transform duration-200 ${openDay === day ? 'rotate-180' : ''}`}
-                        fill="currentColor"
-                        viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg"
+                        className={`h-5 w-5 transition-transform duration-200 ${openDay === day ? 'rotate-180' : ''}`}
+                        fill='currentColor'
+                        viewBox='0 0 20 20'
+                        xmlns='http://www.w3.org/2000/svg'
                       >
                         <path
-                          fillRule="evenodd"
-                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                          clipRule="evenodd"
+                          fillRule='evenodd'
+                          d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+                          clipRule='evenodd'
                         />
                       </svg>
                     </div>
@@ -352,55 +369,59 @@ const CallHistory = ({ isDarkMode = true }) => {
                       <div className={formClasses.availabilityDayContent}>
                         {availability[day].map((slot, slotIndex) => (
                           <div key={slotIndex} className={formClasses.timeSlotContainer}>
-                            <div className="flex items-center gap-2 flex-1">
+                            <div className='flex flex-1 items-center gap-2'>
                               <input
-                                type="time"
+                                type='time'
                                 value={slot.from}
-                                onChange={(e) => handleTimeChange(day, slotIndex, 'from', e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeChange(day, slotIndex, 'from', e.target.value)
+                                }
                                 className={formClasses.timeInput}
                               />
-                              <span className="text-sm text-gray-300">To</span>
+                              <span className='text-sm text-gray-300'>To</span>
                               <input
-                                type="time"
+                                type='time'
                                 value={slot.to}
-                                onChange={(e) => handleTimeChange(day, slotIndex, 'to', e.target.value)}
+                                onChange={(e) =>
+                                  handleTimeChange(day, slotIndex, 'to', e.target.value)
+                                }
                                 className={formClasses.timeInput}
                               />
                             </div>
                             <button
-                              type="button"
+                              type='button'
                               onClick={() => removeTimeSlot(day, slotIndex)}
-                              className="p-2 rounded-md bg-gray-600 hover:bg-gray-500 transition-colors duration-200"
+                              className='rounded-md bg-gray-600 p-2 transition-colors duration-200 hover:bg-gray-500'
                               disabled={availability[day].length === 1}
                             >
-                              <img src={deleteContainerImg} alt="Delete" className="h-4 w-4" />
+                              <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
                             </button>
                           </div>
                         ))}
                         <button
-                          type="button"
+                          type='button'
                           onClick={() => addTimeSlot(day)}
-                          className="flex items-center justify-center w-6 h-6 rounded-sm bg-blue-500 hover:bg-blue-600 transition-colors duration-200"
+                          className='flex h-6 w-6 items-center justify-center rounded-sm bg-blue-500 transition-colors duration-200 hover:bg-blue-600'
                         >
-                          <img src={plusIcon} alt="Add" className="h-3 w-3" />
+                          <img src={plusIcon} alt='Add' className='h-3 w-3' />
                         </button>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex justify-center mt-auto pt-4 border-t border-gray-600">
+              <div className='mt-auto flex justify-center border-t border-gray-600 pt-4'>
                 <button
                   onClick={handleAvailabilitySubmit}
-                  className="px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-200 font-medium"
+                  className='rounded-md bg-blue-500 px-6 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-600'
                 >
                   Save Availability
                 </button>
               </div>
-              <div className="flex justify-center mt-6">
+              <div className='mt-6 flex justify-center'>
                 <button
                   onClick={toggleAvailabilityForm}
-                  className="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors duration-200 font-medium"
+                  className='rounded-md bg-gray-500 px-6 py-2 font-medium text-white transition-colors duration-200 hover:bg-gray-600'
                 >
                   Back to Call Summary
                 </button>
@@ -410,180 +431,201 @@ const CallHistory = ({ isDarkMode = true }) => {
         </>
       ) : (
         <>
-          <div className={formClasses.scrollableArea}>
-            <form onSubmit={handleSubmit} className="flex flex-col h-full">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label htmlFor="shopOwnerName" className={formClasses.label}>Shop Owner's Name</label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type="text"
-                      id="shopOwnerName"
-                      className={formClasses.inputBase}
-                      placeholder="Enter owner's name"
-                      value={shopOwnerName}
-                      onChange={(e) => setShopOwnerName(e.target.value)}
-                    />
-                    {shopOwnerName && (
-                      <button
-                        type="button"
-                        onClick={handleClear(setShopOwnerName)}
-                        className={formClasses.clearButton}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="shopOwnerPhone" className={formClasses.label}>Shop Owner's Phone</label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type="tel"
-                      id="shopOwnerPhone"
-                      className={formClasses.inputBase}
-                      placeholder="Enter owner's phone"
-                      value={shopOwnerPhone}
-                      onChange={(e) => setShopOwnerPhone(e.target.value)}
-                    />
-                    {shopOwnerPhone && (
-                      <button
-                        type="button"
-                        onClick={handleClear(setShopOwnerPhone)}
-                        className={formClasses.clearButton}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
+          <div className={`flex h-full flex-col ${formClasses.scrollableArea}`}>
+            <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+              <div>
+                <label htmlFor='shopOwnerName' className={formClasses.label}>
+                  Shop Owner's Name
+                </label>
+                <div className={formClasses.inputGroup}>
+                  <input
+                    type='text'
+                    id='shopOwnerName'
+                    className={formClasses.inputBase}
+                    placeholder="Enter owner's name"
+                    value={shopOwnerName}
+                    onChange={(e) => setShopOwnerName(e.target.value)}
+                  />
+                  {shopOwnerName && (
+                    <button
+                      type='button'
+                      onClick={handleClear(setShopOwnerName)}
+                      className={formClasses.clearButton}
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label htmlFor="gateKeeperName" className={formClasses.label}>Gate Keeper's Name</label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type="text"
-                      id="gateKeeperName"
-                      className={formClasses.inputBase}
-                      placeholder="Enter gatekeeper's name"
-                      value={gateKeeperName}
-                      onChange={(e) => setGateKeeperName(e.target.value)}
-                    />
-                    {gateKeeperName && (
-                      <button
-                        type="button"
-                        onClick={handleClear(setGateKeeperName)}
-                        className={formClasses.clearButton}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="gateKeeperPhone" className={formClasses.label}>Gate Keeper's Phone</label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type="tel"
-                      id="gateKeeperPhone"
-                      className={formClasses.inputBase}
-                      placeholder="Enter gatekeeper's phone"
-                      value={gateKeeperPhone}
-                      onChange={(e) => setGateKeeperPhone(e.target.value)}
-                    />
-                    {gateKeeperPhone && (
-                      <button
-                        type="button"
-                        onClick={handleClear(setGateKeeperPhone)}
-                        className={formClasses.clearButton}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
+              <div>
+                <label htmlFor='shopOwnerPhone' className={formClasses.label}>
+                  Shop Owner's Phone
+                </label>
+                <div className={formClasses.inputGroup}>
+                  <input
+                    type='tel'
+                    id='shopOwnerPhone'
+                    className={formClasses.inputBase}
+                    placeholder="Enter owner's phone"
+                    value={shopOwnerPhone}
+                    onChange={(e) => setShopOwnerPhone(e.target.value)}
+                  />
+                  {shopOwnerPhone && (
+                    <button
+                      type='button'
+                      onClick={handleClear(setShopOwnerPhone)}
+                      className={formClasses.clearButton}
+                    >
+                      ×
+                    </button>
+                  )}
                 </div>
               </div>
-              <div className="mb-2 flex flex-col sm:flex-row sm:items-center">
-                <button
-                  type="button"
-                  onClick={toggleAvailabilityForm}
-                  className={formClasses.buttonAddAvailability}
-                >
-                  <img src={plusIcon} alt="Add" className="h-4 w-4 mr-1" />
-                  Add Owner Availability
-                </button>
-                {hasAnyAvailabilitySet() && (
-                  <div className="mt-2 sm:mt-0 sm:ml-3 text-sm text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
-                    {daysOfWeek.map(day => {
-                        const daySlots = availability[day].filter(slot => slot.from !== '00:00' || slot.to !== '00:00');
-                        if (daySlots.length > 0) {
-                          const times = daySlots.map(slot => `${slot.from}-${slot.to}`).join(', ');
-                          return <span key={day} className="whitespace-nowrap">{day}: {times}</span>;
-                        }
-                        return null;
-                    })}
-                  </div>
-                )}
+            </div>
+            <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+              <div>
+                <label htmlFor='gateKeeperName' className={formClasses.label}>
+                  Gate Keeper's Name
+                </label>
+                <div className={formClasses.inputGroup}>
+                  <input
+                    type='text'
+                    id='gateKeeperName'
+                    className={formClasses.inputBase}
+                    placeholder="Enter gatekeeper's name"
+                    value={gateKeeperName}
+                    onChange={(e) => setGateKeeperName(e.target.value)}
+                  />
+                  {gateKeeperName && (
+                    <button
+                      type='button'
+                      onClick={handleClear(setGateKeeperName)}
+                      className={formClasses.clearButton}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-center mt-2 mb-2">
-                <button
-                  type="button"
-                  onClick={handleCreateCase}
-                  className={formClasses.buttonCreateCase}
-                  disabled={caseCreated}
-                >
-                  {caseCreated ? 'Case Created' : 'Create Case'}
-                </button>
+              <div>
+                <label htmlFor='gateKeeperPhone' className={formClasses.label}>
+                  Gate Keeper's Phone
+                </label>
+                <div className={formClasses.inputGroup}>
+                  <input
+                    type='tel'
+                    id='gateKeeperPhone'
+                    className={formClasses.inputBase}
+                    placeholder="Enter gatekeeper's phone"
+                    value={gateKeeperPhone}
+                    onChange={(e) => setGateKeeperPhone(e.target.value)}
+                  />
+                  {gateKeeperPhone && (
+                    <button
+                      type='button'
+                      onClick={handleClear(setGateKeeperPhone)}
+                      className={formClasses.clearButton}
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="mb-3">
-                <label htmlFor="callDescription" className={formClasses.label}>
+            </div>
+            <div className='mb-2 flex flex-col sm:flex-row sm:items-center'>
+              <button
+                type='button'
+                onClick={toggleAvailabilityForm}
+                className={formClasses.buttonAddAvailability}
+              >
+                <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
+                Add Owner Availability
+              </button>
+              {hasAnyAvailabilitySet() && (
+                <div className='mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-400 sm:mt-0 sm:ml-3'>
+                  {daysOfWeek.map((day) => {
+                    const daySlots = availability[day].filter(
+                      (slot) => slot.from !== '00:00' || slot.to !== '00:00'
+                    );
+                    if (daySlots.length > 0) {
+                      const times = daySlots.map((slot) => `${slot.from}-${slot.to}`).join(', ');
+                      return (
+                        <span key={day} className='whitespace-nowrap'>
+                          {day}: {times}
+                        </span>
+                      );
+                    }
+                    return null;
+                  })}
+                </div>
+              )}
+            </div>
+            <div className='mt-2 mb-2 flex justify-center'>
+              <button
+                type='submit'
+                onClick={handleCreateCase}
+                className={formClasses.buttonCreateCase}
+                disabled={caseCreated}
+              >
+                {caseCreated ? 'Case Created' : 'Create Case'}
+              </button>
+            </div>
+
+            <form>
+              <div className='mb-3'>
+                <label htmlFor='callDescription' className={formClasses.label}>
                   Call Description<span className={formClasses.requiredStar}>*</span>
                 </label>
                 <textarea
-                  id="callDescription"
-                  rows="3"
+                  id='callDescription'
+                  rows='3'
                   className={formClasses.textArea}
-                  placeholder="Enter call description..."
+                  placeholder='Enter call description...'
                   value={callDescription}
                   onChange={(e) => setCallDescription(e.target.value)}
                   required
                   disabled={!caseCreated}
                 ></textarea>
               </div>
-              <div className="mb-3">
-                <label htmlFor="callResult" className={formClasses.label}>
+              <div className='mb-3'>
+                <label htmlFor='callResult' className={formClasses.label}>
                   Select Call Result<span className={formClasses.requiredStar}>*</span>
                 </label>
-                <div className="relative">
+                <div className='relative'>
                   <select
-                    id="callResult"
+                    id='callResult'
                     className={formClasses.select}
                     value={callResult}
                     onChange={(e) => setCallResult(e.target.value)}
                     required
                     disabled={!caseCreated}
                   >
-                    <option value="Intrested">Intrested</option>
-                    <option value="appointmentSet">Appointment is set</option>
-                    <option value="notInterested">Not interested</option>
-                    <option value="followUp">Follow up</option>
-                    <option value="hangUp">Hang up</option>
-                    <option value="fourthAction">Fourth action</option>
+                    <option value='Intrested'>Intrested</option>
+                    <option value='appointmentSet'>Appointment is set</option>
+                    <option value='notInterested'>Not interested</option>
+                    <option value='followUp'>Follow up</option>
+                    <option value='hangUp'>Hang up</option>
+                    <option value='fourthAction'>Fourth action</option>
                   </select>
                   <div className={formClasses.selectArrow}>
-                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    <svg
+                      className='h-4 w-4'
+                      xmlns='http://www.w3.org/2000/svg'
+                      viewBox='0 0 20 20'
+                      fill='currentColor'
+                      aria-hidden='true'
+                    >
+                      <path
+                        fillRule='evenodd'
+                        d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+                        clipRule='evenodd'
+                      />
                     </svg>
                   </div>
                 </div>
               </div>
-              <div className="mt-auto">
-                <button
-                  type="submit"
-                  className={formClasses.buttonSubmit}
-                  disabled={!caseCreated}
-                >
+              <div className='mt-auto'>
+                <button type='submit' className={formClasses.buttonSubmit} disabled={!caseCreated}>
                   Submit Call Summary
                 </button>
               </div>

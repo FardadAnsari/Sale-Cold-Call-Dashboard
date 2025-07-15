@@ -60,6 +60,7 @@ const transformSingleShopData = (apiItem) => {
   return {
     id: apiItem.id || apiItem.shop_id_company,
     name: sanitizeString(apiItem.shop_name, 'Unknown Shop'),
+    shop_id_company: apiItem.shop_id_company,
     serviceType: sanitizeString(apiItem.category, 'Unknown'),
     postcode: sanitizeString(apiItem.postcode, 'N/A'),
     city: extractCityFromAddress(apiItem.address) || 'Unknown',
@@ -262,7 +263,7 @@ const authToken = sessionStorage.getItem("authToken")
       </div>
       {/* Wrapper for CallHistory now also uses flex-1 to consume available height */}
       <div className="flex-1 flex flex-col min-w-0">
-        <CallHistory isDarkMode={isDarkMode} />
+        <CallHistory isDarkMode={isDarkMode} shopId={shop.shop_id_company}/>
       </div>
     </div>
   );
