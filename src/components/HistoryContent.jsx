@@ -5,7 +5,7 @@ const HistoryContent = ({ historyItems }) => {
   if (!historyItems || historyItems.length === 0) {
     return null;
   }
-// console.log(historyItems);
+console.log(historyItems);
 
   const formatCallDuration = (durationInMinutes) => {
     if (typeof durationInMinutes !== 'number' || isNaN(durationInMinutes)) {
@@ -43,32 +43,40 @@ const HistoryContent = ({ historyItems }) => {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
       {historyItems.map((item, index) => (
-        <div key={item.id || index} className="bg-gray-800 rounded-lg p-6 shadow-lg flex flex-col justify-between w-full h-[243px]">
+        <div
+          key={item.id || index}
+          className='flex h-[243px] w-full flex-col justify-between rounded-lg bg-gray-800 p-6 shadow-lg'
+        >
           <div>
-            <h3 className="text-xl font-semibold text-gray-100 mb-4">{item.name}</h3>
-            <div className="space-y-2 text-gray-300 text-sm">
-              <p className="flex justify-between">
-                <span className="font-medium text-gray-400">Call Duration:</span>
-                <span>{formatCallDuration(item.call_duration_minutes || (Math.random() * 10) + 1)}</span>
+            <h3 className='mb-4 text-xl font-semibold text-gray-100'>{item.name}</h3>
+            <div className='space-y-2 text-sm text-gray-300'>
+              <p className='flex justify-between'>
+                <span className='font-medium text-gray-400'>Call Duration:</span>
+                <span>
+                  {formatCallDuration(item.call_duration_minutes || Math.random() * 10 + 1)}
+                </span>
               </p>
-              <p className="flex justify-between">
-                <span className="font-medium text-gray-400">Result:</span>
+              <p className='flex justify-between'>
+                <span className='font-medium text-gray-400'>Result:</span>
                 <span>{item.call_result || 'Interested'}</span>
               </p>
-              <p className="flex justify-between">
-                <span className="font-medium text-gray-400">Date:</span>
+              <p className='flex justify-between'>
+                <span className='font-medium text-gray-400'>Date:</span>
                 <span>{formatDate(item.call_date || '2025-06-02T17:30:00Z')}</span>
               </p>
-              <p className="flex justify-between">
-                <span className="font-medium text-gray-400">Time:</span>
+              <p className='flex justify-between'>
+                <span className='font-medium text-gray-400'>Time:</span>
                 <span>{formatTime(item.call_date || '2025-06-02T17:30:00Z')}</span>
               </p>
             </div>
           </div>
-          <div className="mt-6 flex justify-center">
-            <Link className="text-blue-400 hover:text-blue-300 font-medium text-sm bg-gray-800 hover:bg-gray-700 w-[95%] py-2 rounded-lg border border-gray-600" to={`/case/${item.id}`}>
+          <div className='mt-6 flex justify-center'>
+            <Link
+              className='w-[95%] rounded-lg border border-gray-600 bg-gray-800 py-2 text-sm text-center font-medium text-blue-400 hover:bg-gray-700 hover:text-blue-300'
+              to={`/case/${item.sale_session}`}
+            >
               Details
             </Link>
           </div>

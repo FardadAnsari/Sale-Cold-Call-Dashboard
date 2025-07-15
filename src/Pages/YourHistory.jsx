@@ -50,6 +50,7 @@ const transformApiData = (apiResults) => {
     call_duration_minutes: transformCallTimeToMinutes(item.call_time),
     call_result: item.description,
     call_date: item.date,
+    sale_session: item.sale_session
   }));
 };
 
@@ -153,6 +154,7 @@ const YourHistory = () => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
+      console.log('Raw fetched history data from API:', data);
       if (data.results && Array.isArray(data.results)) {
         return {
           transformedData: transformApiData(data.results),
