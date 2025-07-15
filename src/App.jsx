@@ -3,13 +3,13 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ScrollBar from './components/ScrollBar'; // Import ScrollBar component
 import Sidebar from './components/Sidebar';
-import OnboardingZone from './pages/OnboardingZone';
-import YourHistory from './pages/YourHistory';
-import Login from './pages/Login';
+import OnboardingZone from './Pages/OnboardingZone';
+import YourHistory from './Pages/YourHistory';
+import Login from './Pages/Login';
 import CaseDetails from './components/CaseDetails'; // From first file
 import ShopDetailsPage from './components/ShopDetailsPage'; // From second file
 import ProtectedRoute from './components/ProtectedRoute';
-import Leads from './pages/Leads'; // Import the Leads component
+import Leads from './Pages/Leads'; // Import the Leads component
 import Cases from './Pages/Cases'; // Import Cases component
 
 // Create a client
