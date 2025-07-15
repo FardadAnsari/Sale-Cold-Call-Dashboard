@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import Lead from './Lead'; // Import the Lead component directly
+import Lead from './Lead';
 import plusIcon from '../images/plus.png';
 import deleteContainerImg from '../images/deletecontainer.png';
-import userIcon from '../images/user.png'; // Assuming these icons are still used in the form
-import Swal from 'sweetalert2'; // Import SweetAlert2
+import userIcon from '../images/user.png';
+import Swal from 'sweetalert2';
 
 const CallHistory = ({ isDarkMode = true }) => {
   const [callDescription, setCallDescription] = useState('');
@@ -24,7 +24,8 @@ const CallHistory = ({ isDarkMode = true }) => {
   });
   const [openDay, setOpenDay] = useState('Monday');
   const [activeInternalTab, setActiveInternalTab] = useState('callSummary');
-  const [caseCreated, setCaseCreated] = useState(false); 
+  const [caseCreated, setCaseCreated] = useState(false);
+  const [userDetails, setUserDetails] = useState(null);
 
   const formClasses = {
     container: `flex-1 bg-gray-700 rounded-lg shadow-md p-4 flex flex-col h-full relative`,
@@ -50,10 +51,10 @@ const CallHistory = ({ isDarkMode = true }) => {
       }`,
     selectArrow: `pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 ${isDarkMode ? 'text-orange-400' : 'text-gray-400'}`,
     buttonAddAvailability: `flex-1 h-[28px] flex items-center justify-center gap-1 px-2 rounded-md transition-colors duration-200 text-white text-sm font-medium
-      border border-white bg-gray-700 hover:bg-gray-800 whitespace-nowrap`, 
-    buttonCreateCase: `w-full h-[36px] mt-2 mb-2 px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors duration-200 font-medium`, 
+      border border-white bg-gray-700 hover:bg-gray-800 whitespace-nowrap`,
+    buttonCreateCase: `w-full h-[36px] mt-2 mb-2 px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors duration-200 font-medium`,
     buttonSubmit: `w-full h-[36px] px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors duration-200 font-medium
-      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500`, 
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500`,
     availabilitySection: `bg-gray-800 p-3 rounded-md mb-2`,
     availabilityDayHeader: `flex justify-between items-center cursor-pointer`,
     availabilityDayContent: `mt-3 space-y-2`,
@@ -63,26 +64,75 @@ const CallHistory = ({ isDarkMode = true }) => {
   };
 
   const handleClear = (setter) => () => setter('');
-  const handleSubmit = (e) => {
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (caseCreated) {
-      console.log({
-        callDescription,
-        callResult,
-        shopOwnerName,
-        shopOwnerPhone,
-        gateKeeperName,
-        gateKeeperPhone,
-        availability
+      const leadPayload = {
+        start_time: new Date().toISOString(),
+        last_update: new Date().toISOString(),
+        close_time: new Date().toISOString(),
+        created_by: userDetails?.id || 0,
+        customer: {
+          shop_id_company: "string",
+          customer_name: shopOwnerName,
+          customer_phone: shopOwnerPhone,
+          customer_assistant_phone: gateKeeperPhone,
+          customer_assistant_name: gateKeeperName,
+          customer_availability: JSON.stringify(availability),
+        },
+      };
+
+      // Log all relevant details
+      console.log('Shop Owner Details:', {
+        name: shopOwnerName,
+        phone: shopOwnerPhone
       });
-      Swal.fire({
-        icon: 'success',
-        title: 'Success!',
-        text: 'Call Summary Submitted!',
-        background: isDarkMode ? '#4A5568' : '#fff',
-        color: isDarkMode ? '#E2E8F0' : '#1A202C',
-        confirmButtonColor: '#F6AD55',
+
+      console.log('Gatekeeper Details:', {
+        name: gateKeeperName,
+        phone: gateKeeperPhone
       });
+
+      console.log('Owner Availability:', JSON.stringify(availability, null, 2));
+
+      console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
+
+      const authToken = sessionStorage.getItem("authToken");
+
+      const response = await fetch('https://sale.mega-data.co.uk/history/create-sale-session/', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+        body: JSON.stringify(leadPayload),
+      });
+
+      const responseData = await response.json();
+      console.log('Response data:', JSON.stringify(responseData, null, 2));
+
+      if (response.ok) {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Call Summary Submitted!',
+          background: isDarkMode ? '#4A5568' : '#fff',
+          color: isDarkMode ? '#E2E8F0' : '#1A202C',
+          confirmButtonColor: '#F6AD55',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Failed to submit call summary.',
+          background: isDarkMode ? '#4A5568' : '#fff',
+          color: isDarkMode ? '#E2E8F0' : '#1A202C',
+          confirmButtonColor: '#F6AD55',
+        });
+      }
     } else {
       Swal.fire({
         icon: 'warning',
@@ -119,37 +169,84 @@ const CallHistory = ({ isDarkMode = true }) => {
   };
 
   const handleAvailabilitySubmit = () => {
-    console.log('Owner Availability Submitted:', availability);
-    setShowAvailabilityForm(false); // Hide the availability panel
+    console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
+    setShowAvailabilityForm(false);
     Swal.fire({
       icon: 'success',
       title: 'Availability Saved!',
       text: 'Owner availability has been successfully updated.',
       background: isDarkMode ? '#4A5568' : '#fff',
       color: isDarkMode ? '#E2E8F0' : '#1A202C',
-      confirmButtonColor: '#3B82F6', // Blue confirm button for availability
+      confirmButtonColor: '#3B82F6',
     });
   };
 
   const toggleAvailabilityForm = () => {
     setShowAvailabilityForm(!showAvailabilityForm);
   };
-  
-  const handleCreateCase = () => {
-    setCaseCreated(true);
-    Swal.fire({
-      icon: 'info',
-      title: 'Case Created!',
-      text: 'You can now fill in call details.',
-      background: isDarkMode ? '#4A5568' : '#fff',
-      color: isDarkMode ? '#E2E8F0' : '#1A202C',
-      confirmButtonColor: '#A78BFA',
-    });
+
+  const handleCreateCase = async () => {
+    try {
+      const authToken = sessionStorage.getItem("authToken");
+
+      const response = await fetch('https://sale.mega-data.co.uk/user/info/', {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${authToken}`
+        },
+      });
+
+      const data = await response.json();
+      console.log('Fetched user details:', JSON.stringify(data, null, 2));
+
+      if (response.ok) {
+        setUserDetails(data);
+        setCaseCreated(true);
+
+        // Log the required information in JSON format
+        const caseDetailsToLog = {
+          customer_name: shopOwnerName,
+          customer_phone: shopOwnerPhone,
+          customer_assistant_name: gateKeeperName,
+          customer_assistant_phone: gateKeeperPhone,
+          customer_availability: availability
+        };
+        console.log('Case Creation Details:', JSON.stringify(caseDetailsToLog, null, 2));
+
+        Swal.fire({
+          icon: 'info',
+          title: 'Case Created!',
+          text: 'You can now fill in call details.',
+          background: isDarkMode ? '#4A5568' : '#fff',
+          color: isDarkMode ? '#E2E8F0' : '#1A202C',
+          confirmButtonColor: '#A78BFA',
+        });
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Failed to fetch user details.',
+          background: isDarkMode ? '#4A5568' : '#fff',
+          color: isDarkMode ? '#E2E8F0' : '#1A202C',
+          confirmButtonColor: '#A78BFA',
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'An error occurred while fetching user details.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+    }
   };
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  // Helper to check if any non-default availability has been set
   const hasAnyAvailabilitySet = () => {
     return Object.values(availability).some(daySlots =>
       daySlots.some(slot => slot.from !== '00:00' || slot.to !== '00:00')
@@ -182,8 +279,7 @@ const CallHistory = ({ isDarkMode = true }) => {
           scroll-behavior: smooth;
         }
       `}</style>
-      
-      {/* Tab-like buttons */}
+
       <div className="flex mb-4 -mt-2 -mx-4 px-4 pt-2 border-b border-gray-600">
         <button
           className={`py-2 px-4 text-sm font-medium focus:outline-none ${
@@ -207,15 +303,13 @@ const CallHistory = ({ isDarkMode = true }) => {
         </button>
       </div>
 
-      {/* Conditional rendering based on the active tab and form state */}
       {activeInternalTab === 'createLead' ? (
         <>
-          {/* Removed the <h2>Create Lead Form</h2> header text */}
           <div className={formClasses.scrollableArea}>
             <Lead isDarkMode={isDarkMode} />
           </div>
         </>
-      ) : showAvailabilityForm ? ( // This is the availability form, it replaces the main form
+      ) : showAvailabilityForm ? (
         <>
           <h2 className={formClasses.heading}>Set Owner Availability</h2>
           <div className={formClasses.scrollableArea}>
@@ -301,11 +395,10 @@ const CallHistory = ({ isDarkMode = true }) => {
             </div>
           </div>
         </>
-      ) : ( // This is the main Call Summary form
+      ) : (
         <>
           <div className={formClasses.scrollableArea}>
             <form onSubmit={handleSubmit} className="flex flex-col h-full">
-              {/* Shop Owner Name and Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div>
                   <label htmlFor="shopOwnerName" className={formClasses.label}>Shop Owner's Name</label>
@@ -352,7 +445,6 @@ const CallHistory = ({ isDarkMode = true }) => {
                   </div>
                 </div>
               </div>
-              {/* Gate Keeper Name and Phone */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div>
                   <label htmlFor="gateKeeperName" className={formClasses.label}>Gate Keeper's Name</label>
@@ -399,7 +491,6 @@ const CallHistory = ({ isDarkMode = true }) => {
                   </div>
                 </div>
               </div>
-              {/* Add Owner Availability Button and exact time display */}
               <div className="mb-2 flex flex-col sm:flex-row sm:items-center">
                 <button
                   type="button"
@@ -409,34 +500,29 @@ const CallHistory = ({ isDarkMode = true }) => {
                   <img src={plusIcon} alt="Add" className="h-4 w-4 mr-1" />
                   Add Owner Availability
                 </button>
-                {/* Display submitted availability summary with exact times */}
                 {hasAnyAvailabilitySet() && (
                   <div className="mt-2 sm:mt-0 sm:ml-3 text-sm text-gray-400 flex flex-wrap gap-x-3 gap-y-1">
                     {daysOfWeek.map(day => {
                         const daySlots = availability[day].filter(slot => slot.from !== '00:00' || slot.to !== '00:00');
                         if (daySlots.length > 0) {
-                            const times = daySlots.map(slot => `${slot.from}-${slot.to}`).join(', ');
-                            return <span key={day} className="whitespace-nowrap">{day}: {times}</span>;
+                          const times = daySlots.map(slot => `${slot.from}-${slot.to}`).join(', ');
+                          return <span key={day} className="whitespace-nowrap">{day}: {times}</span>;
                         }
                         return null;
                     })}
                   </div>
                 )}
               </div>
-
-              {/* NEW: Create Case Button */}
-              <div className="flex justify-center mt-2 mb-2"> 
+              <div className="flex justify-center mt-2 mb-2">
                 <button
                   type="button"
                   onClick={handleCreateCase}
                   className={formClasses.buttonCreateCase}
-                  disabled={caseCreated} 
+                  disabled={caseCreated}
                 >
                   {caseCreated ? 'Case Created' : 'Create Case'}
                 </button>
               </div>
-
-              {/* Call Description */}
               <div className="mb-3">
                 <label htmlFor="callDescription" className={formClasses.label}>
                   Call Description<span className={formClasses.requiredStar}>*</span>
@@ -449,11 +535,10 @@ const CallHistory = ({ isDarkMode = true }) => {
                   value={callDescription}
                   onChange={(e) => setCallDescription(e.target.value)}
                   required
-                  disabled={!caseCreated} 
+                  disabled={!caseCreated}
                 ></textarea>
               </div>
-              {/* Select Call Result */}
-              <div className="mb-3"> 
+              <div className="mb-3">
                 <label htmlFor="callResult" className={formClasses.label}>
                   Select Call Result<span className={formClasses.requiredStar}>*</span>
                 </label>
@@ -464,7 +549,7 @@ const CallHistory = ({ isDarkMode = true }) => {
                     value={callResult}
                     onChange={(e) => setCallResult(e.target.value)}
                     required
-                    disabled={!caseCreated} 
+                    disabled={!caseCreated}
                   >
                     <option value="Intrested">Intrested</option>
                     <option value="appointmentSet">Appointment is set</option>
@@ -480,12 +565,11 @@ const CallHistory = ({ isDarkMode = true }) => {
                   </div>
                 </div>
               </div>
-              {/* Submit Button */}
               <div className="mt-auto">
                 <button
                   type="submit"
                   className={formClasses.buttonSubmit}
-                  disabled={!caseCreated} 
+                  disabled={!caseCreated}
                 >
                   Submit Call Summary
                 </button>
