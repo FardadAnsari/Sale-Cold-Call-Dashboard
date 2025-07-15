@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import plusPng from '../images/plus.png';
-import vectorIcon from '../images/vector.png';
-import deleteContainerIcon from '../images/deletecontainer.png';
+import plusPng from "../images/Plus.png"
+import vectorIcon from '../images/Vector.png';
+import deleteContainerIcon from '../images/DeleteContainer.png';
 import lockPng from '../images/lock.png';
 // Import the reusable components
 import InputField from './InputField';

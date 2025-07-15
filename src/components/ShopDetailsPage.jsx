@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CallHistory from '../components/CallHistory';
 import shopIcon from '../images/shopicon.png';
-import addressIcon from '../images/address.png';
-import timeIcon from '../images/timeicon.png';
-import postcodeIcon from '../images/postcode.png';
+import addressIcon from '../images/Address.png';
+import timeIcon from '../images/TimeIcon.png';
+import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
-import phoneIcon from '../images/phone.png';
+import phoneIcon from '../images/Phone.png';
 import sadMaskImg from '../images/sad-mask.png';
 
 const sanitizeString = (value, defaultValue = 'N/A') => {

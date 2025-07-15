@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Lead from './Lead';
-import plusIcon from '../images/plus.png';
-import deleteContainerImg from '../images/deletecontainer.png';
+import plusIcon from '../images/Plus.png';
+import deleteContainerImg from '../images/DeleteContainer.png';
 import Swal from 'sweetalert2';
 
 const CaseHistory = ({

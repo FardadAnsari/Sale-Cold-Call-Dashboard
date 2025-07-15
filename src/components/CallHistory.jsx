@@ -4,6 +4,7 @@ import plusIcon from '../images/plus.png';
 import deleteContainerImg from '../images/deletecontainer.png';
 import userIcon from '../images/user.png';
 import Swal from 'sweetalert2';
+import axios from 'axios';
 
 const CallHistory = ({ isDarkMode = true }) => {
   const [callDescription, setCallDescription] = useState('');
@@ -68,76 +69,88 @@ const CallHistory = ({ isDarkMode = true }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (caseCreated) {
-      const leadPayload = {
-        start_time: new Date().toISOString(),
-        last_update: new Date().toISOString(),
-        close_time: new Date().toISOString(),
-        created_by: userDetails?.id || 0,
-        customer: {
-          shop_id_company: "string",
-          customer_name: shopOwnerName,
-          customer_phone: shopOwnerPhone,
-          customer_assistant_phone: gateKeeperPhone,
-          customer_assistant_name: gateKeeperName,
-          customer_availability: JSON.stringify(availability),
-        },
-      };
-
-      // Log all relevant details
-      console.log('Shop Owner Details:', {
-        name: shopOwnerName,
-        phone: shopOwnerPhone
-      });
-
-      console.log('Gatekeeper Details:', {
-        name: gateKeeperName,
-        phone: gateKeeperPhone
-      });
-
-      console.log('Owner Availability:', JSON.stringify(availability, null, 2));
-
-      console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
-
-      const authToken = sessionStorage.getItem("authToken");
-
-      const response = await fetch('https://sale.mega-data.co.uk/history/create-sale-session/', {
-        method: 'POST',
-        headers: {
-          'accept': 'application/json',
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
-        },
-        body: JSON.stringify(leadPayload),
-      });
-
-      const responseData = await response.json();
-      console.log('Response data:', JSON.stringify(responseData, null, 2));
-
-      if (response.ok) {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Call Summary Submitted!',
-          background: isDarkMode ? '#4A5568' : '#fff',
-          color: isDarkMode ? '#E2E8F0' : '#1A202C',
-          confirmButtonColor: '#F6AD55',
-        });
-      } else {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Failed to submit call summary.',
-          background: isDarkMode ? '#4A5568' : '#fff',
-          color: isDarkMode ? '#E2E8F0' : '#1A202C',
-          confirmButtonColor: '#F6AD55',
-        });
-      }
-    } else {
+    if (!caseCreated) {
       Swal.fire({
         icon: 'warning',
         title: 'Action Required',
         text: 'Please create a case first!',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#F6AD55',
+      });
+      return;
+    }
+
+    const leadPayload = {
+      start_time: new Date().toISOString(),
+      last_update: new Date().toISOString(),
+      close_time: new Date().toISOString(),
+      created_by: userDetails?.id || 0,
+      customer: {
+        shop_id_company: 'string',
+        customer_name: shopOwnerName,
+        customer_phone: shopOwnerPhone,
+        customer_assistant_phone: gateKeeperPhone,
+        customer_assistant_name: gateKeeperName,
+        customer_availability: JSON.stringify(availability),
+      },
+    };
+
+    console.log('Shop Owner Details:', {
+      name: shopOwnerName,
+      phone: shopOwnerPhone,
+    });
+
+    console.log('Gatekeeper Details:', {
+      name: gateKeeperName,
+      phone: gateKeeperPhone,
+    });
+
+    console.log('Owner Availability:', JSON.stringify(availability, null, 2));
+    console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
+
+    const authToken = sessionStorage.getItem('authToken');
+
+    try {
+      const response = await axios.post(
+        'https://sale.mega-data.co.uk/history/create-sale-session/',
+        leadPayload,
+        {
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      console.log('Response data:', JSON.stringify(response.data, null, 2));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Call Summary Submitted!',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#F6AD55',
+      });
+    } catch (error) {
+      console.error('Submission failed:', error.response?.data || error.message);
+  if (error.response) {
+    // Server responded with non-2xx
+    console.error('❌ Server Error:', error.response.status); // e.g., 400, 500
+    console.error('Error data:', error.response.data);
+  } else if (error.request) {
+    // No response received
+    console.error('❌ No response received:', error.request);
+  } else {
+    // Other errors
+    console.error('❌ Request setup error:', error.message);
+  }
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Failed to submit call summary.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#F6AD55',

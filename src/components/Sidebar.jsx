@@ -1,10 +1,10 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import onboardingPng from '../images/sale.png';
-import historyPng from '../images/history.png';
+import onboardingPng from '../images/Sale.png';
+import historyPng from '../images/History.png';
 import casesPng from '../images/cases.png';
 import leadsPng from '../images/leadside.png';
-import profilePng from '../images/profile.png';
+import profilePng from '../images/Profile.png';
 import logoutPng from '../images/logout.png'; // Import the logout image
 
 const Sidebar = ({ isDarkMode }) => {
