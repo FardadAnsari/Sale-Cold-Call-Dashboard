@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Import useState
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CaseHistory from '../components/CaseHistory';
@@ -7,7 +7,7 @@ import addressIcon from '../images/address.png';
 import timeIcon from '../images/Timeicon.png';
 import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
-import phoneIcon from '../images/Phone.png';
+import phoneIcon from '../images/phone2.png';
 import sadMaskImg from '../images/sad-mask.png';
 
 const sanitizeString = (value, defaultValue = 'N/A') => {
@@ -38,13 +38,12 @@ const parseOpeningHours = (openingHoursData) => {
           const start = sanitizeString(slot.start, 'N/A');
           const end = sanitizeString(slot.end, 'N/A');
           if (start === 'N/A' && end === 'N/A') {
-              return 'Closed'; // Explicitly mark as closed if no times
+            return 'Closed';
           }
           return `${start}-${end}`;
         });
         const filteredHours = hoursStrings.filter(h => h !== 'Closed');
         parsed[day] = filteredHours.length > 0 ? filteredHours.join(', ') : 'Closed';
-
       } else if (typeof dayData === 'object' && dayData !== null && dayData.weekday_text && Array.isArray(dayData.weekday_text) && dayData.weekday_text.length > 0) {
         const text = dayData.weekday_text[0];
         parsed[day] = sanitizeString(text.split(': ')[1] || text, 'N/A');
@@ -67,13 +66,10 @@ const parseOpeningHours = (openingHoursData) => {
 
 const transformSingleCaseData = (apiResponse) => {
   if (!apiResponse || !apiResponse.sale_session) return null;
-
   const saleSession = apiResponse.sale_session;
   const customer = apiResponse.customer;
   const googleMaps = apiResponse.googlemaps;
-
   const shopDetails = googleMaps || customer?.customer_google_business || {};
-
   return {
     id: sanitizeString(saleSession.id),
     caseName: sanitizeString(saleSession.shop, 'Unknown Case'),
@@ -82,13 +78,11 @@ const transformSingleCaseData = (apiResponse) => {
     startTime: sanitizeString(saleSession.start_time, 'N/A'),
     lastUpdate: sanitizeString(saleSession.last_update, 'N/A'),
     closeTime: sanitizeString(saleSession.close_time, 'N/A'),
-
     customerName: sanitizeString(customer?.customer_name, ''),
     customerPhone: sanitizeString(customer?.customer_phone, ''),
     gateKeeperName: sanitizeString(customer?.customer_assistant_name, ''),
     gateKeeperPhone: sanitizeString(customer?.customer_assistant_phone, ''),
     customerAvailability: sanitizeString(customer?.customer_availability, ''),
-
     shopIdCompany: sanitizeString(shopDetails.shop_id_company),
     shopUrlCompany: sanitizeString(shopDetails.shop_url_company),
     shopNameFull: sanitizeString(shopDetails.shop_name, 'Unknown Shop'),
@@ -108,7 +102,6 @@ const transformSingleCaseData = (apiResponse) => {
     providerUrl: sanitizeString(shopDetails.provider_url),
     providers: shopDetails.providers || [],
     services: sanitizeString(shopDetails.services, 'N/A'),
-
     callHistory: (apiResponse.history || []).map(item => ({
       id: sanitizeString(item.id),
       date: sanitizeString(item.date),
@@ -124,9 +117,7 @@ const CaseDetails = ({ isDarkMode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem("authToken");
-
-  // State to manage active tab in the left card
-  const [activeLeftTab, setActiveLeftTab] = useState('details'); // 'details' or 'history'
+  const [activeLeftTab, setActiveLeftTab] = useState('details');
 
   const {
     data: caseDetails,
@@ -170,7 +161,6 @@ const CaseDetails = ({ isDarkMode }) => {
     historyDuration: `text-sm text-gray-400`,
     historyDescription: `text-gray-300 text-sm mb-1`,
     historyUser: `text-xs text-gray-500`,
-    // New tab-related classes
     tabButtonContainer: `flex mb-4 -mt-2 -mx-4 px-4 pt-2 border-b border-gray-600`,
     tabButton: `py-2 px-4 text-sm font-medium focus:outline-none`,
     tabButtonActive: `border-b-2 border-blue-500 text-blue-500`,
@@ -241,7 +231,6 @@ const CaseDetails = ({ isDarkMode }) => {
           scroll-behavior: smooth;
         }
       `}</style>
-
       <button
         onClick={() => navigate('/cases')}
         className="absolute top-4 left-4 z-10 p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
@@ -251,9 +240,7 @@ const CaseDetails = ({ isDarkMode }) => {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-
       <div className={commonClasses.cardContainer}>
-        {/* Tab Buttons for Left Card */}
         <div className={commonClasses.tabButtonContainer}>
           <button
             className={`${commonClasses.tabButton} ${activeLeftTab === 'details' ? commonClasses.tabButtonActive : commonClasses.tabButtonInactive}`}
@@ -268,8 +255,6 @@ const CaseDetails = ({ isDarkMode }) => {
             Activity History
           </button>
         </div>
-
-        {/* Conditional Content for Left Card */}
         <div className={commonClasses.cardContent}>
           {activeLeftTab === 'details' ? (
             <>
@@ -306,6 +291,13 @@ const CaseDetails = ({ isDarkMode }) => {
                 <div>
                   <label className={commonClasses.label}>Postcode</label>
                   <p className={commonClasses.valueDefault}>{caseDetails.postcode || 'N/A'}</p>
+                </div>
+              </div>
+              <div className={commonClasses.detailItem}>
+                <img src={phoneIcon} alt="Phone Icon" className={commonClasses.icon} />
+                <div>
+                  <label className={commonClasses.label}>Phone</label>
+                  <p className={commonClasses.valueDefault}>{caseDetails.phone || 'N/A'}</p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
@@ -351,7 +343,7 @@ const CaseDetails = ({ isDarkMode }) => {
                 </div>
               </div>
             </>
-          ) : ( // activeLeftTab === 'history'
+          ) : (
             <>
               <h2 className={commonClasses.historyHeading}>Activity History</h2>
               {caseDetails.callHistory.length > 0 ? (
@@ -382,8 +374,7 @@ const CaseDetails = ({ isDarkMode }) => {
               )}
             </>
           )}
-        </div> {/* End of cardContent */}
-
+        </div>
         <div className={commonClasses.callButtonContainer}>
           <a href={callPhoneNumber} className={commonClasses.callButton}
              onClick={(e) => displayPhoneNumber === 'N/A' && e.preventDefault()}>
@@ -392,7 +383,6 @@ const CaseDetails = ({ isDarkMode }) => {
           </a>
         </div>
       </div>
-
       <div className="flex-1 flex flex-col min-w-0">
         <CaseHistory
           isDarkMode={isDarkMode}
