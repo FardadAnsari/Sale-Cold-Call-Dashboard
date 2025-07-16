@@ -34,7 +34,6 @@ const parseOpeningHours = (openingHoursData) => {
     for (const day in defaultHours) {
       const dayData = openingHoursData[day];
       if (Array.isArray(dayData) && dayData.length > 0) {
-        // Handle the new API format with start/end objects
         const timeSlots = dayData.map(slot => {
           if (typeof slot === 'object' && slot !== null && slot.start && slot.end) {
             const startTime = sanitizeString(slot.start, '');
@@ -45,7 +44,7 @@ const parseOpeningHours = (openingHoursData) => {
           }
           return sanitizeString(slot, 'N/A');
         }).filter(slot => slot !== 'N/A');
-        
+
         parsed[day] = timeSlots.length > 0 ? timeSlots.join(', ') : 'Closed';
       } else if (typeof dayData === 'object' && dayData !== null && dayData.weekday_text && Array.isArray(dayData.weekday_text) && dayData.weekday_text.length > 0) {
         const text = dayData.weekday_text[0];
@@ -94,11 +93,9 @@ const transformSingleShopData = (apiItem) => {
 };
 
 const ShopDetailsPage = ({ isDarkMode }) => {
-
   const { id } = useParams();
   const navigate = useNavigate();
-
-const authToken = sessionStorage.getItem("authToken")
+  const authToken = sessionStorage.getItem("authToken");
 
   const {
     data: shop,
@@ -129,22 +126,15 @@ const authToken = sessionStorage.getItem("authToken")
   });
 
   const commonClasses = {
-    // Main container now explicitly sized to fit screen height and hide its own overflow
     container: `flex flex-col lg:flex-row gap-6 p-6 mx-auto relative h-screen w-full lg:max-w-7xl overflow-hidden`,
-    // Card container is now simply flex-1 and a flex column to hold its content and button
     cardContainer: `flex-1 bg-gray-700 rounded-lg shadow-md p-6 flex flex-col min-w-0`,
-    // Card content with enhanced scrollbar styling
     cardContent: `flex-1 pb-4 overflow-y-auto pr-2 custom-scrollbar`,
     heading: `text-xl font-semibold mb-4 text-gray-200`,
-    // Reduced margin for detail items
     detailItem: `mb-4 flex items-start`,
-    // Reduced icon size slightly for better fit
     icon: `mr-3 w-5 h-5 mt-1`,
     label: `block text-sm font-medium opacity-70 text-gray-400`,
     valueName: `text-lg font-bold text-gray-200`,
-    // Ensured default values have consistent text size
     valueDefault: `text-gray-300 text-base`,
-    // Push button to bottom and add a separator
     callButtonContainer: `mt-auto pt-4 border-t border-gray-600 flex justify-center`,
     callButton: `w-full max-w-lg h-[35px] flex items-center justify-center gap-2 px-4 rounded-md bg-orange-500 hover:bg-orange-600 text-white font-small transition-colors duration-200`,
   };
@@ -210,7 +200,7 @@ const authToken = sessionStorage.getItem("authToken")
           scroll-behavior: smooth;
         }
       `}</style>
-      
+
       <button
         onClick={() => navigate('/')}
         className="absolute top-4 left-4 z-10 p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
@@ -258,24 +248,29 @@ const authToken = sessionStorage.getItem("authToken")
             </div>
           </div>
           <div className={commonClasses.detailItem}>
+            <img src={phoneIcon} alt="Phone Icon" className={commonClasses.icon} />
+            <div>
+              <label className={commonClasses.label}>Phone</label>
+              <p className={commonClasses.valueDefault}>{shop.phone || 'N/A'}</p>
+            </div>
+          </div>
+          <div className={commonClasses.detailItem}>
             <img src={serviceTypeIcon} alt="Service Type Icon" className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Service Type</label>
               <p className={commonClasses.valueDefault}>{shop.serviceType || 'N/A'}</p>
             </div>
           </div>
-          {/* Add more details as needed, they will scroll */}
         </div>
         <div className={commonClasses.callButtonContainer}>
           <button className={commonClasses.callButton}>
-            <img src={phoneIcon} alt="Phone Icon" className="w-5h-5" />
+            <img src={phoneIcon} alt="Phone Icon" className="w-5 h-5" />
             Call Shop Now
           </button>
         </div>
       </div>
-      {/* Wrapper for CallHistory now also uses flex-1 to consume available height */}
       <div className="flex-1 flex flex-col min-w-0">
-        <CallHistory isDarkMode={isDarkMode} shopId={shop.shop_id_company}/>
+        <CallHistory isDarkMode={isDarkMode} shopId={shop.shop_id_company} />
       </div>
     </div>
   );
