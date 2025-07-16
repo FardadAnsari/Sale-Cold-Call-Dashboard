@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import CaseHistory from '../components/CaseHistory';
 import shopIcon from '../images/shopicon.png';
 import addressIcon from '../images/Address.png';
-import timeIcon from '../images/Timeicon.png';
+import timeIcon from '../images/TimeIcon.png';
 import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
 import phoneIcon from '../images/phone2.png';
