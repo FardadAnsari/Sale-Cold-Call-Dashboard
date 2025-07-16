@@ -34,7 +34,19 @@ const parseOpeningHours = (openingHoursData) => {
     for (const day in defaultHours) {
       const dayData = openingHoursData[day];
       if (Array.isArray(dayData) && dayData.length > 0) {
-        parsed[day] = dayData.map(hour => sanitizeString(hour, 'N/A')).join(', ');
+        // Handle the new API format with start/end objects
+        const timeSlots = dayData.map(slot => {
+          if (typeof slot === 'object' && slot !== null && slot.start && slot.end) {
+            const startTime = sanitizeString(slot.start, '');
+            const endTime = sanitizeString(slot.end, '');
+            if (startTime && endTime && startTime !== 'N/A' && endTime !== 'N/A') {
+              return `${startTime} - ${endTime}`;
+            }
+          }
+          return sanitizeString(slot, 'N/A');
+        }).filter(slot => slot !== 'N/A');
+        
+        parsed[day] = timeSlots.length > 0 ? timeSlots.join(', ') : 'Closed';
       } else if (typeof dayData === 'object' && dayData !== null && dayData.weekday_text && Array.isArray(dayData.weekday_text) && dayData.weekday_text.length > 0) {
         const text = dayData.weekday_text[0];
         parsed[day] = sanitizeString(text.split(': ')[1] || text, 'N/A');
