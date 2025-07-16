@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import hiImage from '../images/Hi.png';
 import { EmailIcon } from 'src/Icons'; // Assuming EmailIcon is in Icons.jsx
-import '../styles/font.css';
+import '../styles/Font.css';
 
 const Login = () => {
   const { register, handleSubmit, formState: { errors } } = useForm();

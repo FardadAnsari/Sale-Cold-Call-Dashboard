@@ -1,14 +1,22 @@
 import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useMutation } from '@tanstack/react-query';
 import Lead from './Lead';
-import plusIcon from '../images/plus.png';
-import deleteContainerImg from '../images/deletecontainer.png';
+import plusIcon from '../images/Plus.png';
+import deleteContainerImg from '../images/DeleteContainer.png';
 // import userIcon from '../images/user.png';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 
 const CallHistory = ({ isDarkMode = true , shopId}) => {
-  const [callDescription, setCallDescription] = useState('');
-  const [callResult, setCallResult] = useState('Intrested');
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+  } = useForm();
+const [sessionId, setSessionId]= useState(0)
   const [shopOwnerName, setShopOwnerName] = useState('');
   const [shopOwnerPhone, setShopOwnerPhone] = useState('');
   const [gateKeeperName, setGateKeeperName] = useState('');
@@ -67,94 +75,6 @@ useEffect(() => {
   };
 
   const handleClear = (setter) => () => setter('');
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!caseCreated) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Action Required',
-        text: 'Please create a case first!',
-        background: isDarkMode ? '#4A5568' : '#fff',
-        color: isDarkMode ? '#E2E8F0' : '#1A202C',
-        confirmButtonColor: '#F6AD55',
-      });
-      return;
-    }
-
-    const leadPayload = {
-      start_time: new Date().toISOString(),
-      last_update: new Date().toISOString(),
-      close_time: new Date().toISOString(),
-      created_by: userDetails?.id || 0,
-      customer: {
-        shop_id_company: shopId,
-        customer_name: shopOwnerName,
-        customer_phone: shopOwnerPhone,
-        customer_assistant_phone: gateKeeperPhone,
-        customer_assistant_name: gateKeeperName,
-        customer_availability: JSON.stringify(availability),
-      },
-    };
-
-    const authToken = sessionStorage.getItem('authToken');
-
-    try {
-      const response = await axios.post(
-        'https://sale.mega-data.co.uk/history/create-sale-session/',
-        leadPayload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      console.log('✅ Submission successful:', response.data);
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Submitted!',
-        text: 'Call summary submitted successfully.',
-        background: isDarkMode ? '#4A5568' : '#fff',
-        color: isDarkMode ? '#E2E8F0' : '#1A202C',
-        confirmButtonColor: '#F6AD55',
-      });
-
-      // Optional: Reset form fields if needed
-      // setCallDescription('');
-      // setShopOwnerName('');
-      // setShopOwnerPhone('');
-      // setGateKeeperName('');
-      // setGateKeeperPhone('');
-      // setAvailability({...});
-    } catch (error) {
-      console.error('❌ Submission failed:', error);
-
-      let errorMessage = 'An unexpected error occurred.';
-      if (error.response) {
-        // Server responded with error
-        errorMessage = error.response.data?.detail || `Server error ${error.response.status}`;
-      } else if (error.request) {
-        // No response
-        errorMessage = 'No response received from the server.';
-      } else {
-        // Axios setup error
-        errorMessage = error.message;
-      }
-
-      Swal.fire({
-        icon: 'error',
-        title: 'Submission Failed',
-        text: errorMessage,
-        background: isDarkMode ? '#4A5568' : '#fff',
-        color: isDarkMode ? '#E2E8F0' : '#1A202C',
-        confirmButtonColor: '#F6AD55',
-      });
-    }
-  };
 
 
   const handleTimeChange = (day, index, field, value) => {
@@ -242,7 +162,9 @@ useEffect(() => {
           }
         );
         console.log(createResponse.status);
-
+        console.log(createResponse);
+        setSessionId(createResponse?.data?.customer?.id)
+        
         console.log('✅ Sale session created:', createResponse.data);
         setCaseCreated(true);
 
@@ -269,6 +191,58 @@ useEffect(() => {
       });
     }
   };
+
+  const submitCallSummary = async (data) => {
+    const token = sessionStorage.getItem('authToken');
+
+    const payload = {
+      date: new Date().toISOString(),
+      user_id: userDetails?.id || 0,
+      call_time: new Date().toISOString(), // or custom time input if you want
+      sale_session_id: sessionId ?? 0, // adjust if needed
+      call_description: data.callDescription,
+      stage: data.callResult,
+    };
+
+    const res = await axios.post(
+      'https://sale.mega-data.co.uk/history/create-history/',
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+console.log(res);
+
+    return res.data;
+  };
+
+  const mutation = useMutation({
+    mutationFn: submitCallSummary,
+    onSuccess: (data) => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Submitted!',
+        text: 'Call summary has been recorded.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+      reset();
+    },
+    onError: () => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Submission Failed',
+        text: 'There was an error submitting the call summary.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+    },
+  });
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -571,7 +545,7 @@ useEffect(() => {
               </button>
             </div>
 
-            <form>
+            <form onSubmit={handleSubmit(mutation.mutate)}>
               <div className='mb-3'>
                 <label htmlFor='callDescription' className={formClasses.label}>
                   Call Description<span className={formClasses.requiredStar}>*</span>
@@ -581,12 +555,12 @@ useEffect(() => {
                   rows='3'
                   className={formClasses.textArea}
                   placeholder='Enter call description...'
-                  value={callDescription}
-                  onChange={(e) => setCallDescription(e.target.value)}
-                  required
                   disabled={!caseCreated}
+                  {...register('callDescription', { required: true })}
                 ></textarea>
+                {errors.callDescription && <span className='text-xs text-red-500'>Required</span>}
               </div>
+
               <div className='mb-3'>
                 <label htmlFor='callResult' className={formClasses.label}>
                   Select Call Result<span className={formClasses.requiredStar}>*</span>
@@ -595,12 +569,11 @@ useEffect(() => {
                   <select
                     id='callResult'
                     className={formClasses.select}
-                    value={callResult}
-                    onChange={(e) => setCallResult(e.target.value)}
-                    required
                     disabled={!caseCreated}
+                    {...register('callResult', { required: true })}
                   >
-                    <option value='Intrested'>Intrested</option>
+                    <option value=''>-- Select --</option>
+                    <option value='Intrested'>Interested</option>
                     <option value='appointmentSet'>Appointment is set</option>
                     <option value='notInterested'>Not interested</option>
                     <option value='followUp'>Follow up</option>
@@ -608,13 +581,7 @@ useEffect(() => {
                     <option value='fourthAction'>Fourth action</option>
                   </select>
                   <div className={formClasses.selectArrow}>
-                    <svg
-                      className='h-4 w-4'
-                      xmlns='http://www.w3.org/2000/svg'
-                      viewBox='0 0 20 20'
-                      fill='currentColor'
-                      aria-hidden='true'
-                    >
+                    <svg className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
                       <path
                         fillRule='evenodd'
                         d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
@@ -623,10 +590,16 @@ useEffect(() => {
                     </svg>
                   </div>
                 </div>
+                {errors.callResult && <span className='text-xs text-red-500'>Required</span>}
               </div>
+
               <div className='mt-auto'>
-                <button type='submit' className={formClasses.buttonSubmit} disabled={!caseCreated}>
-                  Submit Call Summary
+                <button
+                  type='submit'
+                  className={formClasses.buttonSubmit}
+                  disabled={!caseCreated || mutation.isLoading}
+                >
+                  {mutation.isLoading ? 'Submitting...' : 'Submit Call Summary'}
                 </button>
               </div>
             </form>

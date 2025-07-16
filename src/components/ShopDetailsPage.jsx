@@ -7,7 +7,7 @@ import addressIcon from '../images/Address.png';
 import timeIcon from '../images/TimeIcon.png';
 import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
-import phoneIcon from '../images/Phone2.png';
+import phoneIcon from '../images/phone2.png';
 import sadMaskImg from '../images/sad-mask.png';
 
 const sanitizeString = (value, defaultValue = 'N/A') => {

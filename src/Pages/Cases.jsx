@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CaseTable from '../components/CaseTable';
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
