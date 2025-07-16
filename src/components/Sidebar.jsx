@@ -11,12 +11,48 @@ const Sidebar = ({ isDarkMode }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
+  const [userInfo, setUserInfo] = useState({ name: 'Loading...', role: 'On Boarding' });
+  const [isLoading, setIsLoading] = useState(true);
   const profileButtonRef = useRef(null);
   const popupRef = useRef(null);
 
   const isActiveLink = (path) => {
     return location.pathname === path;
   };
+
+  // Fetch user information from API
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const authToken = sessionStorage.getItem('authToken');
+        const response = await fetch('https://sale.mega-data.co.uk/user/info/', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${authToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const userData = await response.json();
+          setUserInfo({
+            name: userData.name || userData.username || userData.first_name || 'User',
+            role: userData.role || userData.department || 'OnBoarding'
+          });
+        } else {
+          console.error('Failed to fetch user info:', response.status);
+          setUserInfo({ name: 'User', role: 'On Boarding' });
+        }
+      } catch (error) {
+        console.error('Error fetching user info:', error);
+        setUserInfo({ name: 'User', role: 'On Boarding' });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -56,9 +92,9 @@ const Sidebar = ({ isDarkMode }) => {
   };
 
   const handleLogout = () => {
-    // Clear any authentication tokens or user data from localStorage/sessionStorage
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('userData');
+    // Clear any authentication tokens or user data from sessionStorage
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('userData');
     sessionStorage.clear();
     
     // Close the popup
@@ -136,9 +172,15 @@ const Sidebar = ({ isDarkMode }) => {
               <div className="flex items-center space-x-3 mb-3">
                 <img src={profilePng} alt="Profile" className="w-8 h-8 rounded-full" />
                 <div>
-                  <p className="font-medium">Trevor</p>
+                  <p className="font-medium">
+                    {isLoading ? (
+                      <span className="animate-pulse">Loading...</span>
+                    ) : (
+                      userInfo.name
+                    )}
+                  </p>
                   <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    On Boarding
+                    {userInfo.role}
                   </p>
                 </div>
               </div>
