@@ -5,7 +5,7 @@ import axios from 'axios';
 import Pagination from '../components/Pagination';
 import LeadsTable from '../components/LeadsTable'; // Assuming this is the shop table
 import { API_BASE_URL } from '../api';
-import Search from '@components/search';
+import Search from '../components/Search';
 
 const ITEMS_PER_PAGE = 15;
 
