@@ -66,16 +66,18 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
     );
   }
 
-  // Helper to format date and time
+  // Helper to format date and time - Updated to show format: 2025-07-02 17:57:38
   const formatDateTime = (isoString) => {
     if (!isoString) return 'N/A';
     try {
       const date = new Date(isoString);
-      const month = date.toLocaleString('en-US', { month: 'short' });
       const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${month} / ${year}-${hours}:${minutes}`;
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     } catch (e) {
       console.error("Error parsing date:", isoString, e);
       return 'Invalid Date';
