@@ -9,6 +9,9 @@ export default defineConfig({
     reportCompressedSize: false,
     commonjsOptions: { transformMixedEsModules: true },
   },
+  server: {
+    allowedHosts: ['onboarding.mega-data.co.uk'],
+  },
   plugins: [
     tailwindcssPlugin(),
     viteConfigPaths(),
