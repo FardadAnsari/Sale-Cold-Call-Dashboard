@@ -1,35 +1,39 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
 import Lead from './Lead';
 import plusIcon from '../images/Plus.png';
 import deleteContainerImg from '../images/DeleteContainer.png';
-// import userIcon from '../images/user.png';
 import Swal from 'sweetalert2';
 import axios from 'axios';
+import { API_BASE_URL } from 'src/api';
 
 const CallHistory = ({ isDarkMode = true , shopId}) => {
 
   const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    reset,
+    register: registerCase,
+    handleSubmit: handleSubmitCase,
+    formState: { errors: caseErrors },
+    reset: resetCase,
+  } = useForm();
+
+  const {
+    register: registerSummary,
+    handleSubmit: handleSubmitSummary,
+    formState: { errors: summaryErrors },
+    reset: resetSummary,
   } = useForm();
 const [sessionId, setSessionId]= useState(0)
-  const [shopOwnerName, setShopOwnerName] = useState('');
-  const [shopOwnerPhone, setShopOwnerPhone] = useState('');
-  const [gateKeeperName, setGateKeeperName] = useState('');
-  const [gateKeeperPhone, setGateKeeperPhone] = useState('');
+
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
   const [availability, setAvailability] = useState({
-    Monday: [{ from: '00:00', to: '00:00' }],
-    Tuesday: [{ from: '00:00', to: '00:00' }],
-    Wednesday: [{ from: '00:00', to: '00:00' }],
-    Thursday: [{ from: '00:00', to: '00:00' }],
-    Friday: [{ from: '00:00', to: '00:00' }],
-    Saturday: [{ from: '00:00', to: '00:00' }],
-    Sunday: [{ from: '00:00', to: '00:00' }],
+    Monday: [],
+    Tuesday: [],
+    Wednesday: [],
+    Thursday: [],
+    Friday: [],
+    Saturday: [],
+    Sunday: [],
   });
   const [openDay, setOpenDay] = useState('Monday');
   const [activeInternalTab, setActiveInternalTab] = useState('callSummary');
@@ -74,22 +78,17 @@ useEffect(() => {
     scrollableArea: `flex-1 overflow-y-auto pr-2 pb-4 custom-scrollbar`,
   };
 
-  const handleClear = (setter) => () => setter('');
-
-
   const handleTimeChange = (day, index, field, value) => {
-    setAvailability(prev => ({
+    setAvailability((prev) => ({
       ...prev,
-      [day]: prev[day].map((slot, i) =>
-        i === index ? { ...slot, [field]: value } : slot
-      ),
+      [day]: prev[day].map((slot, i) => (i === index ? { ...slot, [field]: value } : slot)),
     }));
   };
 
   const addTimeSlot = (day) => {
-    setAvailability(prev => ({
+    setAvailability((prev) => ({
       ...prev,
-      [day]: [...prev[day], { from: '00:00', to: '00:00' }],
+      [day]: [...prev[day], { start: '09:00', end: '17:00' }],
     }));
   };
 
@@ -117,70 +116,60 @@ useEffect(() => {
     setShowAvailabilityForm(!showAvailabilityForm);
   };
 
-  const handleCreateCase = async () => {
+  const onSubmitCreateCase = async (formData) => {
     try {
       const authToken = sessionStorage.getItem('authToken');
 
-      const response = await fetch('https://sale.mega-data.co.uk/user/info/', {
-        method: 'GET',
+      const userRes = await axios.get(`${API_BASE_URL}/user/info/`, {
         headers: {
           accept: 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
       });
 
-      const data = await response.json();
-      console.log('Fetched user details:', JSON.stringify(data, null, 2));
+      const user = userRes.data;
+      setUserDetails(user);
+      const leadPayload = {
+        start_time: new Date().toISOString(),
+        last_update: new Date().toISOString(),
+        close_time: new Date().toISOString(),
+        created_by: user?.id || 0,
+        customer: {
+          shop_id_company: shopId,
+          customer_name: formData.shopOwnerName,
+          customer_phone: formData.shopOwnerPhone,
+          customer_assistant_phone: formData.gateKeeperPhone,
+          customer_assistant_name: formData.gateKeeperName,
+          customer_availability: availability
+        },
+      };
 
-      if (response.ok) {
-        setUserDetails(data);
-
-        const leadPayload = {
-          start_time: new Date().toISOString(),
-          last_update: new Date().toISOString(),
-          close_time: new Date().toISOString(),
-          created_by: data?.id || 0,
-          customer: {
-            shop_id_company: shopId,
-            customer_name: shopOwnerName,
-            customer_phone: shopOwnerPhone,
-            customer_assistant_phone: gateKeeperPhone,
-            customer_assistant_name: gateKeeperName,
-            customer_availability: JSON.stringify(availability),
+      const res = await axios.post(
+        `${API_BASE_URL}/history/create-sale-session/`,
+        leadPayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
           },
-        };
+        }
+      );
+      console.log(res);
+      resetCase()
+      
+      setSessionId(res?.data?.customer?.id);
+      setCaseCreated(true);
 
-        // Send the POST request
-        const createResponse = await axios.post(
-          'https://sale.mega-data.co.uk/history/create-sale-session/',
-          leadPayload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
-        console.log(createResponse.status);
-        console.log(createResponse);
-        setSessionId(createResponse?.data?.customer?.id)
-        
-        console.log('✅ Sale session created:', createResponse.data);
-        setCaseCreated(true);
-
-        Swal.fire({
-          icon: 'info',
-          title: 'Case Created!',
-          text: 'You can now fill in call details.',
-          background: isDarkMode ? '#4A5568' : '#fff',
-          color: isDarkMode ? '#E2E8F0' : '#1A202C',
-          confirmButtonColor: '#A78BFA',
-        });
-      } else {
-        throw new Error('Failed to fetch user details');
-      }
+      Swal.fire({
+        icon: 'info',
+        title: 'Case Created!',
+        text: 'You can now fill in call details.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
     } catch (error) {
-      console.error('Error creating sale session:', error);
+      console.error('Create Case Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error!',
@@ -205,7 +194,7 @@ useEffect(() => {
     };
 
     const res = await axios.post(
-      'https://sale.mega-data.co.uk/history/create-history/',
+      `${API_BASE_URL}/history/create-history/`,
       payload,
       {
         headers: {
@@ -214,7 +203,7 @@ useEffect(() => {
         },
       }
     );
-console.log(res);
+    console.log(res);
 
     return res.data;
   };
@@ -230,7 +219,7 @@ console.log(res);
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
       });
-      reset();
+      resetSummary();
     },
     onError: () => {
       Swal.fire({
@@ -246,11 +235,6 @@ console.log(res);
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  const hasAnyAvailabilitySet = () => {
-    return Object.values(availability).some(daySlots =>
-      daySlots.some(slot => slot.from !== '00:00' || slot.to !== '00:00')
-    );
-  };
 
   return (
     <div className={formClasses.container}>
@@ -346,18 +330,18 @@ console.log(res);
                             <div className='flex flex-1 items-center gap-2'>
                               <input
                                 type='time'
-                                value={slot.from}
+                                value={slot.start}
                                 onChange={(e) =>
-                                  handleTimeChange(day, slotIndex, 'from', e.target.value)
+                                  handleTimeChange(day, slotIndex, 'start', e.target.value)
                                 }
                                 className={formClasses.timeInput}
                               />
                               <span className='text-sm text-gray-300'>To</span>
                               <input
                                 type='time'
-                                value={slot.to}
+                                value={slot.end}
                                 onChange={(e) =>
-                                  handleTimeChange(day, slotIndex, 'to', e.target.value)
+                                  handleTimeChange(day, slotIndex, 'end', e.target.value)
                                 }
                                 className={formClasses.timeInput}
                               />
@@ -366,7 +350,6 @@ console.log(res);
                               type='button'
                               onClick={() => removeTimeSlot(day, slotIndex)}
                               className='rounded-md bg-gray-600 p-2 transition-colors duration-200 hover:bg-gray-500'
-                              disabled={availability[day].length === 1}
                             >
                               <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
                             </button>
@@ -405,162 +388,127 @@ console.log(res);
         </>
       ) : (
         <>
-          <div className={`flex h-full flex-col ${formClasses.scrollableArea}`}>
-            <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
-              <div>
-                <label htmlFor='shopOwnerName' className={formClasses.label}>
-                  Shop Owner's Name
-                </label>
-                <div className={formClasses.inputGroup}>
-                  <input
-                    type='text'
-                    id='shopOwnerName'
-                    className={formClasses.inputBase}
-                    placeholder="Enter owner's name"
-                    value={shopOwnerName}
-                    onChange={(e) => setShopOwnerName(e.target.value)}
-                  />
-                  {shopOwnerName && (
-                    <button
-                      type='button'
-                      onClick={handleClear(setShopOwnerName)}
-                      className={formClasses.clearButton}
-                    >
-                      ×
-                    </button>
-                  )}
+          <div className={`flex h-full flex-col justify-between ${formClasses.scrollableArea}`}>
+            <form onSubmit={handleSubmitCase(onSubmitCreateCase)}>
+              <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+                <div>
+                  <label htmlFor='shopOwnerName' className={formClasses.label}>
+                    Shop Owner's Name
+                  </label>
+                  <div className={formClasses.inputGroup}>
+                    <input
+                      type='text'
+                      id='shopOwnerName'
+                      className={formClasses.inputBase}
+                      placeholder="Enter owner's name"
+                      {...registerCase('shopOwnerName')}
+                    />
+                    {/* No clear button needed since RHF handles value */}
+                    {caseErrors.shopOwnerName && (
+                      <span className='text-xs text-red-500'>Required</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div>
-                <label htmlFor='shopOwnerPhone' className={formClasses.label}>
-                  Shop Owner's Phone
-                </label>
-                <div className={formClasses.inputGroup}>
-                  <input
-                    type='tel'
-                    id='shopOwnerPhone'
-                    className={formClasses.inputBase}
-                    placeholder="Enter owner's phone"
-                    value={shopOwnerPhone}
-                    onChange={(e) => setShopOwnerPhone(e.target.value)}
-                  />
-                  {shopOwnerPhone && (
-                    <button
-                      type='button'
-                      onClick={handleClear(setShopOwnerPhone)}
-                      className={formClasses.clearButton}
-                    >
-                      ×
-                    </button>
-                  )}
+                <div>
+                  <label htmlFor='shopOwnerPhone' className={formClasses.label}>
+                    Shop Owner's Phone
+                  </label>
+                  <div className={formClasses.inputGroup}>
+                    <input
+                      type='tel'
+                      id='shopOwnerPhone'
+                      className={formClasses.inputBase}
+                      placeholder="Enter owner's phone"
+                      {...registerCase('shopOwnerPhone')}
+                    />
+                    {caseErrors.shopOwnerPhone && (
+                      <span className='text-xs text-red-500'>Required</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
-              <div>
-                <label htmlFor='gateKeeperName' className={formClasses.label}>
-                  Gate Keeper's Name
-                </label>
-                <div className={formClasses.inputGroup}>
-                  <input
-                    type='text'
-                    id='gateKeeperName'
-                    className={formClasses.inputBase}
-                    placeholder="Enter gatekeeper's name"
-                    value={gateKeeperName}
-                    onChange={(e) => setGateKeeperName(e.target.value)}
-                  />
-                  {gateKeeperName && (
-                    <button
-                      type='button'
-                      onClick={handleClear(setGateKeeperName)}
-                      className={formClasses.clearButton}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-              <div>
-                <label htmlFor='gateKeeperPhone' className={formClasses.label}>
-                  Gate Keeper's Phone
-                </label>
-                <div className={formClasses.inputGroup}>
-                  <input
-                    type='tel'
-                    id='gateKeeperPhone'
-                    className={formClasses.inputBase}
-                    placeholder="Enter gatekeeper's phone"
-                    value={gateKeeperPhone}
-                    onChange={(e) => setGateKeeperPhone(e.target.value)}
-                  />
-                  {gateKeeperPhone && (
-                    <button
-                      type='button'
-                      onClick={handleClear(setGateKeeperPhone)}
-                      className={formClasses.clearButton}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className='mb-2 flex flex-col sm:flex-row sm:items-center'>
-              <button
-                type='button'
-                onClick={toggleAvailabilityForm}
-                className={formClasses.buttonAddAvailability}
-              >
-                <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
-                Add Owner Availability
-              </button>
-              {hasAnyAvailabilitySet() && (
-                <div className='mt-2 flex flex-wrap gap-x-3 gap-y-1 text-sm text-gray-400 sm:mt-0 sm:ml-3'>
-                  {daysOfWeek.map((day) => {
-                    const daySlots = availability[day].filter(
-                      (slot) => slot.from !== '00:00' || slot.to !== '00:00'
-                    );
-                    if (daySlots.length > 0) {
-                      const times = daySlots.map((slot) => `${slot.from}-${slot.to}`).join(', ');
-                      return (
-                        <span key={day} className='whitespace-nowrap'>
-                          {day}: {times}
-                        </span>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-              )}
-            </div>
-            <div className='mt-2 mb-2 flex justify-center'>
-              <button
-                type='submit'
-                onClick={handleCreateCase}
-                className={formClasses.buttonCreateCase}
-                disabled={caseCreated}
-              >
-                {caseCreated ? 'Case Created' : 'Create Case'}
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit(mutation.mutate)}>
-              <div className='mb-3'>
-                <label htmlFor='callDescription' className={formClasses.label}>
-                  Call Description<span className={formClasses.requiredStar}>*</span>
-                </label>
-                <textarea
-                  id='callDescription'
-                  rows='3'
-                  className={formClasses.textArea}
-                  placeholder='Enter call description...'
-                  disabled={!caseCreated}
-                  {...register('callDescription', { required: true })}
-                ></textarea>
-                {errors.callDescription && <span className='text-xs text-red-500'>Required</span>}
               </div>
 
+              <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+                <div>
+                  <label htmlFor='gateKeeperName' className={formClasses.label}>
+                    Gate Keeper's Name
+                  </label>
+                  <div className={formClasses.inputGroup}>
+                    <input
+                      type='text'
+                      id='gateKeeperName'
+                      className={formClasses.inputBase}
+                      placeholder="Enter gatekeeper's name"
+                      {...registerCase('gateKeeperName')}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor='gateKeeperPhone' className={formClasses.label}>
+                    Gate Keeper's Phone
+                  </label>
+                  <div className={formClasses.inputGroup}>
+                    <input
+                      type='tel'
+                      id='gateKeeperPhone'
+                      className={formClasses.inputBase}
+                      placeholder="Enter gatekeeper's phone"
+                      {...registerCase('gateKeeperPhone')}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className='mb-2'>
+                <div className='flex flex-col sm:flex-row sm:items-center'>
+                  <button
+                    type='button'
+                    onClick={toggleAvailabilityForm}
+                    className={formClasses.buttonAddAvailability}
+                  >
+                    <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
+                    Add Owner Availability
+                  </button>
+                </div>
+
+                {/* ⬇️ Availability shown below the button, not beside it */}
+                {availability && (
+                  <div className='mt-3 w-full rounded-md bg-gray-800 p-3 text-sm text-gray-200'>
+                    <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
+                    <ul className='list-inside list-disc space-y-1'>
+                      {daysOfWeek.map((day) => {
+                        const validSlots = availability[day]?.filter(
+                          (slot) => slot.start !== '00:00' || slot.end !== '00:00'
+                        );
+
+                        if (validSlots && validSlots.length > 0) {
+                          const times = validSlots
+                            .map((slot) => `${slot.start}-${slot.end}`)
+                            .join(', ');
+                          return (
+                            <li key={day}>
+                              <span className='font-semibold'>{day}</span>: {times}
+                            </li>
+                          );
+                        }
+
+                        return null;
+                      })}
+                    </ul>
+                  </div>
+                )}
+              </div>
+              <div className='mt-2 mb-2 flex justify-center'>
+                <button
+                  type='submit'
+                  className={formClasses.buttonCreateCase}
+                  disabled={caseCreated}
+                >
+                  {caseCreated ? 'Case Created' : 'Create Case'}
+                </button>
+              </div>
+            </form>
+            <form onSubmit={handleSubmitSummary(mutation.mutate)}>
               <div className='mb-3'>
                 <label htmlFor='callResult' className={formClasses.label}>
                   Select Call Result<span className={formClasses.requiredStar}>*</span>
@@ -570,7 +518,7 @@ console.log(res);
                     id='callResult'
                     className={formClasses.select}
                     disabled={!caseCreated}
-                    {...register('callResult', { required: true })}
+                    {...registerSummary('callResult', { required: true })}
                   >
                     <option value=''>-- Select --</option>
                     <option value='Intrested'>Interested</option>
@@ -590,7 +538,23 @@ console.log(res);
                     </svg>
                   </div>
                 </div>
-                {errors.callResult && <span className='text-xs text-red-500'>Required</span>}
+                {summaryErrors.callResult && <span className='text-xs text-red-500'>Required</span>}
+              </div>
+              <div className='mb-3'>
+                <label htmlFor='callDescription' className={formClasses.label}>
+                  Call Description<span className={formClasses.requiredStar}>*</span>
+                </label>
+                <textarea
+                  id='callDescription'
+                  rows='4'
+                  className={formClasses.textArea}
+                  placeholder='Enter call description...'
+                  disabled={!caseCreated}
+                  {...registerSummary('callDescription', { required: true })}
+                ></textarea>
+                {summaryErrors.callDescription && (
+                  <span className='text-xs text-red-500'>Required</span>
+                )}
               </div>
 
               <div className='mt-auto'>
