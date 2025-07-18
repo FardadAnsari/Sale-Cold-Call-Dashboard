@@ -67,7 +67,7 @@ useEffect(() => {
     selectArrow: `pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 ${isDarkMode ? 'text-orange-400' : 'text-gray-400'}`,
     buttonAddAvailability: `flex-1 h-[28px] flex items-center justify-center gap-1 px-2 rounded-md transition-colors duration-200 text-white text-sm font-medium
       border border-white bg-gray-700 hover:bg-gray-800 whitespace-nowrap`,
-    buttonCreateCase: `w-full h-[36px] mt-2 mb-2 px-4 py-2 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors duration-200 font-medium`,
+    buttonCreateCase: `w-full h-[36px] mt-2 mb-2 px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors duration-200 font-medium`,
     buttonSubmit: `w-full h-[36px] px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors duration-200 font-medium
       disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500`,
     availabilitySection: `bg-gray-800 p-3 rounded-md mb-2`,
@@ -157,7 +157,7 @@ useEffect(() => {
       console.log(res);
       resetCase()
       
-      setSessionId(res?.data?.customer?.id);
+      setSessionId(res?.data?.sale_session_id);
       setCaseCreated(true);
 
       Swal.fire({
@@ -192,6 +192,7 @@ useEffect(() => {
       call_description: data.callDescription,
       stage: data.callResult,
     };
+    console.log(payload);
 
     const res = await axios.post(
       `${API_BASE_URL}/history/create-history/`,
@@ -388,9 +389,18 @@ useEffect(() => {
         </>
       ) : (
         <>
-          <div className={`flex h-full flex-col justify-between ${formClasses.scrollableArea}`}>
-            <form onSubmit={handleSubmitCase(onSubmitCreateCase)}>
-              <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+          <div className={`flex flex-col gap-6 ${formClasses.scrollableArea}`}>
+            {/* Create Case Form */}
+            <form
+              onSubmit={handleSubmitCase(onSubmitCreateCase)}
+              className='space-y-4 rounded-lg bg-gray-800 p-4'
+            >
+              <h1
+                className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
+              >
+                Create Case Form
+              </h1>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
                   <label htmlFor='shopOwnerName' className={formClasses.label}>
                     Shop Owner's Name
@@ -403,12 +413,12 @@ useEffect(() => {
                       placeholder="Enter owner's name"
                       {...registerCase('shopOwnerName')}
                     />
-                    {/* No clear button needed since RHF handles value */}
-                    {caseErrors.shopOwnerName && (
-                      <span className='text-xs text-red-500'>Required</span>
-                    )}
                   </div>
+                  {caseErrors.shopOwnerName && (
+                    <span className='text-xs text-red-500'>Required</span>
+                  )}
                 </div>
+
                 <div>
                   <label htmlFor='shopOwnerPhone' className={formClasses.label}>
                     Shop Owner's Phone
@@ -421,14 +431,14 @@ useEffect(() => {
                       placeholder="Enter owner's phone"
                       {...registerCase('shopOwnerPhone')}
                     />
-                    {caseErrors.shopOwnerPhone && (
-                      <span className='text-xs text-red-500'>Required</span>
-                    )}
                   </div>
+                  {caseErrors.shopOwnerPhone && (
+                    <span className='text-xs text-red-500'>Required</span>
+                  )}
                 </div>
               </div>
 
-              <div className='mb-3 grid grid-cols-1 gap-3 md:grid-cols-2'>
+              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
                   <label htmlFor='gateKeeperName' className={formClasses.label}>
                     Gate Keeper's Name
@@ -443,6 +453,7 @@ useEffect(() => {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label htmlFor='gateKeeperPhone' className={formClasses.label}>
                     Gate Keeper's Phone
@@ -459,46 +470,42 @@ useEffect(() => {
                 </div>
               </div>
 
-              <div className='mb-2'>
-                <div className='flex flex-col sm:flex-row sm:items-center'>
-                  <button
-                    type='button'
-                    onClick={toggleAvailabilityForm}
-                    className={formClasses.buttonAddAvailability}
-                  >
-                    <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
-                    Add Owner Availability
-                  </button>
-                </div>
-
-                {/* ⬇️ Availability shown below the button, not beside it */}
-                {availability && (
-                  <div className='mt-3 w-full rounded-md bg-gray-800 p-3 text-sm text-gray-200'>
-                    <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
-                    <ul className='list-inside list-disc space-y-1'>
-                      {daysOfWeek.map((day) => {
-                        const validSlots = availability[day]?.filter(
-                          (slot) => slot.start !== '00:00' || slot.end !== '00:00'
-                        );
-
-                        if (validSlots && validSlots.length > 0) {
-                          const times = validSlots
-                            .map((slot) => `${slot.start}-${slot.end}`)
-                            .join(', ');
-                          return (
-                            <li key={day}>
-                              <span className='font-semibold'>{day}</span>: {times}
-                            </li>
-                          );
-                        }
-
-                        return null;
-                      })}
-                    </ul>
-                  </div>
-                )}
+              <div>
+                <button
+                  type='button'
+                  onClick={toggleAvailabilityForm}
+                  className={formClasses.buttonAddAvailability}
+                >
+                  <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
+                  Add Owner Availability
+                </button>
               </div>
-              <div className='mt-2 mb-2 flex justify-center'>
+
+              {availability && (
+                <div className='mt-3 rounded-md bg-gray-900 p-3 text-sm text-gray-200'>
+                  <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
+                  <ul className='list-inside list-disc space-y-1'>
+                    {daysOfWeek.map((day) => {
+                      const validSlots = availability[day]?.filter(
+                        (slot) => slot.start !== '00:00' || slot.end !== '00:00'
+                      );
+                      if (validSlots && validSlots.length > 0) {
+                        const times = validSlots
+                          .map((slot) => `${slot.start}-${slot.end}`)
+                          .join(', ');
+                        return (
+                          <li key={day}>
+                            <span className='font-semibold'>{day}</span>: {times}
+                          </li>
+                        );
+                      }
+                      return null;
+                    })}
+                  </ul>
+                </div>
+              )}
+
+              <div className='flex justify-center'>
                 <button
                   type='submit'
                   className={formClasses.buttonCreateCase}
@@ -508,8 +515,18 @@ useEffect(() => {
                 </button>
               </div>
             </form>
-            <form onSubmit={handleSubmitSummary(mutation.mutate)}>
-              <div className='mb-3'>
+
+            {/* Call Summary Form */}
+            <form
+              onSubmit={handleSubmitSummary(mutation.mutate)}
+              className='space-y-4 rounded-lg bg-gray-800 p-4'
+            >
+              <h1
+                className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
+              >
+                Call Summary Form
+              </h1>
+              <div>
                 <label htmlFor='callResult' className={formClasses.label}>
                   Select Call Result<span className={formClasses.requiredStar}>*</span>
                 </label>
@@ -540,7 +557,8 @@ useEffect(() => {
                 </div>
                 {summaryErrors.callResult && <span className='text-xs text-red-500'>Required</span>}
               </div>
-              <div className='mb-3'>
+
+              <div>
                 <label htmlFor='callDescription' className={formClasses.label}>
                   Call Description<span className={formClasses.requiredStar}>*</span>
                 </label>
@@ -557,7 +575,7 @@ useEffect(() => {
                 )}
               </div>
 
-              <div className='mt-auto'>
+              <div className='flex justify-center'>
                 <button
                   type='submit'
                   className={formClasses.buttonSubmit}
