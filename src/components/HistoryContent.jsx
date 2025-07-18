@@ -7,39 +7,11 @@ const HistoryContent = ({ historyItems }) => {
   }
 console.log(historyItems);
 
-  const formatCallDuration = (durationInMinutes) => {
-    if (typeof durationInMinutes !== 'number' || isNaN(durationInMinutes)) {
-      return '00:00';
+  const limitDescription = (description, maxLength = 150) => {
+    if (description && description.length > maxLength) {
+      return description.substring(0, maxLength) + '...'; // Add ellipsis if it's too long
     }
-    const minutes = Math.floor(durationInMinutes);
-    const seconds = Math.round((durationInMinutes - minutes) * 60);
-    const formattedMinutes = String(minutes).padStart(2, '0');
-    const formattedSeconds = String(seconds).padStart(2, '0');
-    return `${formattedMinutes}:${formattedSeconds}`;
-  };
-
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date)) {
-        throw new Error('Invalid date');
-      }
-      return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
-    } catch (e) {
-      return 'N/A Date';
-    }
-  };
-
-  const formatTime = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date)) {
-        throw new Error('Invalid time');
-      }
-      return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
-    } catch (e) {
-      return 'N/A Time';
-    }
+    return description;
   };
 
   return (
@@ -47,34 +19,31 @@ console.log(historyItems);
       {historyItems.map((item, index) => (
         <div
           key={item.id || index}
-          className='flex h-[243px] w-full flex-col justify-between rounded-lg bg-gray-800 p-6 shadow-lg'
+          className='flex h-[243px] w-full flex-col justify-between rounded-lg bg-gray-800 p-4 shadow-lg'
         >
           <div>
-            <h3 className='mb-4 text-xl font-semibold text-gray-100'>{item.name}</h3>
+            <h3 className='text-xl font-semibold text-gray-100'>{item.name}</h3>
             <div className='space-y-2 text-sm text-gray-300'>
               <p className='flex justify-between'>
-                <span className='font-medium text-gray-400'>Call Duration:</span>
-                <span>
-                  {formatCallDuration(item.call_duration_minutes || Math.random() * 10 + 1)}
-                </span>
+                <span className='text-xl font-medium text-gray-300'>{item.shop_name}</span>
               </p>
               <p className='flex justify-between'>
                 <span className='font-medium text-gray-400'>Result:</span>
-                <span>{item.call_result || 'Interested'}</span>
+                <span>{item.stage}</span>
               </p>
               <p className='flex justify-between'>
                 <span className='font-medium text-gray-400'>Date:</span>
-                <span>{formatDate(item.call_date || '2025-06-02T17:30:00Z')}</span>
+                <span>{item.date}</span>
               </p>
-              <p className='flex justify-between'>
-                <span className='font-medium text-gray-400'>Time:</span>
-                <span>{formatTime(item.call_date || '2025-06-02T17:30:00Z')}</span>
+              <p className='flex flex-col gap-1'>
+                <span className='font-medium text-gray-400'>Description: </span>
+                <p>{limitDescription(item.description)}</p>
               </p>
             </div>
           </div>
           <div className='mt-6 flex justify-center'>
             <Link
-              className='w-[95%] rounded-lg border border-gray-600 bg-gray-800 py-2 text-sm text-center font-medium text-blue-400 hover:bg-gray-700 hover:text-blue-300'
+              className='w-[95%] rounded-lg border border-gray-600 bg-gray-800 py-2 text-center text-sm font-medium text-blue-400 hover:bg-gray-700 hover:text-blue-300'
               to={`/case/${item.sale_session}`}
             >
               Details
