@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import axios from 'axios';
 import CaseTable from '../components/CaseTable';
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
@@ -6,79 +7,52 @@ import { FilterIcon } from '../Icons';
 import sadMaskImg from '../images/sad-mask.png';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from 'src/api';
 
-// Helper to sanitize string values, replacing "None" or empty strings with default
+// Helper to sanitize string values
 const sanitizeString = (value, defaultValue = 'N/A') => {
-  if (
-    value === null ||
-    value === undefined ||
-    String(value).trim().toLowerCase() === 'none' ||
-    String(value).trim() === ''
-  ) {
-    return defaultValue;
-  }
+  if (!value || String(value).trim().toLowerCase() === 'none') return defaultValue;
   return String(value).trim();
 };
 
-// Helper to transform API data for table display
+// Transform API data for display
 const transformApiData = (apiResults) => {
-  return apiResults
-    .map((item) => ({
-      id: item.id || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      name: sanitizeString(item.shop, 'Unknown Shop'), // Changed from item.customer to item.shop
-      case_stage: sanitizeString(item.stage, 'Unknown Stage'),
-      postcode: sanitizeString(item.post_code || 'N/A'),
-      created_by: sanitizeString(item.created_by, 'Unknown Creator'),
-      start_time: item.start_time,
-      last_update: item.last_update,
-    }))
-    .filter((item) => item.id !== null && item.id !== undefined);
+  return apiResults.map((item) => ({
+    id: item.id || `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    name: sanitizeString(item.shop, 'Unknown Shop'),
+    case_stage: sanitizeString(item.stage, 'Unknown Stage'),
+    postcode: sanitizeString(item.post_code || 'N/A'),
+    created_by: sanitizeString(item.created_by, 'Unknown Creator'),
+    start_time: item.start_time,
+    last_update: item.last_update,
+  }));
 };
 
-// Helper to extract city from address string (kept for potential future use)
-const extractCityFromAddress = (address) => {
-  const sanitizedAddress = sanitizeString(address, '');
-  if (!sanitizedAddress || sanitizedAddress === 'N/A') return 'Unknown';
-  const parts = sanitizedAddress.split(',');
-  return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
+// Reusable function to fetch all paginated pages using axios
+const fetchAllPages = async (authToken, transformFn) => {
+  const { data: firstData } = await axios.get(`${API_BASE_URL}/history/sale-sessions/?page=1`, {
+    headers: { Authorization: `Bearer ${authToken}` },
+  });
+  const totalPages = firstData.totalPages || 1;
+
+  const promises = Array.from({ length: totalPages }, (_, i) =>
+    axios
+      .get(`${API_BASE_URL}/history/sale-sessions/?page=${i + 1}`, {
+        headers: { Authorization: `Bearer ${authToken}` },
+      })
+      .then((res) => (res.data?.results ? transformFn(res.data.results) : []))
+      .catch(() => [])
+  );
+
+  const allResults = await Promise.all(promises);
+  return allResults.flat();
 };
 
-// Helper to parse opening hours string/object (kept for potential future use)
-const parseOpeningHours = (openingHoursData) => {
-  const defaultHours = {
-    Monday: 'N/A',
-    Tuesday: 'N/A',
-    Wednesday: 'N/A',
-    Thursday: 'N/A',
-    Friday: 'N/A',
-    Saturday: 'N/A',
-    Sunday: 'N/A',
-  };
-  if (typeof openingHoursData === 'object' && openingHoursData !== null) {
-    const parsed = {};
-    for (const day in defaultHours) {
-      if (
-        openingHoursData[day] &&
-        Array.isArray(openingHoursData[day]) &&
-        openingHoursData[day].length > 0
-      ) {
-        parsed[day] = openingHoursData[day].map((hour) => sanitizeString(hour, 'N/A')).join(', ');
-      } else {
-        parsed[day] = 'Closed';
-      }
-    }
-    return parsed;
-  }
-  return defaultHours;
-};
-
-// Main component for displaying and managing case data
 const Cases = () => {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem('authToken');
 
-  // State for search term and filters
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [filters, setFilters] = useState({ city: '', postcode: '', category: '' });
@@ -86,11 +60,9 @@ const Cases = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Constants
   const itemsPerPage = 10;
   const isDarkMode = true;
 
-  // --- React Query for Main Case Data ---
   const {
     data: mainCaseData,
     isLoading: isMainDataLoading,
@@ -100,53 +72,26 @@ const Cases = () => {
   } = useQuery({
     queryKey: ['sale-sessions', filters.category, currentPage],
     queryFn: async () => {
-      const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=${currentPage}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      if (data && data.results && Array.isArray(data.results)) {
-        return {
-          transformedData: transformApiData(data.results),
-          totalPages: data.totalPages || 1,
-          currentPage: data.currentPage || currentPage,
-          totalCount: data.count || 0,
-        };
-      } else {
-        throw new Error('Invalid API response format or no results array.');
-      }
+      const { data } = await axios.get(
+        `${API_BASE_URL}/history/sale-sessions/?page=${currentPage}`,
+        {
+          headers: { Authorization: `Bearer ${authToken}` },
+        }
+      );
+      console.log(data);
+      
+      return {
+        transformedData: transformApiData(data.results || []),
+        totalPages: data.totalPages || 1,
+        currentPage: data.currentPage || currentPage,
+        totalCount: data.count || 0,
+      };
     },
-    placeholderData: (previousData) => previousData,
     staleTime: 5 * 60 * 1000,
     keepPreviousData: true,
   });
 
-  // --- React Query for getting total pages (used for search and filters) ---
-  const {
-    data: totalPagesData,
-  } = useQuery({
-    queryKey: ['total-pages'],
-    queryFn: async () => {
-      const url = `https://sale.mega-data.co.uk/history/sale-sessions/?page=1`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.totalPages || 1;
-    },
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-  });
 
-  // --- React Query for Search Results ---
   const {
     data: searchResultsData,
     isLoading: isSearchLoading,
@@ -157,120 +102,56 @@ const Cases = () => {
   } = useQuery({
     queryKey: ['searchSaleSessions', filters.category, debouncedSearchQuery],
     queryFn: async () => {
-      if (!debouncedSearchQuery.trim()) return [];
-      
-      const maxPages = totalPagesData || 1;
-      const searchPromises = [];
-      
-      // Fetch all available pages dynamically
-      for (let page = 1; page <= maxPages; page++) {
-        searchPromises.push(
-          fetch(`https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`, {
-            method: 'GET',
-            headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-          })
-            .then(response => response.ok ? response.json() : null)
-            .then(data => data && data.results ? transformApiData(data.results) : [])
-            .catch(err => {
-              console.error(`Error fetching page ${page}:`, err);
-              return [];
-            })
-        );
-      }
-      
-      const allResults = await Promise.all(searchPromises);
-      const combinedResults = allResults.flat();
-      
-      const filteredResults = combinedResults.filter((caseItem) => {
-        const searchLower = debouncedSearchQuery.toLowerCase();
-        return (
-          caseItem.name.toLowerCase().includes(searchLower) ||
-          caseItem.created_by.toLowerCase().includes(searchLower) ||
-          caseItem.case_stage.toLowerCase().includes(searchLower) ||
-          caseItem.postcode.toLowerCase().includes(searchLower)
-        );
-      });
-      
-      const uniqueResults = filteredResults.filter(
-        (caseItem, index, self) => index === self.findIndex((s) => s.id === caseItem.id)
+      const allResults = await fetchAllPages(authToken, transformApiData);
+      const searchLower = debouncedSearchQuery.toLowerCase();
+      return allResults.filter(
+        (item, index, self) =>
+          (item.name.toLowerCase().includes(searchLower) ||
+            item.created_by.toLowerCase().includes(searchLower) ||
+            item.case_stage.toLowerCase().includes(searchLower) ||
+            item.postcode.toLowerCase().includes(searchLower)) &&
+          index === self.findIndex((s) => s.id === item.id)
       );
-      
-      return uniqueResults;
     },
-    enabled: !!debouncedSearchQuery.trim() && !!totalPagesData,
+    enabled: !!debouncedSearchQuery.trim(),
     staleTime: 1 * 60 * 1000,
   });
 
-  // Debounce logic for setting the actual query term
+  const { data: allCasesForFiltersData } = useQuery({
+    queryKey: ['allCasesForFilters', filters.category],
+    queryFn: async () => {
+      const allData = await fetchAllPages(authToken, transformApiData);
+      const uniqueCaseStages = [...new Set(allData.map((item) => item.case_stage))].filter(Boolean);
+      const uniquePostcodes = [...new Set(allData.map((item) => item.postcode))].filter(Boolean);
+      return { allData, uniqueCaseStages, uniquePostcodes };
+    },
+    staleTime: 10 * 60 * 1000,
+    cacheTime: 30 * 60 * 1000,
+  });
+
   const debounceTimer = useRef(null);
   useEffect(() => {
-    if (debounceTimer.current) {
-      clearTimeout(debounceTimer.current);
-    }
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearchQuery(searchInput);
     }, 500);
-    return () => {
-      if (debounceTimer.current) {
-        clearTimeout(debounceTimer.current);
-      }
-    };
+    return () => debounceTimer.current && clearTimeout(debounceTimer.current);
   }, [searchInput]);
 
-  // Clear debouncedSearchQuery and searchInput when category changes
   useEffect(() => {
     setSearchInput('');
     setDebouncedSearchQuery('');
     queryClient.invalidateQueries(['searchSaleSessions']);
   }, [filters.category, queryClient]);
 
-  // --- React Query for All Cases for Filters (Cached for select options) ---
-  const { data: allCasesForFiltersData } = useQuery({
-    queryKey: ['allCasesForFilters', filters.category],
-    queryFn: async () => {
-      const maxPages = totalPagesData || 1;
-      const fetchPromises = [];
-      
-      // Fetch all available pages dynamically
-      for (let page = 1; page <= maxPages; page++) {
-        fetchPromises.push(
-          fetch(`https://sale.mega-data.co.uk/history/sale-sessions/?page=${page}`, {
-            method: 'GET',
-            headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-          })
-            .then(response => response.ok ? response.json() : null)
-            .then(data => data && data.results ? transformApiData(data.results) : [])
-            .catch(err => {
-              console.error(`Error fetching page ${page}:`, err);
-              return [];
-            })
-        );
-      }
-      
-      const allData = (await Promise.all(fetchPromises)).flat();
-      
-      // Ensure unique case_stage and postcodes for filters
-      const uniqueCaseStages = [...new Set(allData.map((item) => item.case_stage))].filter(Boolean);
-      const uniquePostcodes = [...new Set(allData.map((item) => item.postcode))].filter(Boolean);
-      
-      return { allData, uniqueCaseStages, uniquePostcodes };
-    },
-    enabled: !!totalPagesData,
-    staleTime: 10 * 60 * 1000,
-    cacheTime: 30 * 60 * 1000,
-  });
-
-  // Derive state from React Query
   const caseData = mainCaseData?.transformedData || [];
   const totalPages = mainCaseData?.totalPages || 1;
   const totalCount = mainCaseData?.totalCount || 0;
   const isPageLoading = isMainDataFetching;
   const isLoadingInitial = isMainDataLoading && !mainCaseData;
 
-  // Combined loading state for UI
   const overallLoading = isLoadingInitial || isPageLoading || isSearchFetching;
 
-  // Handle page change for pagination
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= totalPages && newPage !== currentPage) {
       setCurrentPage(newPage);
@@ -278,32 +159,16 @@ const Cases = () => {
     }
   };
 
-  // Handle category click
-  const handleCategoryClick = (category) => {
-    setCurrentPage(1);
-    queryClient.invalidateQueries(['sale-sessions']);
-    queryClient.invalidateQueries(['allCasesForFilters']);
-  };
-
-  // Handle case stage filter changes
   const handleCaseStageChange = (e) => {
     const caseStage = e.target.value;
-    setTempFilters({
-      ...tempFilters,
-      category: caseStage,
-      postcode: '', // Reset postcode if case stage changes
-    });
+    setTempFilters({ ...tempFilters, category: caseStage, postcode: '' });
   };
 
   const handlePostcodeChange = (e) => {
     const postcode = e.target.value;
-    setTempFilters({
-      ...tempFilters,
-      postcode,
-    });
+    setTempFilters({ ...tempFilters, postcode });
   };
 
-  // Apply filters and fetch filtered data
   const handleApplyFilters = () => {
     setFilters((prev) => ({
       ...prev,
@@ -315,7 +180,6 @@ const Cases = () => {
     queryClient.invalidateQueries(['sale-sessions']);
   };
 
-  // Get unique case stages and postcodes for filter options
   const uniqueCaseStages = allCasesForFiltersData?.uniqueCaseStages || [];
   const uniquePostcodes = allCasesForFiltersData?.uniquePostcodes || [];
 
@@ -324,12 +188,11 @@ const Cases = () => {
         ...new Set(
           allCasesForFiltersData?.allData
             .filter((item) => item.case_stage === tempFilters.category)
-            .map((item) => item.postcode) || []
+            .map((item) => item.postcode)
         ),
       ]
     : uniquePostcodes;
 
-  // Determine which cases to display: search results or main category data
   const isSearchMode = debouncedSearchQuery.trim().length > 0 && searchResultsFetched;
   const displayCases = (isSearchMode ? searchResultsData || [] : caseData).filter((caseItem) => {
     const matchesCaseStage = filters.category ? caseItem.case_stage === filters.category : true;
@@ -337,7 +200,6 @@ const Cases = () => {
     return matchesCaseStage && matchesPostcode;
   });
 
-  // Handle row click to navigate to case details page
   const handleRowClick = (caseId) => {
     if (caseId) {
       navigate(`/case/${caseId}`);
@@ -423,12 +285,12 @@ const Cases = () => {
                   <div className='absolute right-4 z-50 mt-2 w-72 rounded-md border border-gray-700 bg-gray-800 shadow-lg'>
                     <div className='p-4'>
                       <div className='mb-4'>
-                        {/* <label
+                        <label
                           htmlFor='filter-case-stage'
                           className='mb-1 block text-sm font-medium text-gray-300'
                         >
-                          Select Case Stage
-                        </label> */}
+                          Select City
+                        </label>
                         <select
                           id='filter-case-stage'
                           value={tempFilters.category}
