@@ -8,6 +8,7 @@ import HistoryFilter from '../components/HistoryFilter';
 import HistoryContent from '../components/HistoryContent';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
+import { API_BASE_URL } from 'src/api';
 
 
 const YourHistory = () => {
@@ -36,7 +37,7 @@ const YourHistory = () => {
     queryFn: async () => {
       const authToken = sessionStorage.getItem('authToken');
 
-      let url = `https://sale.mega-data.co.uk/history/?page=${currentPage}`;
+      let url = `${API_BASE_URL}/history/?user_id=11&page=${currentPage}`;
 
       if (filters.selectedDate) {
         const formattedDate = filters.selectedDate.toISOString().split('T')[0];
@@ -122,14 +123,13 @@ const displayShops = isSearchMode
   ? historyData?.results.filter((shop) => {
       const searchLower = debouncedSearchQuery.toLowerCase();
       return (
-        shop.name.toLowerCase().includes(searchLower) ||
-        shop.postcode.toLowerCase().includes(searchLower) ||
-        shop.call_result.toLowerCase().includes(searchLower) ||
-        shop.call_date.toLowerCase().includes(searchLower)
+        shop?.name?.toLowerCase().includes(searchLower) ||
+        shop?.postcode?.toLowerCase().includes(searchLower) ||
+        shop?.call_result?.toLowerCase().includes(searchLower) ||
+        shop?.call_date?.toLowerCase().includes(searchLower)
       );
     })
   : historyData?.results;
-  // console.log(displayShops);
 
   if (isLoadingInitial) {
     return (
