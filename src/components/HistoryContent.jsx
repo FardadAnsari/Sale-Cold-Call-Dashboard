@@ -44,7 +44,7 @@ console.log(historyItems);
           <div className='mt-6 flex justify-center'>
             <Link
               className='w-[95%] rounded-lg border border-gray-600 bg-gray-800 py-2 text-center text-sm font-medium text-blue-400 hover:bg-gray-700 hover:text-blue-300'
-              to={`/case/${item.sale_session}`}
+              to={`/case/${item.sale_session_id}`}
             >
               Details
             </Link>
