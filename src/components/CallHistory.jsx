@@ -7,9 +7,10 @@ import deleteContainerImg from '../images/DeleteContainer.png';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
+import useUser from 'src/useUser';
 
 const CallHistory = ({ isDarkMode = true , shopId}) => {
-
+ const { data: user} = useUser();
   const {
     register: registerCase,
     handleSubmit: handleSubmitCase,
@@ -38,7 +39,6 @@ const [sessionId, setSessionId]= useState(0)
   const [openDay, setOpenDay] = useState('Monday');
   const [activeInternalTab, setActiveInternalTab] = useState('callSummary');
   const [caseCreated, setCaseCreated] = useState(false);
-  const [userDetails, setUserDetails] = useState(null);
 useEffect(() => {
   console.log('Received shopId in CallHistory:', shopId);
 }, [shopId]);
@@ -119,21 +119,11 @@ useEffect(() => {
   const onSubmitCreateCase = async (formData) => {
     try {
       const authToken = sessionStorage.getItem('authToken');
-
-      const userRes = await axios.get(`${API_BASE_URL}/user/info/`, {
-        headers: {
-          accept: 'application/json',
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      const user = userRes.data;
-      setUserDetails(user);
       const leadPayload = {
         start_time: new Date().toISOString(),
         last_update: new Date().toISOString(),
         close_time: new Date().toISOString(),
-        created_by: user?.id || 0,
+        created_by: user.id || 0,
         customer: {
           shop_id_company: shopId,
           customer_name: formData.shopOwnerName,
@@ -186,7 +176,7 @@ useEffect(() => {
 
     const payload = {
       date: new Date().toISOString(),
-      user_id: userDetails?.id || 0,
+      user_id: user.id || 0,
       call_time: new Date().toISOString(), // or custom time input if you want
       sale_session_id: sessionId ?? 0, // adjust if needed
       call_description: data.callDescription,
@@ -539,11 +529,11 @@ useEffect(() => {
                   >
                     <option value=''>-- Select --</option>
                     <option value='Intrested'>Interested</option>
-                    <option value='appointmentSet'>Appointment is set</option>
-                    <option value='notInterested'>Not interested</option>
-                    <option value='followUp'>Follow up</option>
-                    <option value='hangUp'>Hang up</option>
-                    <option value='fourthAction'>Fourth action</option>
+                    <option value='Appointment Is Set'>Appointment is set</option>
+                    <option value='Not Interested'>Not interested</option>
+                    <option value='Follow Up'>Follow up</option>
+                    <option value='Hung Up'>Hang up</option>
+                    <option value='Fourth Action'>Fourth action</option>
                   </select>
                   <div className={formClasses.selectArrow}>
                     <svg className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
