@@ -1,54 +1,7 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom'; // Import useNavigate for row click navigation
 
-const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
+const CaseTable = ({ cases = [], isDarkMode}) => {
   const navigate = useNavigate(); // Initialize navigate
-
-  const skeletonRows = Array.from({ length: 5 }, (_, index) => {
-    const rowBgClass = index % 2 === 0
-      ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'
-      : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100';
-    return (
-      <tr key={`skeleton-${index}`} className={`cursor-pointer ${rowBgClass}`}>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-          <div className={`h-6 rounded w-3/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-          <div className={`h-6 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-          <div className={`h-6 rounded w-1/5 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-          <div className={`h-6 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
-        <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
-          <div className={`h-6 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </td>
-      </tr>
-    );
-  });
-
-  const skeletonMobile = Array.from({ length: 5 }, (_, index) => {
-    const cardBgClass = index % 2 === 0
-      ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'
-      : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100';
-    return (
-      <div
-        key={`skeleton-mobile-${index}`}
-        className={`px-6 py-4 space-y-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} cursor-pointer ${cardBgClass}`}
-      >
-        <div className="flex justify-between items-center">
-          <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-            <div className={`h-6 rounded w-1/2 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-          </h3>
-          <div className={`h-4 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div>
-        </div>
-        <p className="text-sm"><div className={`h-4 rounded w-1/3 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
-        <p className="text-sm"><div className={`h-4 rounded w-1/4 ${isDarkMode ? 'bg-gray-700' : 'bg-gray-200'}`}></div></p>
-      </div>
-    );
-  });
 
   if (!cases.length) {
     return (
@@ -66,57 +19,95 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
     );
   }
 
-  // Helper to format date and time - Updated to show format: 2025-07-02 17:57:38
-  const formatDateTime = (isoString) => {
-    if (!isoString) return 'N/A';
-    try {
-      const date = new Date(isoString);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      const hours = String(date.getHours()).padStart(2, '0');
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const seconds = String(date.getSeconds()).padStart(2, '0');
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    } catch (e) {
-      console.error("Error parsing date:", isoString, e);
-      return 'Invalid Date';
-    }
-  };
 
-  // Modify onRowClick to navigate to the /case/:id route
+
   const handleRowClick = (caseId) => {
     navigate(`/case/${caseId}`);
-    if (onRowClick) {
-      onRowClick(caseId); // Still call the prop if it exists
-    }
   };
 
   return (
-    <div className={`shadow-sm rounded-lg border overflow-hidden ${
-      isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
-    }`}>
-
+    <div
+      className={`overflow-hidden rounded-lg border shadow-sm ${
+        isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
+      }`}
+    >
       {/* Desktop Table */}
-      <div className="overflow-x-auto md:block hidden">
-        <table className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}>
+      <div className='hidden overflow-x-auto md:block'>
+        <table
+          className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}
+        >
           <thead className={isDarkMode ? 'bg-gray-700' : 'bg-gray-50'}>
             <tr>
-              <th scope="col" className={`px-6 py-6 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Shop Name</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Start Time</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Case Stage</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Created By</th>
-              <th scope="col" className={`px-6 py-3 text-left text-l font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}>Update Time</th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-6 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Shop Name
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Start Time
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Case Stage
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Created By
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Update Time
+              </th>
             </tr>
           </thead>
-          <tbody className={isDarkMode ? 'bg-gray-800 divide-y divide-gray-700' : 'bg-white divide-y divide-gray-200'}>
+          <tbody
+            className={
+              isDarkMode
+                ? 'divide-y divide-gray-700 bg-gray-800'
+                : 'divide-y divide-gray-200 bg-white'
+            }
+          >
             {cases.map((caseItem, index) => (
-              <tr key={caseItem.id} onClick={() => handleRowClick(caseItem.id)} className={`cursor-pointer ${index % 2 === 0 ? isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50' : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{caseItem.name}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{formatDateTime(caseItem.start_time)}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{caseItem.case_stage}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{caseItem.created_by}</td>
-                <td className={`px-6 py-4 whitespace-nowrap text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>{formatDateTime(caseItem.last_update)}</td>
+              <tr
+                key={caseItem.sale_session_id}
+                onClick={() => handleRowClick(caseItem.sale_session_id)}
+                className={`cursor-pointer ${index % 2 === 0 ? (isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50') : isDarkMode ? 'bg-gray-700/50' : 'bg-gray-100'}`}
+              >
+                <td
+                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
+                >
+                  {caseItem.shop}
+                </td>
+                <td
+                  className={`px-6 py-4 text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {caseItem.session_start_date}
+                </td>
+                <td
+                  className={`px-6 py-4 text-sm whitespace-nowrap ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+                >
+                  {caseItem.stage}
+                </td>
+                <td
+                  className={`px-6 py-4 text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {caseItem.created_by}
+                </td>
+                <td
+                  className={`px-6 py-4 text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {caseItem.last_update}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -124,19 +115,27 @@ const CaseTable = ({ cases = [], isDarkMode, onRowClick }) => {
       </div>
 
       {/* Mobile View */}
-      <div className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}>
+      <div
+        className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}
+      >
         {cases.map((caseItem) => (
-          <div key={caseItem.id} onClick={() => handleRowClick(caseItem.id)} className={`px-6 py-4 space-y-3 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
-            <div className="flex justify-between items-center">
-              <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{caseItem.name}</h3>
-              <p className="text-sm">{formatDateTime(caseItem.start_time)}</p>
+          <div
+            key={caseItem.id}
+            onClick={() => handleRowClick(caseItem.id)}
+            className={`space-y-3 px-6 py-4 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}
+          >
+            <div className='flex items-center justify-between'>
+              <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                {caseItem.name}
+              </h3>
+              <p className='text-sm'>{caseItem.session_start_date}</p>
             </div>
-            <div className="flex justify-between">
-              <p className="text-sm">{caseItem.case_stage}</p>
+            <div className='flex justify-between'>
+              <p className='text-sm'>{caseItem.case_stage}</p>
             </div>
-            <div className="flex justify-between">
-              <p className="text-sm">Created By: {caseItem.created_by}</p>
-              <p className="text-sm">Updated: {formatDateTime(caseItem.last_update)}</p>
+            <div className='flex justify-between'>
+              <p className='text-sm'>Created By: {caseItem.created_by}</p>
+              <p className='text-sm'>Updated: {caseItem.last_update}</p>
             </div>
           </div>
         ))}
