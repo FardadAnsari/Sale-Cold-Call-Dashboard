@@ -15,7 +15,7 @@ const Search = ({ searchTerm, setSearchTerm, isDarkMode }) => {
           type='text'
           value={searchTerm}
           onChange={handleChange}
-          placeholder='Search by name, phone or postcode...'
+          placeholder='Search'
           className={`w-full rounded-lg py-3 pr-10 pl-10 focus:ring-2 focus:ring-blue-500 ${
             isDarkMode
               ? 'bg-gray-700 text-white focus:border-blue-400 focus:ring-blue-400'
