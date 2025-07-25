@@ -47,6 +47,12 @@ const navigate = useNavigate()
               </th>
               <th
                 scope='col'
+                className={`text-l px-6 py-6 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                City
+              </th>
+              <th
+                scope='col'
                 className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
                 Service Type
@@ -88,6 +94,11 @@ const navigate = useNavigate()
                   className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
                 >
                   {shop.shop_name}
+                </td>
+                <td
+                  className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
+                >
+                  {shop.city}
                 </td>
                 <td
                   className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
@@ -138,6 +149,7 @@ const navigate = useNavigate()
             <div className='flex justify-between'>
               <p className='text-sm'>{shop.services}</p>
               <p className='text-sm'>{shop.postcode}</p>
+              <p className='text-sm'>{shop.city}</p>
             </div>
             <div className='text-right'>
               <a href={shop.website} target='_blank'>

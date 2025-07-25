@@ -95,7 +95,7 @@ const OnboardingZone = () => {
     }
   };
 
-  // === Loading state
+  //Loading state
   if (isLoading && !data) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
@@ -125,7 +125,7 @@ const OnboardingZone = () => {
     );
   }
 
-  // === Error state
+  //Error state
   if (error) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
@@ -160,7 +160,7 @@ const OnboardingZone = () => {
     );
   }
 
-  // === Main content
+  // Main content
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
       <header className='bg-gray-900 shadow-sm'>
@@ -224,7 +224,7 @@ const OnboardingZone = () => {
         ) : (
           <>
             <div className='space-y-8'>
-              <div className='rounded-lg bg-gray-800 p-6'>
+              <div className='rounded-lg bg-gray-800 p-4'>
                 <Table shops={displayShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
               </div>
             </div>

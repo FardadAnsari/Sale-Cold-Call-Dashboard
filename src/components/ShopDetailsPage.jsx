@@ -1,4 +1,3 @@
-import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CallHistory from '../components/CallHistory';
@@ -9,54 +8,50 @@ import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
 import phoneIcon from '../images/phone2.png';
 import sadMaskImg from '../images/sad-mask.png';
+import axios from 'axios';
+import { API_BASE_URL } from 'src/api';
 
 const sanitizeString = (value, defaultValue = 'N/A') => {
-  if (value === null || value === undefined || String(value).trim().toLowerCase() === 'none' || String(value).trim() === '') {
+  if (
+    value === null ||
+    value === undefined ||
+    String(value).trim().toLowerCase() === 'none' ||
+    String(value).trim() === ''
+  ) {
     return defaultValue;
   }
   return String(value).trim();
 };
 
-const extractCityFromAddress = (address) => {
-  const sanitizedAddress = sanitizeString(address, '');
-  if (!sanitizedAddress || sanitizedAddress === 'N/A') return 'Unknown';
-  const parts = sanitizedAddress.split(',');
-  return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
-};
-
 const parseOpeningHours = (openingHoursData) => {
   const defaultHours = {
-    Monday: 'N/A', Tuesday: 'N/A', Wednesday: 'N/A',
-    Thursday: 'N/A', Friday: 'N/A', Saturday: 'N/A', Sunday: 'N/A'
+    Monday: 'N/A',
+    Tuesday: 'N/A',
+    Wednesday: 'N/A',
+    Thursday: 'N/A',
+    Friday: 'N/A',
+    Saturday: 'N/A',
+    Sunday: 'N/A',
   };
   if (typeof openingHoursData === 'object' && openingHoursData !== null) {
     const parsed = {};
     for (const day in defaultHours) {
       const dayData = openingHoursData[day];
       if (Array.isArray(dayData) && dayData.length > 0) {
-        const timeSlots = dayData.map(slot => {
-          if (typeof slot === 'object' && slot !== null && slot.start && slot.end) {
-            const startTime = sanitizeString(slot.start, '');
-            const endTime = sanitizeString(slot.end, '');
-            if (startTime && endTime && startTime !== 'N/A' && endTime !== 'N/A') {
-              return `${startTime} - ${endTime}`;
+        const timeSlots = dayData
+          .map((slot) => {
+            if (typeof slot === 'object' && slot !== null && slot.start && slot.end) {
+              const startTime = sanitizeString(slot.start, '');
+              const endTime = sanitizeString(slot.end, '');
+              if (startTime && endTime) {
+                return `${startTime} - ${endTime}`;
+              }
             }
-          }
-          return sanitizeString(slot, 'N/A');
-        }).filter(slot => slot !== 'N/A');
+            return sanitizeString(slot, 'N/A');
+          })
+          .filter((slot) => slot !== 'N/A');
 
         parsed[day] = timeSlots.length > 0 ? timeSlots.join(', ') : 'Closed';
-      } else if (typeof dayData === 'object' && dayData !== null && dayData.weekday_text && Array.isArray(dayData.weekday_text) && dayData.weekday_text.length > 0) {
-        const text = dayData.weekday_text[0];
-        parsed[day] = sanitizeString(text.split(': ')[1] || text, 'N/A');
-      } else if (typeof dayData === 'object' && dayData !== null && (dayData.open || dayData.close)) {
-        const openTime = sanitizeString(dayData.open, '');
-        const closeTime = sanitizeString(dayData.close, '');
-        if (openTime === 'N/A' && closeTime === 'N/A') {
-          parsed[day] = 'Closed';
-        } else {
-          parsed[day] = `${openTime} - ${closeTime}`.trim();
-        }
       } else {
         parsed[day] = 'Closed';
       }
@@ -66,36 +61,10 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-const transformSingleShopData = (apiItem) => {
-  if (!apiItem) return null;
-  return {
-    id: apiItem.id || apiItem.shop_id_company,
-    name: sanitizeString(apiItem.shop_name, 'Unknown Shop'),
-    shop_id_company: apiItem.shop_id_company,
-    serviceType: sanitizeString(apiItem.category, 'Unknown'),
-    postcode: sanitizeString(apiItem.postcode, 'N/A'),
-    city: extractCityFromAddress(apiItem.address) || 'Unknown',
-    website: sanitizeString(apiItem.website, ''),
-    status: apiItem.is_open_now ? 'open' : 'closed',
-    address: sanitizeString(apiItem.address, ''),
-    phone: sanitizeString(apiItem.phone, ''),
-    rating: sanitizeString(apiItem.rating, 'N/A'),
-    total_reviews: apiItem.total_reviews || 0,
-    latitude: apiItem.latitude || '',
-    longitude: apiItem.longitude || '',
-    openingHours: parseOpeningHours(apiItem.opening_hours),
-    services: sanitizeString(apiItem.services, ''),
-    providers: apiItem.providers || [],
-    provider_url: sanitizeString(apiItem.provider_url, ''),
-    search_txt: sanitizeString(apiItem.search_txt, ''),
-    category: sanitizeString(apiItem.category, 'Unknown')
-  };
-};
-
 const ShopDetailsPage = ({ isDarkMode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const authToken = sessionStorage.getItem("authToken");
+  const authToken = sessionStorage.getItem('authToken');
 
   const {
     data: shop,
@@ -106,25 +75,31 @@ const ShopDetailsPage = ({ isDarkMode }) => {
     queryKey: ['singleShop', id],
     queryFn: async () => {
       if (!id) return null;
-      const url = `https://sale.mega-data.co.uk/Shops/?id=${id}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} for ID: ${id}`);
-      }
-      const data = await response.json();
-      if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-        return transformSingleShopData(data.results[0]);
-      } else {
-        throw new Error(`Shop details not found or invalid response format for ID: ${id}`);
+
+      const url = `${API_BASE_URL}/Shops/?id=${id}`;
+
+      try {
+        const response = await axios.get(url, {
+          headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        const data = response.data;
+        
+        if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+          return data.results[0];
+        } else {
+          throw new Error(`Shop details not found or invalid response format for ID: ${id}`);
+        }
+      } catch (err) {
+        throw new Error(`Axios error: ${err.response?.status || 'unknown'} for ID: ${id}`);
       }
     },
     enabled: !!id,
-    staleTime: 5 * 60 * 1000,
   });
-
+console.log(shop);
   const commonClasses = {
     container: `flex flex-col lg:flex-row gap-6 p-6 mx-auto relative h-screen w-full lg:max-w-7xl overflow-hidden`,
     cardContainer: `flex-1 bg-gray-700 rounded-lg shadow-md p-6 flex flex-col min-w-0`,
@@ -141,20 +116,23 @@ const ShopDetailsPage = ({ isDarkMode }) => {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center bg-gray-900 text-gray-300 h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-        <p className="text-xl">Loading shop details...</p>
+      <div className='flex h-screen flex-1 items-center justify-center bg-gray-900 text-gray-300'>
+        <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
+        <p className='text-xl'>Loading shop details...</p>
       </div>
     );
   }
 
   if (isError) {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center p-8 bg-gray-900 text-red-400 min-h-screen">
-        <img src={sadMaskImg} alt="Error" className="w-32 h-32 mb-4" />
-        <p className="mb-2 text-xl font-medium">Error loading shop details:</p>
-        <p className="text-center mb-4">{error.message}</p>
-        <button onClick={() => navigate('/')} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">
+      <div className='flex min-h-screen flex-1 flex-col items-center justify-center bg-gray-900 p-8 text-red-400'>
+        <img src={sadMaskImg} alt='Error' className='mb-4 h-32 w-32' />
+        <p className='mb-2 text-xl font-medium'>Error loading shop details:</p>
+        <p className='mb-4 text-center'>{error.message}</p>
+        <button
+          onClick={() => navigate('/')}
+          className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
+        >
           Go Back to Sale Zone
         </button>
       </div>
@@ -163,16 +141,23 @@ const ShopDetailsPage = ({ isDarkMode }) => {
 
   if (!shop) {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center p-8 bg-gray-900 text-gray-400 min-h-screen">
-        <img src={sadMaskImg} alt="Sad Mask" className="w-32 h-32 mb-4" />
-        <p className="mb-2 text-xl font-medium">No details found for this shop.</p>
-        <p className="text-sm text-center mb-4">The shop ID `{id}` might be invalid or no data is available.</p>
-        <button onClick={() => navigate('/')} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">
+      <div className='flex min-h-screen flex-1 flex-col items-center justify-center bg-gray-900 p-8 text-gray-400'>
+        <img src={sadMaskImg} alt='Sad Mask' className='mb-4 h-32 w-32' />
+        <p className='mb-2 text-xl font-medium'>No details found for this shop.</p>
+        <p className='mb-4 text-center text-sm'>
+          The shop ID `{id}` might be invalid or no data is available.
+        </p>
+        <button
+          onClick={() => navigate('/')}
+          className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
+        >
           Go Back to Sale Zone
         </button>
       </div>
     );
   }
+
+  const parsedOpeningHours = parseOpeningHours(shop.opening_hours);
 
   return (
     <div className={commonClasses.container}>
@@ -195,81 +180,116 @@ const ShopDetailsPage = ({ isDarkMode }) => {
         .custom-scrollbar {
           scrollbar-width: thin;
           scrollbar-color: #6b7280 #374151;
-        }
-        .custom-scrollbar {
           scroll-behavior: smooth;
         }
       `}</style>
 
       <button
         onClick={() => navigate('/')}
-        className="absolute top-4 left-4 z-10 p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
-        aria-label="Go back to Sale Zone"
+        className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
+        aria-label='Go back to Sale Zone'
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          className='h-6 w-6'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          strokeWidth='2'
+        >
+          <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
         </svg>
       </button>
+
       <div className={commonClasses.cardContainer}>
         <div className={commonClasses.cardContent}>
           <h2 className={commonClasses.heading}>Shop Details</h2>
+
           <div className={commonClasses.detailItem}>
-            <img src={shopIcon} alt="Shop Icon" className={commonClasses.icon} />
+            <img src={shopIcon} alt='Shop Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Name</label>
-              <p className={commonClasses.valueName}>{shop.name}</p>
+              <p className={commonClasses.valueName}>{sanitizeString(shop.shop_name)}</p>
             </div>
           </div>
+
           <div className={commonClasses.detailItem}>
-            <img src={addressIcon} alt="Address Icon" className={commonClasses.icon} />
+            <img src={addressIcon} alt='Address Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Address</label>
-              <p className={commonClasses.valueDefault}>{shop.address || 'N/A'}</p>
+              <p className={commonClasses.valueDefault}>{sanitizeString(shop.address)}</p>
             </div>
           </div>
+
           <div className={commonClasses.detailItem}>
-            <img src={timeIcon} alt="Time Icon" className={commonClasses.icon} />
+            <img src={timeIcon} alt='Time Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Opening Hours</label>
-              <ul className="space-y-1">
-                {Object.entries(shop.openingHours).map(([day, hours]) => (
-                  <li key={day} className="text-gray-300 text-sm">
-                    <span className="font-medium">{day}:</span> {hours}
+              <ul className='space-y-1'>
+                {Object.entries(parsedOpeningHours).map(([day, hours]) => (
+                  <li key={day} className='text-sm text-gray-300'>
+                    <span className='font-medium'>{day}:</span> {hours}
                   </li>
                 ))}
               </ul>
             </div>
           </div>
+
           <div className={commonClasses.detailItem}>
-            <img src={postcodeIcon} alt="Postcode Icon" className={commonClasses.icon} />
+            <img src={postcodeIcon} alt='Postcode Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Postcode</label>
-              <p className={commonClasses.valueDefault}>{shop.postcode || 'N/A'}</p>
+              <p className={commonClasses.valueDefault}>{sanitizeString(shop.postcode)}</p>
             </div>
           </div>
+
           <div className={commonClasses.detailItem}>
-            <img src={phoneIcon} alt="Phone Icon" className={commonClasses.icon} />
+            <img src={phoneIcon} alt='Phone Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Phone</label>
-              <p className={commonClasses.valueDefault}>{shop.phone || 'N/A'}</p>
+              <p className={commonClasses.valueDefault}>{sanitizeString(shop.phone)}</p>
             </div>
           </div>
+
           <div className={commonClasses.detailItem}>
-            <img src={serviceTypeIcon} alt="Service Type Icon" className={commonClasses.icon} />
+            <img src={serviceTypeIcon} alt='Service Type Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Service Type</label>
-              <p className={commonClasses.valueDefault}>{shop.serviceType || 'N/A'}</p>
+              <p className={commonClasses.valueDefault}>{sanitizeString(shop.category)}</p>
             </div>
           </div>
+
+          <div className='pl-8'>
+            {Array.isArray(shop.providers) && shop.providers.length > 0 && (
+              <>
+                <label className={commonClasses.label}>List Of Providers</label>
+                <ul className='space-y-1 pt-1'>
+                  {shop.providers.map((provider, index) => (
+                    <li key={index}>
+                      <a
+                        href={provider.provider_url}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-blue-400 hover:underline'
+                      >
+                        {provider.provider_name}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
         </div>
-        <div className={commonClasses.callButtonContainer}>
+        {/* <div className={commonClasses.callButtonContainer}>
           <button className={commonClasses.callButton}>
-            <img src={phoneIcon} alt="Phone Icon" className="w-5 h-5" />
+            <img src={phoneIcon} alt='Phone Icon' className='h-5 w-5' />
             Call Shop Now
           </button>
-        </div>
+        </div> */}
       </div>
-      <div className="flex-1 flex flex-col min-w-0">
+
+      <div className='flex min-w-0 flex-1 flex-col'>
         <CallHistory isDarkMode={isDarkMode} shopId={shop.shop_id_company} />
       </div>
     </div>
