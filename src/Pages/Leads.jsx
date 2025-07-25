@@ -1,11 +1,12 @@
 // src/pages/Leads.jsx
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import Pagination from '../components/Pagination';
-import LeadsTable from '../components/LeadsTable'; // Assuming this is the shop table
+import LeadsTable from '../components/LeadsTable';
 import { API_BASE_URL } from '../api';
 import Search from '../components/Search';
+import LeadDrawer from '../components/LeadDrawer';
 
 const ITEMS_PER_PAGE = 15;
 
@@ -13,7 +14,13 @@ const Leads = () => {
   const isDarkMode = true;
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLeadId, setSelectedLeadId] = useState(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const authToken = sessionStorage.getItem('authToken');
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const {
     data: leads,
@@ -32,17 +39,32 @@ const Leads = () => {
     },
   });
 
-  if (isLoading) return <p>Loading...</p>;
+  if (isLoading)
+    return (
+      <div className='flex justify-center py-16'>
+        <div className='text-center'>
+          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-orange-500'></div>
+          <p className='text-gray-300'>Loading Leads...</p>
+        </div>
+      </div>
+    );
   if (isError) return <p>Error loading leads.</p>;
 
-  //Format the full raw leads first
-  const formattedLeads = leads.map((lead) => ({
+  // Sort leads by Created_Time descending (newest first)
+  const sortedLeads = [...leads].sort((a, b) => {
+    const dateA = new Date(a.Created_Time);
+    const dateB = new Date(b.Created_Time);
+    return dateB - dateA; // descending
+  });
+
+  // Then map
+  const formattedLeads = sortedLeads.map((lead) => ({
     id: lead.id,
     shopName: lead.Company,
     createdTime: lead.Created_Time || 'N/A',
     createdBy: lead.Owner?.name || 'N/A',
     state: lead.State || 'N/A',
-    LeadStatus: lead.Lead_Status || 'N/A',
+    LeadStatus: lead.Stage || 'N/A',
   }));
 
   //Filter based on search term
@@ -61,16 +83,15 @@ const Leads = () => {
   const paginatedLeads = filteredLeads.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const handleRowClick = (leadId) => {
-    console.log('Clicked lead ID:', leadId);
+    setSelectedLeadId(leadId);
+    setIsDrawerOpen(true);
   };
-
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
-      <main className='container mx-auto space-y-6 p-4'>
-        <h1 className='mb-4 text-xl font-bold'>Leads</h1>
+      <main className='container mx-auto space-y-6 px-4 py-6'>
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} isDarkMode={isDarkMode} />
         <div className='space-y-8'>
-          <div className='rounded-lg bg-gray-800 p-6'>
+          <div className='rounded-lg bg-gray-800 p-4'>
             <LeadsTable
               shops={paginatedLeads}
               isDarkMode={isDarkMode}
@@ -83,6 +104,11 @@ const Leads = () => {
           totalPages={totalPages}
           onPageChange={setCurrentPage}
           isDarkMode={isDarkMode}
+        />
+        <LeadDrawer
+          leadId={selectedLeadId}
+          isOpen={isDrawerOpen}
+          onClose={() => setIsDrawerOpen(false)}
         />
       </main>
     </div>
