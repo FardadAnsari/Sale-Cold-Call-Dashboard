@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import Lead from './Lead';
+import CreateLead from './CreateLead';
 import plusIcon from '../images/Plus.png';
 import deleteContainerImg from '../images/DeleteContainer.png';
 import Swal from 'sweetalert2';
@@ -170,34 +170,29 @@ useEffect(() => {
       });
     }
   };
+const submitCallSummary = async (data) => {
+  const token = sessionStorage.getItem('authToken');
 
-  const submitCallSummary = async (data) => {
-    const token = sessionStorage.getItem('authToken');
-
-    const payload = {
-      date: new Date().toISOString(),
-      user_id: user.id || 0,
-      call_time: new Date().toISOString(), // or custom time input if you want
-      sale_session_id: sessionId ?? 0, // adjust if needed
-      call_description: data.callDescription,
-      stage: data.callResult,
-    };
-    console.log(payload);
-
-    const res = await axios.post(
-      `${API_BASE_URL}/history/create-history/`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    console.log(res);
-
-    return res.data;
+  const payload = {
+    date: new Date().toISOString(),
+    user_id: user.id || 0,
+    call_time: new Date().toISOString(), // or custom time input if you want
+    sale_session_id: sessionId ?? 0, // adjust if needed
+    call_description: data.callDescription,
+    stage: data.callResult,
   };
+  console.log(payload);
+
+  const res = await axios.post(`${API_BASE_URL}/history/create-history/`, payload, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  });
+  console.log(res);
+
+  return res.data;
+};
 
   const mutation = useMutation({
     mutationFn: submitCallSummary,
@@ -285,7 +280,7 @@ useEffect(() => {
       {activeInternalTab === 'createLead' ? (
         <>
           <div className={formClasses.scrollableArea}>
-            <Lead isDarkMode={isDarkMode} />
+            <CreateLead isDarkMode={isDarkMode} />
           </div>
         </>
       ) : showAvailabilityForm ? (

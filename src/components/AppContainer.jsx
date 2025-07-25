@@ -1,7 +1,7 @@
 // AppContainer.jsx
 import React, { useState } from 'react';
 import CallHistory from './CallHistory'; // Adjust path as needed
-import Lead from './Lead';             // Adjust path as needed
+import Lead from './CreateLead';             // Adjust path as needed
 
 const AppContainer = () => {
   const [activeTab, setActiveTab] = useState('callSummary'); // 'callSummary' or 'createLead'

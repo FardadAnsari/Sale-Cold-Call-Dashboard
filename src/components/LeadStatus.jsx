@@ -1,5 +1,4 @@
 // src/components/LeadStatus.jsx
-import React from 'react';
 import SelectField from './SelectField'; // Ensure the path is correct
 
 const LeadStatus = () => {
