@@ -6,53 +6,20 @@ import casesPng from '../images/cases.png';
 import leadsPng from '../images/leadside.png';
 import profilePng from '../images/Profile.png';
 import logoutPng from '../images/logout.png'; // Import the logout image
+import useUser from 'src/useUser';
 
 const Sidebar = ({ isDarkMode }) => {
+  const {data:user}= useUser()
+  
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
-  const [userInfo, setUserInfo] = useState({ name: 'Loading...', role: 'On Boarding' });
-  const [isLoading, setIsLoading] = useState(true);
   const profileButtonRef = useRef(null);
   const popupRef = useRef(null);
 
   const isActiveLink = (path) => {
     return location.pathname === path;
   };
-
-  // Fetch user information from API
-  useEffect(() => {
-    const fetchUserInfo = async () => {
-      try {
-        const authToken = sessionStorage.getItem('authToken');
-        const response = await fetch('https://sale.mega-data.co.uk/user/info/', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${authToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (response.ok) {
-          const userData = await response.json();
-          setUserInfo({
-            name: userData.name || userData.username || userData.first_name || 'User',
-            role: userData.role || userData.department || 'OnBoarding'
-          });
-        } else {
-          console.error('Failed to fetch user info:', response.status);
-          setUserInfo({ name: 'User', role: 'On Boarding' });
-        }
-      } catch (error) {
-        console.error('Error fetching user info:', error);
-        setUserInfo({ name: 'User', role: 'On Boarding' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserInfo();
-  }, []);
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -94,67 +61,57 @@ const Sidebar = ({ isDarkMode }) => {
   const handleLogout = () => {
     // Clear any authentication tokens or user data from sessionStorage
     sessionStorage.removeItem('authToken');
-    sessionStorage.removeItem('userData');
     sessionStorage.clear();
-    
     // Close the popup
     setShowProfilePopup(false);
-    
     // Navigate to login page
     navigate('/login');
   };
 
   return (
-    <div className={`w-64 p-4 flex flex-col ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-900'} mx-auto relative`}>
-      <nav className="flex-grow">
-        <ul className="space-y-3">
+    <div
+      className={`flex w-64 flex-col p-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-900'} relative mx-auto`}
+    >
+      <nav className='flex-grow'>
+        <ul className='space-y-3'>
           <li>
-            <Link
-              to="/"
-              className={linkStyle(isActiveLink('/'), isDarkMode)}
-            >
-              <img src={onboardingPng} alt="Onboarding" className="w-6 h-6" />
+            <Link to='/' className={linkStyle(isActiveLink('/'), isDarkMode)}>
+              <img src={onboardingPng} alt='Onboarding' className='h-6 w-6' />
               <span>Onboarding Zone</span>
             </Link>
           </li>
           <li>
             <Link
-              to="/your-history"
+              to='/your-history'
               className={linkStyle(isActiveLink('/your-history'), isDarkMode)}
             >
-              <img src={historyPng} alt="History" className="w-6 h-6" />
+              <img src={historyPng} alt='History' className='h-6 w-6' />
               <span>Your History</span>
             </Link>
           </li>
           <li>
-            <Link
-              to="/cases"
-              className={linkStyle(isActiveLink('/cases'), isDarkMode)}
-            >
-              <img src={casesPng} alt="Cases" className="w-6 h-6" />
+            <Link to='/cases' className={linkStyle(isActiveLink('/cases'), isDarkMode)}>
+              <img src={casesPng} alt='Cases' className='h-6 w-6' />
               <span>Cases</span>
             </Link>
           </li>
           <li>
-            <Link
-              to="/leads"
-              className={linkStyle(isActiveLink('/leads'), isDarkMode)}
-            >
-              <img src={leadsPng} alt="Leads" className="w-6 h-6" />
+            <Link to='/leads' className={linkStyle(isActiveLink('/leads'), isDarkMode)}>
+              <img src={leadsPng} alt='Leads' className='h-6 w-6' />
               <span>Leads</span>
             </Link>
           </li>
         </ul>
       </nav>
-      
+
       {/* Profile Button - Moved to the bottom and separated */}
-      <div className="mt-auto pt-6 relative">
+      <div className='relative mt-auto pt-6'>
         <button
           ref={profileButtonRef}
           className={profileButtonStyle(isDarkMode)}
           onClick={handleProfileClick}
         >
-          <img src={profilePng} alt="Profile" className="w-6 h-6" />
+          <img src={profilePng} alt='Profile' className='h-6 w-6' />
           <span>Your Profile</span>
         </button>
 
@@ -162,34 +119,27 @@ const Sidebar = ({ isDarkMode }) => {
         {showProfilePopup && (
           <div
             ref={popupRef}
-            className={`absolute left-full bottom-0 ml-2 w-48 rounded-lg shadow-lg border z-50 ${
-              isDarkMode 
-                ? 'bg-gray-700 border-gray-600 text-white' 
-                : 'bg-white border-gray-300 text-gray-900'
+            className={`absolute bottom-0 left-full z-50 ml-2 w-48 rounded-lg border shadow-lg ${
+              isDarkMode
+                ? 'border-gray-600 bg-gray-700 text-white'
+                : 'border-gray-300 bg-white text-gray-900'
             }`}
           >
-            <div className="p-3">
-              <div className="flex items-center space-x-3 mb-3">
-                <img src={profilePng} alt="Profile" className="w-8 h-8 rounded-full" />
+            <div className='p-3'>
+              <div className='mb-3 flex items-center space-x-3'>
+                <img src={profilePng} alt='Profile' className='h-8 w-8 rounded-full' />
                 <div>
-                  <p className="font-medium">
-                    {isLoading ? (
-                      <span className="animate-pulse">Loading...</span>
-                    ) : (
-                      userInfo.name
-                    )}
-                  </p>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {userInfo.role}
+                  <p className='font-medium'>
+                    {user?.name ?? <span className='animate-pulse'>Loading...</span>}
                   </p>
                 </div>
               </div>
               <hr className={`my-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`} />
               <button
                 onClick={handleLogout}
-                className={`w-full flex items-center space-x-2 px-3 py-2 rounded-md text-left transition-colors bg-red-700 text-white hover:bg-red-800`}
+                className={`flex w-full items-center space-x-2 rounded-md bg-red-700 px-3 py-2 text-left text-white transition-colors hover:bg-red-800`}
               >
-                <img src={logoutPng} alt="Logout" className="w-4 h-4" />
+                <img src={logoutPng} alt='Logout' className='h-4 w-4' />
                 <span>Log Out</span>
               </button>
             </div>
