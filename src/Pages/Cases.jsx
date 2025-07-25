@@ -39,7 +39,6 @@ const Cases = () => {
       return res.data;
     },
     keepPreviousData: true,
-    staleTime: 2 * 60 * 1000,
   });
 
   const handlePageChange = (newPage) => {
@@ -67,13 +66,13 @@ const Cases = () => {
           <div className='flex justify-center py-16'>
             <div className='text-center'>
               <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-orange-500'></div>
-              <p className='text-gray-300'>Loading sessions...</p>
+              <p className='text-gray-300'>Loading Cases...</p>
             </div>
           </div>
         ) : isError ? (
           <div className='flex flex-col items-center justify-center p-8'>
             <img src={sadMaskImg} alt='Error' className='mb-4 h-32 w-32' />
-            <p className='text-xl text-white'>Failed to load sessions</p>
+            <p className='text-xl text-white'>Failed to load Cases</p>
             <button
               onClick={() => refetch()}
               className='mt-4 rounded bg-orange-500 px-4 py-2 text-white hover:bg-orange-600'
@@ -84,7 +83,7 @@ const Cases = () => {
         ) : isEmpty ? (
           <div className='flex flex-col items-center justify-center p-8'>
             <img src={sadMaskImg} alt='No Data' className='mb-4 h-32 w-32' />
-            <p className='text-xl text-white'>No sessions found.</p>
+            <p className='text-xl text-white'>No cases found.</p>
           </div>
         ) : (
           <>

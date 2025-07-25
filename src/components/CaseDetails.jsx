@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CaseHistory from '../components/CaseHistory';
@@ -9,19 +9,16 @@ import postcodeIcon from '../images/Postcode.png';
 import serviceTypeIcon from '../images/Servicetype.png';
 import phoneIcon from '../images/phone2.png';
 import sadMaskImg from '../images/sad-mask.png';
+import CaseStage from '../images/CaseStage.png';
+import CreateBy from '../images/CreateBy.png'
+import axios from 'axios';
+import { API_BASE_URL } from 'src/api';
 
 const sanitizeString = (value, defaultValue = 'N/A') => {
   if (value === null || value === undefined || String(value).trim().toLowerCase() === 'none' || String(value).trim() === '') {
     return defaultValue;
   }
   return String(value).trim();
-};
-
-const extractCityFromAddress = (address) => {
-  const sanitizedAddress = sanitizeString(address, '');
-  if (!sanitizedAddress || sanitizedAddress === 'N/A') return 'Unknown';
-  const parts = sanitizedAddress.split(',');
-  return parts.length > 1 ? parts[parts.length - 2].trim() : 'Unknown';
 };
 
 const parseOpeningHours = (openingHoursData) => {
@@ -64,84 +61,57 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-const transformSingleCaseData = (apiResponse) => {
-  if (!apiResponse || !apiResponse.sale_session) return null;
-  const saleSession = apiResponse.sale_session;
-  const customer = apiResponse.customer;
-  const googleMaps = apiResponse.googlemaps;
-  const shopDetails = googleMaps || customer?.customer_google_business || {};
-  return {
-    id: sanitizeString(saleSession.id),
-    caseName: sanitizeString(saleSession.shop, 'Unknown Case'),
-    caseStage: sanitizeString(saleSession.stage, 'N/A'),
-    createdBy: sanitizeString(saleSession.created_by, 'N/A'),
-    startTime: sanitizeString(saleSession.start_time, 'N/A'),
-    lastUpdate: sanitizeString(saleSession.last_update, 'N/A'),
-    closeTime: sanitizeString(saleSession.close_time, 'N/A'),
-    customerName: sanitizeString(customer?.customer_name, ''),
-    customerPhone: sanitizeString(customer?.customer_phone, ''),
-    gateKeeperName: sanitizeString(customer?.customer_assistant_name, ''),
-    gateKeeperPhone: sanitizeString(customer?.customer_assistant_phone, ''),
-    customerAvailability: sanitizeString(customer?.customer_availability, ''),
-    shopIdCompany: sanitizeString(shopDetails.shop_id_company),
-    shopUrlCompany: sanitizeString(shopDetails.shop_url_company),
-    shopNameFull: sanitizeString(shopDetails.shop_name, 'Unknown Shop'),
-    latitude: sanitizeString(shopDetails.latitude),
-    longitude: sanitizeString(shopDetails.longitude),
-    address: sanitizeString(shopDetails.address, 'N/A'),
-    plusCode: sanitizeString(shopDetails.plus_code),
-    postcode: sanitizeString(shopDetails.postcode, 'N/A'),
-    phone: sanitizeString(shopDetails.phone, 'N/A'),
-    rating: sanitizeString(shopDetails.rating, 'N/A'),
-    totalReviews: shopDetails.total_reviews || 0,
-    website: sanitizeString(shopDetails.website, 'N/A'),
-    searchTxt: sanitizeString(shopDetails.search_txt),
-    category: sanitizeString(shopDetails.category, 'Unknown'),
-    isOpenNow: shopDetails.is_open_now,
-    openingHours: parseOpeningHours(shopDetails.opening_hours),
-    providerUrl: sanitizeString(shopDetails.provider_url),
-    providers: shopDetails.providers || [],
-    services: sanitizeString(shopDetails.services, 'N/A'),
-    callHistory: (apiResponse.history || []).map(item => ({
-      id: sanitizeString(item.id),
-      date: sanitizeString(item.date),
-      callTime: sanitizeString(item.call_time),
-      description: sanitizeString(item.description),
-      saleSession: sanitizeString(item.sale_session),
-      user: sanitizeString(item.user)
-    }))
-  };
-};
-
 const CaseDetails = ({ isDarkMode }) => {
-  const { id } = useParams();
-  const navigate = useNavigate();
-  const authToken = sessionStorage.getItem("authToken");
-  const [activeLeftTab, setActiveLeftTab] = useState('details');
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const authToken = sessionStorage.getItem('authToken');
+    const [activeLeftTab, setActiveLeftTab] = useState('details');
 
-  const {
-    data: caseDetails,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ['singleCase', id],
-    queryFn: async () => {
-      if (!id) return null;
-      const url = `https://sale.mega-data.co.uk/history/get-sale-session-detail/${id}/`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: { accept: 'application/json', Authorization: `Bearer ${authToken}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status} for ID: ${id}`);
-      }
-      const data = await response.json();
-      return transformSingleCaseData(data);
-    },
-    enabled: !!id,
-    staleTime: 5 * 60 * 1000,
-  });
+    const {
+      data: caseDetails,
+      isLoading,
+      isError,
+      error,
+    } = useQuery({
+      queryKey: ['singleCase', id],
+      queryFn: async () => {
+        if (!id) return null;
+        const url = `${API_BASE_URL}/history/get-sale-session-detail/${id}/`;
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+           console.log(response);
+          return response.data;
+         
+          
+        } catch (err) {
+          throw new Error(
+            `Axios error! status: ${err.response?.status || 'unknown'} for ID: ${id}`
+          );
+        }
+      },
+      enabled: !!id,
+      staleTime: 5 * 60 * 1000,
+    });
+
+    if (isLoading) {
+      return <div className='flex h-screen items-center justify-center text-white'>Loading...</div>;
+    }
+    if (isError || !caseDetails) {
+      return (
+        <div className='flex h-screen items-center justify-center text-red-400'>
+          Error: {error?.message || 'No data found'}
+        </div>
+      );
+    }
+
+    const customer = caseDetails.customer || {};
+    const googleMaps = caseDetails.googlemaps || customer.customer_google_business || {};
+    const openingHours = parseOpeningHours(googleMaps.opening_hours);
 
   const commonClasses = {
     container: `flex flex-col lg:flex-row gap-6 p-6 mx-auto relative h-screen w-full lg:max-w-7xl overflow-hidden`,
@@ -233,11 +203,18 @@ const CaseDetails = ({ isDarkMode }) => {
       `}</style>
       <button
         onClick={() => navigate('/cases')}
-        className="absolute top-4 left-4 z-10 p-2 rounded-full bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-colors duration-200"
-        aria-label="Go back to Cases"
+        className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
+        aria-label='Go back to Cases'
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        <svg
+          xmlns='http://www.w3.org/2000/svg'
+          className='h-6 w-6'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
+          strokeWidth='2'
+        >
+          <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
         </svg>
       </button>
       <div className={commonClasses.cardContainer}>
@@ -258,133 +235,160 @@ const CaseDetails = ({ isDarkMode }) => {
         <div className={commonClasses.cardContent}>
           {activeLeftTab === 'details' ? (
             <>
-              <h2 className={commonClasses.heading}>Shop & Case Information</h2>
               <div className={commonClasses.detailItem}>
-                <img src={shopIcon} alt="Shop Icon" className={commonClasses.icon} />
+                <img src={shopIcon} alt='Shop Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Shop Name</label>
-                  <p className={commonClasses.valueName}>{caseDetails.shopNameFull}</p>
+                  <p className={commonClasses.valueName}>{caseDetails.googlemaps.shop_name}</p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={addressIcon} alt="Address Icon" className={commonClasses.icon} />
+                <img src={addressIcon} alt='Address Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Address</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.address || 'N/A'}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.googlemaps.address || 'N/A'}
+                  </p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={timeIcon} alt="Time Icon" className={commonClasses.icon} />
+                <img src={timeIcon} alt='Time Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Opening Hours</label>
-                  <ul className="space-y-1">
-                    {Object.entries(caseDetails.openingHours).map(([day, hours]) => (
-                      <li key={day} className="text-gray-300 text-sm">
-                        <span className="font-medium">{day}:</span> {hours}
+                  <ul className='space-y-1'>
+                    {Object.entries(openingHours || {}).map(([day, hours]) => (
+                      <li key={day} className='text-sm text-gray-300'>
+                        <span className='font-medium'>{day}:</span> {hours}
                       </li>
                     ))}
                   </ul>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={postcodeIcon} alt="Postcode Icon" className={commonClasses.icon} />
+                <img src={postcodeIcon} alt='Postcode Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Postcode</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.postcode || 'N/A'}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.googlemaps.postcode || 'N/A'}
+                  </p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={phoneIcon} alt="Phone Icon" className={commonClasses.icon} />
+                <img src={phoneIcon} alt='Phone Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Phone</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.phone || 'N/A'}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.googlemaps.phone || 'N/A'}
+                  </p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={serviceTypeIcon} alt="Service Type Icon" className={commonClasses.icon} />
+                <img src={serviceTypeIcon} alt='Service Type Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Service Type</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.category || 'N/A'}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.googlemaps.services || 'N/A'}
+                  </p>
                 </div>
               </div>
+
               <div className={commonClasses.detailItem}>
-                <img src={shopIcon} alt="Case Name Icon" className={commonClasses.icon} />
-                <div>
-                  <label className={commonClasses.label}>Case Name</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.caseName}</p>
-                </div>
-              </div>
-              <div className={commonClasses.detailItem}>
-                <img src={timeIcon} alt="Case Stage Icon" className={commonClasses.icon} />
+                <img src={CaseStage} alt='Case Stage Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Case Stage</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.caseStage}</p>
+                  <p className={commonClasses.valueDefault}>{caseDetails.sale_session.stage}</p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={timeIcon} alt="Created By Icon" className={commonClasses.icon} />
+                <img src={CreateBy} alt='Created By Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Created By</label>
-                  <p className={commonClasses.valueDefault}>{caseDetails.createdBy}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.sale_session.created_by}
+                  </p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={timeIcon} alt="Start Time Icon" className={commonClasses.icon} />
+                <img src={timeIcon} alt='Start Time Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Start Time</label>
-                  <p className={commonClasses.valueDefault}>{new Date(caseDetails.startTime).toLocaleString()}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.sale_session.session_start_date}
+                  </p>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
-                <img src={timeIcon} alt="Last Update Icon" className={commonClasses.icon} />
+                <img src={timeIcon} alt='Last Update Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Last Update</label>
-                  <p className={commonClasses.valueDefault}>{new Date(caseDetails.lastUpdate).toLocaleString()}</p>
+                  <p className={commonClasses.valueDefault}>
+                    {caseDetails.sale_session.last_update}
+                  </p>
                 </div>
+              </div>
+              <div className='pl-8'>
+                {Array.isArray(caseDetails.googlemaps.providers) && caseDetails.googlemaps.providers.length > 0 && (
+                  <>
+                    <label className={commonClasses.label}>List Of Providers</label>
+                    <ul className='space-y-1 pt-1'>
+                      {caseDetails.googlemaps.providers.map((provider, index) => (
+                        <li key={index}>
+                          <a
+                            href={provider.provider_url}
+                            target='_blank'
+                            rel='noopener noreferrer'
+                            className='text-blue-400 hover:underline'
+                          >
+                            {provider.provider_name}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
               </div>
             </>
           ) : (
             <>
               <h2 className={commonClasses.historyHeading}>Activity History</h2>
-              {caseDetails.callHistory.length > 0 ? (
-                <ul className="space-y-4">
-                  {caseDetails.callHistory.map((item) => (
-                    <li key={item.id} className={commonClasses.historyListItem}>
-                      <div className="flex justify-between items-center mb-1">
-                        <p className={commonClasses.historyDate}>
-                          {new Date(item.date).toLocaleString()}
-                        </p>
-                        <span className={commonClasses.historyDuration}>
-                          Duration: {item.callTime || 'N/A'}
-                        </span>
+              {caseDetails.history.length > 0 ? (
+                <ul className='space-y-4'>
+                  {caseDetails.history.map((item) => (
+                    <li key={item.history_id} className={commonClasses.historyListItem}>
+                      <div className='mb-1 flex items-center justify-between'>
+                        <p className={commonClasses.historyDate}>{item.date}</p>
                       </div>
                       <p className={commonClasses.historyDescription}>
                         Description: {item.description || 'No description provided.'}
                       </p>
                       <p className={commonClasses.historyUser}>
-                        User: {item.user || 'Unknown User'}
+                        User: {item.user_name || 'Unknown User'}
                       </p>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className={`text-center py-4 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                <p className={`py-4 text-center ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                   No previous activities recorded for this case.
                 </p>
               )}
             </>
           )}
         </div>
-        <div className={commonClasses.callButtonContainer}>
-          <a href={callPhoneNumber} className={commonClasses.callButton}
-             onClick={(e) => displayPhoneNumber === 'N/A' && e.preventDefault()}>
-            <img src={phoneIcon} alt="Phone Icon" className="w-5 h-5" />
-            {displayPhoneNumber !== 'N/A' ? `Call ${displayPhoneNumber}` : 'Phone N/A'}
+        {/* <div className={commonClasses.callButtonContainer}>
+          <a
+            href={callPhoneNumber}
+            className={commonClasses.callButton}
+            onClick={(e) => displayPhoneNumber === 'N/A' && e.preventDefault()}
+          >
+            <img src={phoneIcon} alt='Phone Icon' className='h-5 w-5' />
+            {displayPhoneNumber !== 'N/A' ? 'Call' : 'Phone N/A'}
           </a>
-        </div>
+        </div> */}
       </div>
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className='flex min-w-0 flex-1 flex-col'>
         <CaseHistory
+          caseDetails={caseDetails}
           isDarkMode={isDarkMode}
           initialCustomerName={caseDetails.customerName}
           initialCustomerPhone={caseDetails.customerPhone}
