@@ -2,8 +2,8 @@
 import React from 'react';
 import { useFormContext } from 'react-hook-form'; // Import useFormContext if you want to use it directly in InputField
 
-const InputField = ({ label, required = false, name, type = "text", onClear, validationSchema = {} }) => {
-  const { register, formState: { errors }, setValue } = useFormContext(); // Use useFormContext
+const InputField = ({ label, required = false, name, type = "text", validationSchema = {} }) => {
+  const { register, formState: { errors } } = useFormContext(); // Use useFormContext
 
   return (
     <div className="flex flex-col">
@@ -19,15 +19,7 @@ const InputField = ({ label, required = false, name, type = "text", onClear, val
             ...validationSchema
           })}
         />
-        {onClear && (
-          <button
-            type="button"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 cursor-pointer text-lg font-bold"
-            onClick={() => setValue(name, '', { shouldValidate: true })}
-          >
-            x
-          </button>
-        )}
+        
       </div>
       {errors[name] && <span className="text-red-500 text-xs mt-1">{errors[name].message || "This field is required"}</span>}
     </div>

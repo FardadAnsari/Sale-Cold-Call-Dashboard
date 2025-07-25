@@ -9,7 +9,7 @@ const Stage = () => {
     'Junk Lead',
   ].sort(); // Sorting for consistent display
 
-  return <SelectField label='Stage' name='stage' options={stageOptions} />;
+  return <SelectField label='Stage' name='Stage' options={stageOptions} />;
 };
 
 export default Stage;

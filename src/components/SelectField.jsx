@@ -18,7 +18,7 @@ const SelectField = ({ label, required = false, name, options = [], validationSc
             ...validationSchema
           })}
         >
-          <option value="">None</option>
+          <option value=""></option>
           {options.map((option, index) => (
             <option key={index} value={option}>{option}</option>
           ))}
