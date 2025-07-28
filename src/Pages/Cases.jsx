@@ -6,12 +6,17 @@ import CaseTable from '../components/CaseTable';
 import Pagination from '../components/Pagination';
 import sadMaskImg from '../images/sad-mask.png';
 import { API_BASE_URL } from 'src/api';
+import CasesFilter from '../components/CasesFilter';
+import { FilterIcon } from '../Icons';
+
 
 const Cases = () => {
   const authToken = sessionStorage.getItem('authToken');
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({ selectedDate: null });
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const isDarkMode = true;
 
   const debounceRef = useRef(null);
@@ -24,22 +29,35 @@ const Cases = () => {
     return () => debounceRef.current && clearTimeout(debounceRef.current);
   }, [searchInput]);
 
-  const { data, isLoading, isError, refetch } = useQuery({
-    queryKey: ['sale-sessions', debouncedSearchQuery, currentPage],
+  // Reset search and page when date filter changes
+  useEffect(() => {
+    setSearchInput('');
+    setDebouncedSearchQuery('');
+    setCurrentPage(1);
+  }, [filters.selectedDate]);
+
+  const formattedDate = filters.selectedDate
+    ? filters.selectedDate.toLocaleDateString('en-CA') // e.g. 2025-07-28
+    : undefined;
+
+  const { data, isLoading, isFetching, isError, refetch } = useQuery({
+    queryKey: ['sale-sessions', debouncedSearchQuery, currentPage, formattedDate],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/history/sale-sessions`, {
         headers: { Authorization: `Bearer ${authToken}` },
         params: {
           search: debouncedSearchQuery || undefined,
           page: currentPage,
+          start_time: formattedDate || undefined,
         },
       });
-      console.log(res);
-      
       return res.data;
     },
     keepPreviousData: true,
   });
+
+  const overallLoading = isLoading || isFetching;
+  const isEmpty = !overallLoading && data?.results?.length === 0;
 
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage !== currentPage) {
@@ -48,18 +66,56 @@ const Cases = () => {
     }
   };
 
-  const isEmpty = !isLoading && data?.results?.length === 0;
+  const handleApplyDateFilter = (date) => {
+    setFilters((prev) => ({ ...prev, selectedDate: date }));
+    setShowDatePicker(false);
+  };
+
+  const handleCancelDateFilter = () => {
+    setShowDatePicker(false);
+  };
 
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
       <main className='container mx-auto space-y-6 px-4 py-6'>
         <div className='flex items-center justify-between'>
-          <Search
-            searchTerm={searchInput}
-            setSearchTerm={setSearchInput}
-            isDarkMode={isDarkMode}
-            isLoading={isLoading}
-          />
+          <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>
+            <Search
+              searchTerm={searchInput}
+              setSearchTerm={setSearchInput}
+              isDarkMode={isDarkMode}
+              isLoading={isLoading}
+            />
+          </div>
+          <div className='ml-4 flex items-center space-x-3'>
+            <div className='relative inline-block text-left'>
+              <button
+                onClick={() => setShowDatePicker(true)}
+                disabled={overallLoading}
+                className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${overallLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                <FilterIcon fill={'white'} />
+                <span>Filter by Start Time</span>
+              </button>
+
+              {showDatePicker && (
+                <>
+                  <div
+                    className='fixed inset-0 z-40 bg-black/20 backdrop-blur-sm'
+                    onClick={handleCancelDateFilter}
+                  ></div>
+                  <div className='absolute right-0 z-50 mt-2'>
+                    <CasesFilter
+                      isDarkMode={isDarkMode}
+                      onClose={handleCancelDateFilter}
+                      onApply={handleApplyDateFilter}
+                      initialSelectedDate={filters.selectedDate}
+                    />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
 
         {isLoading ? (
