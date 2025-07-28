@@ -11,13 +11,12 @@ import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
 import useUser from 'src/useUser';
 
-
 const YourHistory = () => {
    const { data: user} = useUser();
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
-  const [filters, setFilters] = useState({ category: 'takeaway', selectedDate: null });
+  const [filters, setFilters] = useState({ selectedDate: null });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const isDarkMode = true;
@@ -42,7 +41,7 @@ console.log(user);
     setSearchInput('');
     setDebouncedSearchQuery('');
     queryClient.invalidateQueries(['historyData']);
-  }, [filters.category, filters.selectedDate, queryClient]);
+  }, [filters.selectedDate, queryClient]);
 
   const authToken = sessionStorage.getItem('authToken');
 
@@ -55,7 +54,6 @@ console.log(user);
   } = useQuery({
     queryKey: [
       'historyData',
-      filters.category,
       filters.selectedDate?.toISOString(),
       currentPage,
       debouncedSearchQuery,
@@ -74,7 +72,6 @@ console.log(user);
           page: currentPage,
           date: formattedDate || undefined,
           search: debouncedSearchQuery || undefined,
-          category: filters.category,
         },
       });
       console.log(res);
@@ -119,8 +116,8 @@ console.log(user);
     
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
-      <main className='container mx-auto space-y-6 p-4'>
-        <div className='mt-5 flex items-center justify-between pb-4'>
+      <main className='container mx-auto space-y-6 px-4 py-6'>
+        <div className='flex items-center justify-between pb-4'>
           <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>
             <Search
               searchTerm={searchInput}
