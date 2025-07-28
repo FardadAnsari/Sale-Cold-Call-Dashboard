@@ -99,7 +99,12 @@ const CaseDetails = ({ isDarkMode }) => {
     });
 
     if (isLoading) {
-      return <div className='flex h-screen items-center justify-center text-white'>Loading...</div>;
+      return (
+        <div className='flex h-screen flex-1 items-center justify-center bg-gray-900 text-gray-300'>
+          <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
+          <p className='text-xl'>Loading case details...</p>
+        </div>
+      );
     }
     if (isError || !caseDetails) {
       return (
@@ -137,15 +142,6 @@ const CaseDetails = ({ isDarkMode }) => {
     tabButtonInactive: `text-gray-400 hover:text-gray-200`,
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-1 items-center justify-center bg-gray-900 text-gray-300 h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-orange-500 mx-auto mb-4"></div>
-        <p className="text-xl">Loading case details...</p>
-      </div>
-    );
-  }
-
   if (isError) {
     return (
       <div className="flex flex-col flex-1 items-center justify-center p-8 bg-gray-900 text-red-400 min-h-screen">
@@ -172,8 +168,8 @@ const CaseDetails = ({ isDarkMode }) => {
     );
   }
 
-  const displayPhoneNumber = caseDetails.phone !== 'N/A' ? caseDetails.phone : caseDetails.customerPhone !== 'N/A' ? caseDetails.customerPhone : 'N/A';
-  const callPhoneNumber = displayPhoneNumber !== 'N/A' ? `tel:${displayPhoneNumber}` : '#';
+  // const displayPhoneNumber = caseDetails.phone !== 'N/A' ? caseDetails.phone : caseDetails.customerPhone !== 'N/A' ? caseDetails.customerPhone : 'N/A';
+  // const callPhoneNumber = displayPhoneNumber !== 'N/A' ? `tel:${displayPhoneNumber}` : '#';
 
   return (
     <div className={commonClasses.container}>
@@ -239,7 +235,20 @@ const CaseDetails = ({ isDarkMode }) => {
                 <img src={shopIcon} alt='Shop Icon' className={commonClasses.icon} />
                 <div>
                   <label className={commonClasses.label}>Shop Name</label>
-                  <p className={commonClasses.valueName}>{caseDetails.googlemaps.shop_name}</p>
+
+                  <div className='flex items-center gap-2'>
+                    <p className={commonClasses.valueName}>{caseDetails.googlemaps.shop_name}</p>
+                    {caseDetails.googlemaps.website && caseDetails.googlemaps.website !== "None" && (
+                      <a
+                        href={caseDetails.googlemaps.website}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className='text-xs text-blue-400 hover:underline'
+                      >
+                        visit website
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className={commonClasses.detailItem}>
@@ -327,25 +336,26 @@ const CaseDetails = ({ isDarkMode }) => {
                 </div>
               </div>
               <div className='pl-8'>
-                {Array.isArray(caseDetails.googlemaps.providers) && caseDetails.googlemaps.providers.length > 0 && (
-                  <>
-                    <label className={commonClasses.label}>List Of Providers</label>
-                    <ul className='space-y-1 pt-1'>
-                      {caseDetails.googlemaps.providers.map((provider, index) => (
-                        <li key={index}>
-                          <a
-                            href={provider.provider_url}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            className='text-blue-400 hover:underline'
-                          >
-                            {provider.provider_name}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
+                {Array.isArray(caseDetails.googlemaps.providers) &&
+                  caseDetails.googlemaps.providers.length > 0 && (
+                    <>
+                      <label className={commonClasses.label}>List Of Providers</label>
+                      <ul className='space-y-1 pt-1'>
+                        {caseDetails.googlemaps.providers.map((provider, index) => (
+                          <li key={index}>
+                            <a
+                              href={provider.provider_url}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              className='text-blue-400 hover:underline'
+                            >
+                              {provider.provider_name}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
               </div>
             </>
           ) : (

@@ -61,7 +61,7 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-const ShopDetailsPage = ({ isDarkMode }) => {
+const ShopDetails = ({ isDarkMode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem('authToken');
@@ -99,7 +99,9 @@ const ShopDetailsPage = ({ isDarkMode }) => {
     },
     enabled: !!id,
   });
-console.log(shop);
+
+  console.log(shop);
+  
   const commonClasses = {
     container: `flex flex-col lg:flex-row gap-6 p-6 mx-auto relative h-screen w-full lg:max-w-7xl overflow-hidden`,
     cardContainer: `flex-1 bg-gray-700 rounded-lg shadow-md p-6 flex flex-col min-w-0`,
@@ -209,7 +211,19 @@ console.log(shop);
             <img src={shopIcon} alt='Shop Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Name</label>
-              <p className={commonClasses.valueName}>{sanitizeString(shop.shop_name)}</p>
+              <div className='flex items-center gap-2'>
+                <p className={commonClasses.valueName}>{shop.shop_name}</p>
+                {(shop.website && shop.website !== "None") && (
+                  <a
+                    href={shop.website}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-xs text-blue-400 hover:underline'
+                  >
+                    visit website
+                  </a>
+                )}
+              </div>
             </div>
           </div>
 
@@ -217,7 +231,7 @@ console.log(shop);
             <img src={addressIcon} alt='Address Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Address</label>
-              <p className={commonClasses.valueDefault}>{sanitizeString(shop.address)}</p>
+              <p className={commonClasses.valueDefault}>{shop.address}</p>
             </div>
           </div>
 
@@ -239,7 +253,7 @@ console.log(shop);
             <img src={postcodeIcon} alt='Postcode Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Postcode</label>
-              <p className={commonClasses.valueDefault}>{sanitizeString(shop.postcode)}</p>
+              <p className={commonClasses.valueDefault}>{shop.postcode}</p>
             </div>
           </div>
 
@@ -247,7 +261,7 @@ console.log(shop);
             <img src={phoneIcon} alt='Phone Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Phone</label>
-              <p className={commonClasses.valueDefault}>{sanitizeString(shop.phone)}</p>
+              <p className={commonClasses.valueDefault}>{shop.phone}</p>
             </div>
           </div>
 
@@ -255,7 +269,7 @@ console.log(shop);
             <img src={serviceTypeIcon} alt='Service Type Icon' className={commonClasses.icon} />
             <div>
               <label className={commonClasses.label}>Service Type</label>
-              <p className={commonClasses.valueDefault}>{sanitizeString(shop.category)}</p>
+              <p className={commonClasses.valueDefault}>{shop.category}</p>
             </div>
           </div>
 
@@ -296,4 +310,4 @@ console.log(shop);
   );
 };
 
-export default ShopDetailsPage;
+export default ShopDetails;
