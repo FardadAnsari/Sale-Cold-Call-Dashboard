@@ -6,8 +6,8 @@ import Sidebar from './components/Sidebar';
 import OnboardingZone from './Pages/OnboardingZone';
 import YourHistory from './Pages/YourHistory';
 import Login from './Pages/Login';
-import CaseDetails from './components/CaseDetails'; // From first file
-import ShopDetailsPage from './components/ShopDetailsPage'; // From second file
+import CaseDetails from './Pages/CaseDetails'; // From first file
+import ShopDetails from './Pages/ShopDetails'; // From second file
 import ProtectedRoute from './components/ProtectedRoute';
 import Leads from './Pages/Leads'; // Import the Leads component
 import Cases from './Pages/Cases'; // Import Cases component
@@ -54,7 +54,7 @@ const App = () => {
             <Route path="/cases" element={<Cases />} />
             {/* Routes for detail pages - both are included */}
             <Route path="/case/:id" element={<CaseDetails isDarkMode={isDarkMode} />} />
-            <Route path="/shop/:id" element={<ShopDetailsPage isDarkMode={isDarkMode} />} />
+            <Route path="/shop/:id" element={<ShopDetails isDarkMode={isDarkMode} />} />
             <Route path="/leads" element={<Leads />} />
           </Route>
         </Route>
