@@ -543,7 +543,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                     <option value='Intrested'>Interested</option>
                     <option value='Appointment Is Set'>Appointment is set</option>
                     <option value='Not Interested'>Not interested</option>
-                    <option value='follow Up'>Follow up</option>
+                    <option value='Follow Up'>Follow up</option>
                     <option value='Hung Up'>Hang up</option>
                     <option value='Fourth Action'>Fourth action</option>
                   </select>
