@@ -2,24 +2,27 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import onboardingPng from '../images/Sale.png';
 import historyPng from '../images/History.png';
+import usersHistoryPng from '../images/UsersHistory.png';
 import casesPng from '../images/cases.png';
 import leadsPng from '../images/leadside.png';
 import profilePng from '../images/Profile.png';
-import logoutPng from '../images/logout.png'; // Import the logout image
+import logoutPng from '../images/logout.png';
+import ChangePassword from '../images/ChangePassword.png';
 import useUser from 'src/useUser';
+import ChangePasswordModal from './ChangePasswordModal';
 
 const Sidebar = ({ isDarkMode }) => {
   const {data:user}= useUser()
-  
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const profileButtonRef = useRef(null);
   const popupRef = useRef(null);
 
-  const isActiveLink = (path) => {
-    return location.pathname === path;
-  };
+ const isActiveLink = (path) => {
+   return location.pathname === path || location.pathname.startsWith(`${path}/`);
+ };
 
   // Close popup when clicking outside
   useEffect(() => {
@@ -59,12 +62,9 @@ const Sidebar = ({ isDarkMode }) => {
   };
 
   const handleLogout = () => {
-    // Clear any authentication tokens or user data from sessionStorage
     sessionStorage.removeItem('authToken');
     sessionStorage.clear();
-    // Close the popup
     setShowProfilePopup(false);
-    // Navigate to login page
     navigate('/login');
   };
 
@@ -75,7 +75,7 @@ const Sidebar = ({ isDarkMode }) => {
       <nav className='flex-grow'>
         <ul className='space-y-3'>
           <li>
-            <Link to='/' className={linkStyle(isActiveLink('/'), isDarkMode)}>
+            <Link to='/shops' className={linkStyle(isActiveLink('/'), isDarkMode)}>
               <img src={onboardingPng} alt='Onboarding' className='h-6 w-6' />
               <span>Onboarding Zone</span>
             </Link>
@@ -87,6 +87,15 @@ const Sidebar = ({ isDarkMode }) => {
             >
               <img src={historyPng} alt='History' className='h-6 w-6' />
               <span>Your History</span>
+            </Link>
+          </li>
+          <li>
+            <Link
+              to='/users-histories'
+              className={linkStyle(isActiveLink('/users-histories'), isDarkMode)}
+            >
+              <img src={usersHistoryPng} alt='UsersHistories' className='h-6 w-6' />
+              <span>Users Histories</span>
             </Link>
           </li>
           <li>
@@ -114,7 +123,6 @@ const Sidebar = ({ isDarkMode }) => {
           <img src={profilePng} alt='Profile' className='h-6 w-6' />
           <span>Your Profile</span>
         </button>
-
         {/* Profile Popup */}
         {showProfilePopup && (
           <div
@@ -134,6 +142,16 @@ const Sidebar = ({ isDarkMode }) => {
                   </p>
                 </div>
               </div>
+              <button
+                onClick={() => {
+                  setShowProfilePopup(false);
+                  setShowChangePasswordModal(true);
+                }}
+                className={`flex w-full space-x-2 ${profileButtonStyle(isDarkMode)} text-xs`}
+              >
+                <img src={ChangePassword} alt='Change Password' className='h-4 w-4' />
+                <span>Change Password</span>
+              </button>
               <hr className={`my-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`} />
               <button
                 onClick={handleLogout}
@@ -144,6 +162,9 @@ const Sidebar = ({ isDarkMode }) => {
               </button>
             </div>
           </div>
+        )}
+        {showChangePasswordModal && (
+          <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />
         )}
       </div>
     </div>
