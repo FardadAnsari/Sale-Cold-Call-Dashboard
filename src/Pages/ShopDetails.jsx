@@ -187,7 +187,7 @@ const ShopDetails = ({ isDarkMode }) => {
       `}</style>
 
       <button
-        onClick={() => navigate('/')}
+        onClick={() => navigate('/shops')}
         className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
         aria-label='Go back to Sale Zone'
       >

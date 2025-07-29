@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import hiImage from '../images/Hi.png';
@@ -51,7 +51,7 @@ const Login = () => {
 
       const accessToken = tokenData.access;
       sessionStorage.setItem('authToken', accessToken);
-      navigate('/', { replace: true });
+      navigate('/shops', { replace: true });
     } catch (error) {
       if (error.response) {
         const { status, data: errorData } = error.response;

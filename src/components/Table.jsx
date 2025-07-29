@@ -23,7 +23,7 @@ const navigate = useNavigate()
     );
   }
   const handleRowClick = (shopId) => {
-    navigate(`/shop/${shopId}`);
+    navigate(`/shops/${shopId}`);
   };
 
   return (

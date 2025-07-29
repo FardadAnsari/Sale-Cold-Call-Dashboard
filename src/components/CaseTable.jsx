@@ -19,10 +19,8 @@ const CaseTable = ({ cases = [], isDarkMode}) => {
     );
   }
 
-
-
   const handleRowClick = (caseId) => {
-    navigate(`/case/${caseId}`);
+    navigate(`/cases/${caseId}`);
   };
 
   return (

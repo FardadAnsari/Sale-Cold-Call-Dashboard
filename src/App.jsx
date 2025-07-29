@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ScrollBar from './components/ScrollBar'; // Import ScrollBar component
+import ScrollBar from './components/ScrollBar';
 import Sidebar from './components/Sidebar';
 import OnboardingZone from './Pages/OnboardingZone';
 import YourHistory from './Pages/YourHistory';
 import Login from './Pages/Login';
-import CaseDetails from './Pages/CaseDetails'; // From first file
-import ShopDetails from './Pages/ShopDetails'; // From second file
+import CaseDetails from './Pages/CaseDetails';
+import ShopDetails from './Pages/ShopDetails';
 import ProtectedRoute from './components/ProtectedRoute';
-import Leads from './Pages/Leads'; // Import the Leads component
-import Cases from './Pages/Cases'; // Import Cases component
+import Leads from './Pages/Leads';
+import Cases from './Pages/Cases'; 
+import UsersHistories from './Pages/UsersHistories';
+import UserHistory from './Pages/UserHistory';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -42,24 +44,22 @@ const App = () => {
   };
   return (
     <QueryClientProvider client={queryClient}>
-      <ScrollBar /> {/* Apply custom scrollbar styles globally */}
+      <ScrollBar />
       <Routes>
-        {/* Login route - accessible without authentication */}
-        <Route path="/login" element={<Login />} />
-        {/* Protected routes - wrapped by ProtectedRoute */}
+        <Route path='/login' element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
-            <Route path="/" element={<OnboardingZone />} />
-            <Route path="/your-history" element={<YourHistory />} />
-            <Route path="/cases" element={<Cases />} />
-            {/* Routes for detail pages - both are included */}
-            <Route path="/case/:id" element={<CaseDetails isDarkMode={isDarkMode} />} />
-            <Route path="/shop/:id" element={<ShopDetails isDarkMode={isDarkMode} />} />
-            <Route path="/leads" element={<Leads />} />
+            <Route path='/shops' element={<OnboardingZone />} />
+            <Route path='/your-history' element={<YourHistory />} />
+            <Route path='/users-histories' element={<UsersHistories />} />
+            <Route path='/users-histories/:id' element={<UserHistory />} />
+            <Route path='/cases' element={<Cases />} />
+            <Route path='/cases/:id' element={<CaseDetails isDarkMode={isDarkMode} />} />
+            <Route path='/shops/:id' element={<ShopDetails isDarkMode={isDarkMode} />} />
+            <Route path='/leads' element={<Leads />} />
           </Route>
         </Route>
-        {/* Redirect any unhandled routes to login if not authenticated */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path='*' element={<Navigate to='/login' replace />} />
       </Routes>
     </QueryClientProvider>
   );
