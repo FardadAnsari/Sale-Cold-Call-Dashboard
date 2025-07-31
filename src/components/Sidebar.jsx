@@ -10,10 +10,12 @@ import logoutPng from '../images/logout.png';
 import ChangePassword from '../images/ChangePassword.png';
 import useUser from 'src/useUser';
 import ChangePasswordModal from './ChangePasswordModal';
+import ConfirmLogoutModal from './ConfirmLogoutModal';
 
 const Sidebar = ({ isDarkMode }) => {
   const {data:user}= useUser()
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const [showProfilePopup, setShowProfilePopup] = useState(false);
@@ -61,13 +63,6 @@ const Sidebar = ({ isDarkMode }) => {
     setShowProfilePopup(!showProfilePopup);
   };
 
-  const handleLogout = () => {
-    sessionStorage.removeItem('authToken');
-    sessionStorage.clear();
-    setShowProfilePopup(false);
-    navigate('/login');
-  };
-
   return (
     <div
       className={`flex w-64 flex-col p-4 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-gray-900'} relative mx-auto`}
@@ -75,7 +70,7 @@ const Sidebar = ({ isDarkMode }) => {
       <nav className='flex-grow'>
         <ul className='space-y-3'>
           <li>
-            <Link to='/shops' className={linkStyle(isActiveLink('/'), isDarkMode)}>
+            <Link to='/shops' className={linkStyle(isActiveLink('/shops'), isDarkMode)}>
               <img src={onboardingPng} alt='Onboarding' className='h-6 w-6' />
               <span>Onboarding Zone</span>
             </Link>
@@ -147,14 +142,17 @@ const Sidebar = ({ isDarkMode }) => {
                   setShowProfilePopup(false);
                   setShowChangePasswordModal(true);
                 }}
-                className={`flex w-full space-x-2 ${profileButtonStyle(isDarkMode)} text-xs`}
+                className={`flex w-full space-x-2 ${profileButtonStyle(isDarkMode)} text-xs hover:scale-100`}
               >
                 <img src={ChangePassword} alt='Change Password' className='h-4 w-4' />
                 <span>Change Password</span>
               </button>
               <hr className={`my-2 ${isDarkMode ? 'border-gray-600' : 'border-gray-200'}`} />
               <button
-                onClick={handleLogout}
+                onClick={() => {
+                  setShowLogoutModal(true);
+                  setShowProfilePopup(false);
+                }}
                 className={`flex w-full items-center space-x-2 rounded-md bg-red-700 px-3 py-2 text-left text-white transition-colors hover:bg-red-800`}
               >
                 <img src={logoutPng} alt='Logout' className='h-4 w-4' />
@@ -165,6 +163,16 @@ const Sidebar = ({ isDarkMode }) => {
         )}
         {showChangePasswordModal && (
           <ChangePasswordModal onClose={() => setShowChangePasswordModal(false)} />
+        )}
+        {showLogoutModal && (
+          <ConfirmLogoutModal
+            onConfirm={() => {
+              setShowLogoutModal(false);
+              sessionStorage.clear();
+              navigate('/login');
+            }}
+            onCancel={() => setShowLogoutModal(false)}
+          />
         )}
       </div>
     </div>
