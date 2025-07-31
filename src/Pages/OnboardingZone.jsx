@@ -6,19 +6,32 @@ import axios from 'axios';
 import Table from '../components/Table';
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
-import { RestaurantIcon, CafeIcon } from '../Icons';
+import { RestaurantIcon, CafeIcon, FilterIcon } from '../Icons';
 import takeawayImg from '../images/takeaway.png';
 import sadMaskImg from '../images/sad-mask.png';
 import { API_BASE_URL } from 'src/api';
+import ShopsFilter from '../components/ShopsFilter';
 
 const OnboardingZone = () => {
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem('authToken');
 
-  const [filters, setFilters] = useState({ category: 'takeaway' });
+ const defaultFilters = {
+   category: 'takeaway',
+   postcode: '',
+ };
+
+ const [filters, setFilters] = useState(defaultFilters);
+ const [pendingFilters, setPendingFilters] = useState(defaultFilters);
+ const [city, setCity] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+
+  const [showFilter, setShowFilter] = useState(false);
+
+  const handleCancelFilter = () => setShowFilter(false);
+
 
   const isDarkMode = true;
 
@@ -35,14 +48,14 @@ const OnboardingZone = () => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearchQuery(searchInput);
-    }, 500);
+    }, 2000);
     return () => {
       if (debounceTimer.current) clearTimeout(debounceTimer.current);
     };
   }, [searchInput]);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['shops', filters.category, currentPage, debouncedSearchQuery],
+    queryKey: ['shops', filters.category, filters.postcode, currentPage, debouncedSearchQuery],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/Shops`, {
         headers: {
@@ -50,14 +63,15 @@ const OnboardingZone = () => {
           Authorization: `Bearer ${authToken}`,
         },
         params: {
-          category: filters.category,
+          category: filters.category || "takeaway",
           page: currentPage,
           search: debouncedSearchQuery || undefined,
+          postcode: filters.postcode || undefined,
         },
       });
       console.log(res);
       
-      return res.data; // { results, totalPages, currentPage }
+      return res.data;
     },
     keepPreviousData: true,
   });
@@ -68,7 +82,10 @@ const OnboardingZone = () => {
   const isPageLoading = isLoading && data !== undefined;
 
   const handleCategoryClick = (category) => {
-    setFilters({ category });
+    setFilters((prev) => ({
+     ...prev,
+      category,
+    }));
     setCurrentPage(1);
   };
 
@@ -79,6 +96,14 @@ const OnboardingZone = () => {
   const handleRowClick = (shopId) => {
     navigate(`/shop/${shopId}`);
   };
+  const handleClearFilters = () => {
+    const cleared = { ...filters, postcode: '' };
+    setFilters(cleared);
+    setPendingFilters(cleared);
+    setCurrentPage(1);
+    refetch();
+  };
+
 
   const getIconForCategory = (category) => {
     switch (category) {
@@ -188,6 +213,50 @@ const OnboardingZone = () => {
               isDarkMode={isDarkMode}
               isLoading={isLoading}
             />
+          </div>
+          <div className='ml-4 flex items-center space-x-3'>
+            {filters.postcode && (
+              <button
+                onClick={handleClearFilters}
+                className='ml-2 rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
+              >
+                Clear Filters
+              </button>
+            )}
+            <div className='relative inline-block text-left'>
+              <button
+                onClick={() => setShowFilter(true)}
+                disabled={isLoading}
+                className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                <FilterIcon fill={'white'} />
+                <span>Filter</span>
+              </button>
+              {showFilter && (
+                <div>
+                  <div
+                    className='fixed inset-0 z-40 bg-black/20 backdrop-blur-sm'
+                    onClick={handleCancelFilter}
+                  ></div>
+                  <div className='absolute right-0 z-50 mt-2'>
+                    <ShopsFilter
+                      isDarkMode={isDarkMode}
+                      filters={pendingFilters} // اینجا pending
+                      setFilters={setPendingFilters} // این هم برای تغییر
+                      city={city}
+                      setCity={setCity}
+                      onClose={handleCancelFilter}
+                      onApply={() => {
+                        setFilters(pendingFilters); // وقتی apply زد، اعمال شود
+                        setCurrentPage(1);
+                        refetch();
+                        setShowFilter(false);
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
