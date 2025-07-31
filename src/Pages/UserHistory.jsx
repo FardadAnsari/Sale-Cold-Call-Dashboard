@@ -28,7 +28,7 @@ const UserHistory = () => {
     }
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearchQuery(searchInput);
-    }, 500);
+    }, 2000);
     return () => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
@@ -100,6 +100,14 @@ const UserHistory = () => {
     setShowDatePicker(false);
   };
 
+  const handleClearFilters = () => {
+    setFilters({ selectedDate: null });
+    setSearchInput('');
+    setDebouncedSearchQuery('');
+    setCurrentPage(1);
+    queryClient.invalidateQueries(['historyData']);
+  };
+
   const filteredResults = isSearchMode
     ? historyData?.results.filter((item) => {
         const search = debouncedSearchQuery.toLowerCase();
@@ -125,6 +133,14 @@ const UserHistory = () => {
             />
           </div>
           <div className='ml-4 flex items-center space-x-3'>
+            {(filters.selectedDate || debouncedSearchQuery) && (
+              <button
+                onClick={handleClearFilters}
+                className='rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
+              >
+                Clear Filters
+              </button>
+            )}
             <div className='relative inline-block text-left'>
               <button
                 onClick={() => setShowDatePicker(true)}
@@ -155,10 +171,10 @@ const UserHistory = () => {
         </div>
 
         {isInitialLoading && (
-          <div className='flex items-center justify-center py-20'>
+          <div className='mt-20 flex items-center justify-center'>
             <div className='text-center'>
               <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
-              <p className='text-xl text-gray-300'>Loading history data...</p>
+              <p className='text-xl text-gray-300'>Loading user history data...</p>
             </div>
           </div>
         )}

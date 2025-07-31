@@ -19,7 +19,7 @@ const UsersHistories = () => {
     }
     debounceTimer.current = setTimeout(() => {
       setDebouncedSearchQuery(searchInput);
-    }, 500);
+    }, 2000);
     return () => {
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
@@ -87,7 +87,7 @@ const UsersHistories = () => {
         </div>
 
         {isInitialLoading && (
-          <div className='flex items-center justify-center py-20'>
+          <div className='mt-20 flex items-center justify-center'>
             <div className='text-center'>
               <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
               <p className='text-xl text-gray-300'>Loading users histories data...</p>

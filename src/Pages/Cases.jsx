@@ -25,7 +25,7 @@ const Cases = () => {
     debounceRef.current = setTimeout(() => {
       setDebouncedSearchQuery(searchInput);
       setCurrentPage(1);
-    }, 500);
+    }, 2000);
     return () => debounceRef.current && clearTimeout(debounceRef.current);
   }, [searchInput]);
 
@@ -75,6 +75,13 @@ const Cases = () => {
     setShowDatePicker(false);
   };
 
+  const handleClearFilters = () => {
+    setFilters({ selectedDate: null });
+    setCurrentPage(1);
+    setSearchInput('');
+    setDebouncedSearchQuery('');
+  };
+
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
       <main className='container mx-auto space-y-6 px-4 py-6'>
@@ -88,6 +95,14 @@ const Cases = () => {
             />
           </div>
           <div className='ml-4 flex items-center space-x-3'>
+            {filters.selectedDate && (
+              <button
+                onClick={handleClearFilters}
+                className='ml-2 rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
+              >
+                Clear Filters
+              </button>
+            )}
             <div className='relative inline-block text-left'>
               <button
                 onClick={() => setShowDatePicker(true)}
@@ -120,9 +135,11 @@ const Cases = () => {
 
         {isLoading ? (
           <div className='flex justify-center py-16'>
-            <div className='text-center'>
-              <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-orange-500'></div>
-              <p className='text-gray-300'>Loading Cases...</p>
+            <div className='mt-20 flex items-center justify-center'>
+              <div className='text-center'>
+                <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
+                <p className='text-xl text-gray-300'>Loading cases data...</p>
+              </div>
             </div>
           </div>
         ) : isError ? (
