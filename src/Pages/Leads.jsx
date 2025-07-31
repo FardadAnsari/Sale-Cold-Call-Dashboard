@@ -39,23 +39,15 @@ const Leads = () => {
     },
   });
 
-  if (isLoading)
-    return (
-      <div className='flex justify-center py-16'>
-        <div className='text-center'>
-          <div className='mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-b-2 border-orange-500'></div>
-          <p className='text-gray-300'>Loading Leads...</p>
-        </div>
-      </div>
-    );
-  if (isError) return <p>Error loading leads.</p>;
-
+  
   // Sort leads by Created_Time descending (newest first)
-  const sortedLeads = [...leads].sort((a, b) => {
-    const dateA = new Date(a.Created_Time);
-    const dateB = new Date(b.Created_Time);
-    return dateB - dateA; // descending
-  });
+  const sortedLeads = Array.isArray(leads)
+  ? [...leads].sort((a, b) => {
+      const dateA = new Date(a.Created_Time);
+      const dateB = new Date(b.Created_Time);
+      return dateB - dateA;
+    })
+  : [];
 
   // Then map
   const formattedLeads = sortedLeads.map((lead) => ({
@@ -90,26 +82,40 @@ const Leads = () => {
     <div className='min-h-screen bg-gray-900 text-white'>
       <main className='container mx-auto space-y-6 px-4 py-6'>
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} isDarkMode={isDarkMode} />
-        <div className='space-y-8'>
-          <div className='rounded-lg bg-gray-800 p-4'>
-            <LeadsTable
-              shops={paginatedLeads}
-              isDarkMode={isDarkMode}
-              onRowClick={handleRowClick}
-            />
+        {isLoading && (
+          <div className='flex justify-center py-16'>
+            <div className='mt-20 flex items-center justify-center'>
+              <div className='text-center'>
+                <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
+                <p className='text-xl text-gray-300'>Loading leads data...</p>
+              </div>
+            </div>
           </div>
-        </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          isDarkMode={isDarkMode}
-        />
-        <LeadDrawer
-          leadId={selectedLeadId}
-          isOpen={isDrawerOpen}
-          onClose={() => setIsDrawerOpen(false)}
-        />
+        )}
+        {!isLoading && !isError && (
+          <>
+            <div className='space-y-8'>
+              <div className='rounded-lg bg-gray-800 p-4'>
+                <LeadsTable
+                  shops={paginatedLeads}
+                  isDarkMode={isDarkMode}
+                  onRowClick={handleRowClick}
+                />
+              </div>
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              isDarkMode={isDarkMode}
+            />
+            <LeadDrawer
+              leadId={selectedLeadId}
+              isOpen={isDrawerOpen}
+              onClose={() => setIsDrawerOpen(false)}
+            />
+          </>
+        )}
       </main>
     </div>
   );
