@@ -6,6 +6,7 @@ import { EmailIcon } from 'src/Icons';
 import '../styles/Font.css';
 import { API_BASE_URL } from 'src/api';
 import axios from 'axios';
+import { IoIosEye, IoIosEyeOff } from 'react-icons/io';
 
 const Login = () => {
   const {
@@ -16,6 +17,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -107,16 +109,25 @@ const Login = () => {
                 <label className='font-custom mb-2 block text-sm font-medium text-gray-300'>
                   Password
                 </label>
-                <input
-                  type='password'
-                  {...register('password', { validate: validatePassword })}
-                  placeholder='••••••••'
-                  className={`font-custom w-full rounded-md bg-[#4A5568] px-3 py-3 text-white placeholder-gray-400 focus:ring-2 focus:outline-none ${
-                    errors.password
-                      ? 'border-2 border-red-500 focus:border-red-500 focus:ring-red-500'
-                      : 'border-2 border-gray-700 focus:border-transparent focus:ring-orange-500'
-                  }`}
-                />
+                <div className='relative'>
+                  <input
+                    type={passwordVisible ? 'text' : 'password'}
+                    {...register('password', { validate: validatePassword })}
+                    placeholder='••••••••'
+                    className={`font-custom w-full rounded-md bg-[#4A5568] px-3 py-3 pr-10 text-white placeholder-gray-400 focus:ring-2 focus:outline-none ${
+                      errors.password
+                        ? 'border-2 border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-2 border-gray-700 focus:border-transparent focus:ring-orange-500'
+                    }`}
+                  />
+                  <button
+                    type='button'
+                    onClick={() => setPasswordVisible(!passwordVisible)}
+                    className='absolute top-5 right-5 text-gray-300 hover:text-white'
+                  >
+                    {passwordVisible ? <IoIosEye /> : <IoIosEyeOff />}
+                  </button>
+                </div>
                 {errors.password && (
                   <p className='font-custom mt-2 text-sm text-red-500'>{errors.password.message}</p>
                 )}
