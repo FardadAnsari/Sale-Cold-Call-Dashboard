@@ -2,7 +2,7 @@ import Select from 'react-select/async';
 import { default as StaticSelect } from 'react-select';
 import axios from 'axios';
 import { useState, useEffect, useRef } from 'react';
-import { IoMdRewind } from 'react-icons/io';
+import AsyncSelect from 'react-select/async';
 
 const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () => {} }) => {
   const [postcodes, setPostcodes] = useState([]);
@@ -18,7 +18,6 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
       return;
     }
 
-    // Serve from cache
     if (postcodeCache.current[city]) {
       setPostcodes(postcodeCache.current[city]);
       return;
@@ -31,17 +30,12 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
           `https://google.mega-data.co.uk/api/v1/companies/postcode-search/?district=${city}`
         );
         console.log(res);
-        const uniquePostcodes = [
-          ...new Set(res.data.map((item) => item.postcode_area).filter(Boolean)),
-        ];
-        
-        postcodeCache.current[city] = uniquePostcodes; // cache it
-        setPostcodes(uniquePostcodes);
+        const allPostcodes = res.data.map((item) => item.postcode_area).filter(Boolean);
+        postcodeCache.current[city] = allPostcodes;
+        setPostcodes(allPostcodes);
       } catch (err) {
         console.error('Postcode fetch failed:', err);
         setPostcodes([]);
-      } finally {
-        setLoadingPostcodes(false);
       }
     };
 
@@ -61,13 +55,13 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
           `https://google.mega-data.co.uk/api/v1/companies/city-search/?city=${inputValue}`
         );
         console.log(res);
-        const uniqueCities = [...new Set(res.data.map((item) => item.district).filter(Boolean))];
-        callback(uniqueCities.map((district) => ({ value: district, label: district })));
+        const allCities = res.data.map((item) => item.district).filter(Boolean);
+        callback(allCities.map((district) => ({ value: district, label: district })));
       } catch (err) {
         console.error('City search failed:', err);
         callback([]);
       }
-    }, 2000); // delay in ms
+    }, 2000);
   };
 
   return (
@@ -83,24 +77,42 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
             isDarkMode ? 'text-gray-300' : 'text-gray-700'
           }`}
         >
-          Select a City
+          Search a City
         </label>
-        <Select
-          loadOptions={(inputValue, callback) => loadCityOptions(inputValue, callback)}
-          defaultOptions={false}
-          cacheOptions
-          onChange={(option) => {
-            setFilters((prev) => ({
-              ...prev,
-              city: option?.value || '',
-              postcode: '',
-            }));
-          }}
-          value={filters.city ? { value: filters.city, label: filters.city } : null}
-          placeholder='e.g. London'
-          className='text-black'
-          isClearable
-        />
+        <div className='relative'>
+          {/* <svg
+            className={`pointer-events-none absolute top-1/2 left-3 z-10 h-5 w-5 translate-x-1 -translate-y-1/2 transform ${
+              isDarkMode ? 'text-gray-300' : 'text-gray-400'
+            }`}
+            fill='none'
+            stroke='currentColor'
+            viewBox='0 0 24 24'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
+            />
+          </svg> */}
+          <AsyncSelect
+            loadOptions={loadCityOptions}
+            defaultOptions={false}
+            cacheOptions
+            onChange={(option) => {
+              setFilters((prev) => ({
+                ...prev,
+                city: option?.value || '',
+                postcode: '',
+              }));
+            }}
+            value={filters.city ? { value: filters.city, label: filters.city } : null}
+            placeholder='e.g. London'
+            className='text-black'
+            isClearable
+            noOptionsMessage={({ inputValue }) => (inputValue.length < 2 ? null : 'No options')}
+          />
+        </div>
       </div>
 
       {/* Postcode Select */}
@@ -124,6 +136,7 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
           placeholder='e.g. ML6'
           isClearable
           className='text-black'
+          isDisabled={!filters.city}
           noOptionsMessage={() =>
             loadingPostcodes
               ? 'Loading postcodes...'
@@ -146,6 +159,7 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
               ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-30'
               : 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-30'
           }`}
+          disabled={!filters.postcode}
         >
           Apply
         </button>
