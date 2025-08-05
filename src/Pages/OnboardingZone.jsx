@@ -16,14 +16,15 @@ const OnboardingZone = () => {
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem('authToken');
 
- const defaultFilters = {
+  const defaultFilters = {
    category: 'takeaway',
    postcode: '',
- };
+  };
 
- const [filters, setFilters] = useState(defaultFilters);
- const [pendingFilters, setPendingFilters] = useState(defaultFilters);
- const [city, setCity] = useState('');
+  const [filters, setFilters] = useState(defaultFilters);
+  const [ordering, setOrdering] = useState([]);
+  const [pendingFilters, setPendingFilters] = useState(defaultFilters);
+  const [city, setCity] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -55,7 +56,14 @@ const OnboardingZone = () => {
   }, [searchInput]);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['shops', filters.category, filters.postcode, currentPage, debouncedSearchQuery],
+    queryKey: [
+      'shops',
+      filters.category,
+      filters.postcode,
+      currentPage,
+      debouncedSearchQuery,
+      ordering,
+    ],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/Shops`, {
         headers: {
@@ -63,14 +71,15 @@ const OnboardingZone = () => {
           Authorization: `Bearer ${authToken}`,
         },
         params: {
-          category: filters.category || "takeaway",
+          category: filters.category || 'takeaway',
           page: currentPage,
           search: debouncedSearchQuery || undefined,
           postcode: filters.postcode || undefined,
+          ordering: ordering.length ? ordering.join(',') : undefined,
         },
       });
       console.log(res);
-      
+
       return res.data;
     },
     keepPreviousData: true,
@@ -241,13 +250,13 @@ const OnboardingZone = () => {
                   <div className='absolute right-0 z-50 mt-2'>
                     <ShopsFilter
                       isDarkMode={isDarkMode}
-                      filters={pendingFilters} // اینجا pending
-                      setFilters={setPendingFilters} // این هم برای تغییر
+                      filters={pendingFilters}
+                      setFilters={setPendingFilters}
                       city={city}
                       setCity={setCity}
                       onClose={handleCancelFilter}
                       onApply={() => {
-                        setFilters(pendingFilters); // وقتی apply زد، اعمال شود
+                        setFilters(pendingFilters);
                         setCurrentPage(1);
                         refetch();
                         setShowFilter(false);
@@ -294,7 +303,13 @@ const OnboardingZone = () => {
           <>
             <div className='space-y-8'>
               <div className='rounded-lg bg-gray-800 p-4'>
-                <Table shops={displayShops} isDarkMode={isDarkMode} onRowClick={handleRowClick} />
+                <Table
+                  shops={displayShops}
+                  isDarkMode={isDarkMode}
+                  onRowClick={handleRowClick}
+                  ordering={ordering}
+                  setOrdering={setOrdering}
+                />
               </div>
             </div>
 

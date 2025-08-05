@@ -1,10 +1,26 @@
 import { useNavigate } from 'react-router-dom';
-import { OpenIcon, ClosedIcon } from '../Icons';
+// import { OpenIcon, ClosedIcon } from '../Icons';
+import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
 
-const Table = ({ shops = [], isDarkMode }) => {
-const navigate = useNavigate()
+const Table = ({ shops = [], isDarkMode, ordering = [] , setOrdering }) => {
+const handleSort = (field) => {
+  let newOrdering = [...ordering];
+  const ascIndex = newOrdering.indexOf(field);
+  const descIndex = newOrdering.indexOf(`-${field}`);
+
+  if (ascIndex !== -1) {
+    newOrdering[ascIndex] = `-${field}`;
+  } else if (descIndex !== -1) {
+    newOrdering.splice(descIndex, 1);
+  } else {
+    newOrdering.push(field);
+  }
+  setOrdering(newOrdering);
+  };
+
+  const navigate = useNavigate();
   console.log(shops);
-  
+
   if (!shops.length) {
     return (
       <div
@@ -52,6 +68,28 @@ const navigate = useNavigate()
                 Service Type
               </th>
               <th
+                onClick={() => handleSort('rating')}
+                scope='col'
+                className={`text-center px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                <div className='flex justify-center items-center'>
+                  <span>Rating</span>
+                  {ordering.includes('rating') && <TbSortAscending />}
+                  {ordering.includes(`-rating`) && <TbSortDescending />}
+                </div>
+              </th>
+              <th
+                onClick={() => handleSort('reviews')}
+                scope='col'
+                className={`text-center px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                <div className='flex justify-center items-center'>
+                  <span>Reviews</span>
+                  {ordering.includes('reviews') && <TbSortAscending />}
+                  {ordering.includes(`-reviews`) && <TbSortDescending />}
+                </div>
+              </th>
+              <th
                 scope='col'
                 className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
@@ -63,12 +101,12 @@ const navigate = useNavigate()
               >
                 Website
               </th>
-              <th
+              {/* <th
                 scope='col'
                 className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
                 Status
-              </th>
+              </th> */}
             </tr>
           </thead>
           <tbody
@@ -88,11 +126,21 @@ const navigate = useNavigate()
                   className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
                 >
                   {shop.shop_name}
-                </td>  
+                </td>
                 <td
                   className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
                 >
                   {shop.services}
+                </td>
+                <td
+                  className={`px-6 py-4 text-center font-mono text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {shop.rating}
+                </td>
+                <td
+                  className={`px-6 py-4 text-center font-mono text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {shop.reviews}
                 </td>
                 <td
                   className={`px-6 py-4 text-right font-mono text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
@@ -106,13 +154,13 @@ const navigate = useNavigate()
                     {shop.website ? 'Visit' : ''}
                   </a>
                 </td>
-                <td
+                {/* <td
                   className={`px-6 py-4 text-right whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
                 >
                   <span className='inline-flex items-center'>
                     {shops.is_open_now ? <OpenIcon /> : <ClosedIcon />}
                   </span>
-                </td>
+                </td> */}
               </tr>
             ))}
           </tbody>
@@ -133,15 +181,13 @@ const navigate = useNavigate()
               <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 {shop.shop_name}
               </h3>
-              {shops.is_open_now ? <OpenIcon /> : <ClosedIcon />}
+              {/* {shops.is_open_now ? <OpenIcon /> : <ClosedIcon />} */}
             </div>
             <div className='flex justify-between'>
-              <p className='text-sm'>{shop.services}</p>
               <p className='text-sm'>{shop.postcode}</p>
-              <p className='text-sm'>{shop.city}</p>
             </div>
             <div className='text-right'>
-              <a href={shop.website} target='_blank'>
+              <a href={shop.website} target='_blank' className='text-blue-500'>
                 {shop.website ? 'Visit' : ''}
               </a>
             </div>

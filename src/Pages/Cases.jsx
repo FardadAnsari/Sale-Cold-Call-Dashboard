@@ -16,6 +16,7 @@ const Cases = () => {
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({ selectedDate: null });
+  const [ordering, setOrdering] = useState([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const isDarkMode = true;
 
@@ -37,11 +38,11 @@ const Cases = () => {
   }, [filters.selectedDate]);
 
   const formattedDate = filters.selectedDate
-    ? filters.selectedDate.toLocaleDateString('en-CA') // e.g. 2025-07-28
+    ? filters.selectedDate.toLocaleDateString('en-CA') 
     : undefined;
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ['sale-sessions', debouncedSearchQuery, currentPage, formattedDate],
+    queryKey: ['sale-sessions', debouncedSearchQuery, currentPage, formattedDate, ordering],
     queryFn: async () => {
       const res = await axios.get(`${API_BASE_URL}/history/sale-sessions`, {
         headers: { Authorization: `Bearer ${authToken}` },
@@ -49,6 +50,7 @@ const Cases = () => {
           search: debouncedSearchQuery || undefined,
           page: currentPage,
           start_time: formattedDate || undefined,
+          ordering: ordering.length ? ordering.join(',') : undefined,
         },
       });
       return res.data;
@@ -161,7 +163,12 @@ const Cases = () => {
         ) : (
           <>
             <div className='rounded bg-gray-800 p-4'>
-              <CaseTable cases={data?.results || []} isDarkMode={isDarkMode} />
+              <CaseTable
+                cases={data?.results || []}
+                isDarkMode={isDarkMode}
+                ordering={ordering}
+                setOrdering={setOrdering}
+              />
             </div>
             <Pagination
               currentPage={currentPage}
