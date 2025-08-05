@@ -38,7 +38,7 @@ const Cases = () => {
   }, [filters.selectedDate]);
 
   const formattedDate = filters.selectedDate
-    ? filters.selectedDate.toLocaleDateString('en-CA') 
+    ? filters.selectedDate.toLocaleDateString('en-UK') 
     : undefined;
 
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
