@@ -21,7 +21,8 @@ const LeadDrawer = ({ leadId, isOpen, onClose, isDarkMode = true }) => {
           Authorization: `Bearer ${authToken}`,
         },
       });
-      console.log(response);
+      // console.log("Lead Data",response.data.data[0]);
+      // console.log('Lead City Pick', response.data.data[0].City_Pick_List);
       return response.data.data;
     },
   });
@@ -45,10 +46,7 @@ const LeadDrawer = ({ leadId, isOpen, onClose, isDarkMode = true }) => {
         <button className='absolute top-4 right-4 text-xl text-white' onClick={onClose}>
           ×
         </button>
-
         <div className='p-6'>
-          <h2 className='mb-4 text-lg font-bold'>Lead Information</h2>
-
           <div className={`custom-scrollbar flex-1 overflow-y-auto pr-2 pb-4`}>
             <UpdateLead isDarkMode={isDarkMode} leadData={lead?.[0] || {}} />
           </div>

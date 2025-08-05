@@ -3,7 +3,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import lockPng from '../images/lock.png';
 import InputField from './InputField';
 import SelectField from './SelectField';
-import Area from './Area';
+// import Area from './Area';
 import Industry from './Industry';
 import LeadSource from './LeadSource';
 import InterestRate from './InterestRate';
@@ -12,6 +12,7 @@ import Stage from './Stage';
 import useUser from 'src/useUser';
 import { API_BASE_URL } from 'src/api';
 import axios from 'axios';
+import City from './City';
 
 // AccordionSection component
 const AccordionSection = ({ title, children, isOpen, onToggle }) => (
@@ -48,8 +49,8 @@ const validateEmail = (email) => {
 };
 const UpdateLead = ({ leadData = {} }) => {
   const { data: user } = useUser();
-  console.log(user);
-console.log(leadData);
+  // console.log(user);
+// console.log(leadData);
 
   const methods = useForm({
     // Renamed to methods for FormProvider
@@ -70,7 +71,7 @@ console.log(leadData);
       Lead_Source: leadData.Lead_Source || '',
       Industry: leadData.Industry || '',
       Sales_Participants: leadData.Sales_Participants || '',
-      Area: leadData.Area || '',
+      // Area: leadData.Area || '',
       Interest_Rate: leadData.Interest_Rate || '',
       Street: leadData.Street || '',
       City_Pick_List: leadData.City_Pick_List || '',
@@ -98,6 +99,12 @@ console.log(leadData);
           hasKitchenPrinter: Boolean(leadData.Has_Kitchen_Printer),
         };
         reset(defaultValues);
+         if (leadData.City_Pick_List) {
+           setValue('City_Pick_List', {
+             label: leadData.City_Pick_List,
+             value: leadData.City_Pick_List,
+           });
+         }
       }
     }, [leadData, reset]);
     
@@ -157,13 +164,13 @@ console.log(leadData);
       Stage: data.Stage,
       Lead_Source: data.Lead_Source,
       Industry: data.Industry,
-      Area: data.Area,
+      // Area: data.Area,
       Interest_Rate: data.Interest_Rate,
       //Last_Caller: data.Last_Caller,
       // Next_Follow_Up: nextFollowUpFormatted,
       Lead_Owner: user.email,
       Street: data.Street,
-      City_Pick_List: data.City_Pick_List,
+      City_Pick_List: data.City_Pick_List.value ?? data.City_Pick_List,
       State: data.State,
       Zip_Code: data.Zip_Code,
       Country: data.Country,
@@ -306,19 +313,14 @@ console.log(leadData);
               onClear={() => handleClear('Company_Registered_Name')}
             />
           </div>
-         
-              <InputField label='Phone' name='Phone' onClear={() => handleClear('Phone')} />
-       
-          
-              <InputField label='Phone' name='Phone_2' onClear={() => handleClear('Phone_2')} />
-          
+          <InputField label='Phone' name='Phone' onClear={() => handleClear('Phone')} />
+          <InputField label='Phone' name='Phone_2' onClear={() => handleClear('Phone_2')} />
           <InputField
             label='First Name'
             name='First_Name'
             onClear={() => handleClear('First_Name')}
             hideLabel={true}
           />
-          
           <InputField
             label='Last Name'
             required
@@ -339,7 +341,7 @@ console.log(leadData);
           <Stage /> {/* Use the Stage component */}
           <LeadSource /> {/* Uses the LeadSource component */}
           <Industry /> {/* Uses the Industry component */}
-          <Area /> {/* Uses the Area component */}
+          {/* <Area /> Uses the Area component */}
           <InterestRate /> {/* Uses the InterestRate component */}
           {/* <div className="flex flex-col">
             <label className="block text-sm font-medium mb-1 text-gray-400">Last Caller</label>
@@ -380,10 +382,12 @@ console.log(leadData);
           onToggle={() => toggleSection('isAddressOpen')}
         >
           <InputField label='Street' name='Street' onClear={() => handleClear('Street')} />
-          <SelectField
-            label='City Pick List'
-            name='City_Pick_List'
-            options={['London', 'Manchester', 'Birmingham', 'Other']}
+          <City
+            defaultValue={
+              leadData?.City_Pick_List
+                ? { label: leadData.City_Pick_List, value: leadData.City_Pick_List }
+                : null
+            }
           />
           <InputField label='State' name='State' onClear={() => handleClear('State')} />
           <InputField label='Zip Code' name='Zip_Code' onClear={() => handleClear('Zip_Code')} />

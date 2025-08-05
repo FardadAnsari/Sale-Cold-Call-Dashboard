@@ -34,7 +34,7 @@ const Leads = () => {
           Authorization: `Bearer ${authToken}`,
         },
       });
-      console.log(response.data.data);
+      // console.log("leads list:",response.data.data);
       return response.data.data;
     },
   });

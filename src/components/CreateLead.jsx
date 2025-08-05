@@ -6,7 +6,7 @@ import { useForm, FormProvider } from 'react-hook-form';
 import lockPng from '../images/lock.png';
 import InputField from './InputField';
 import SelectField from './SelectField';
-import Area from './Area';
+// import Area from './Area';
 import Industry from './Industry';
 import LeadSource from './LeadSource';
 import InterestRate from './InterestRate';
@@ -15,6 +15,7 @@ import Stage from './Stage';
 import useUser from 'src/useUser';
 import { API_BASE_URL } from 'src/api';
 import axios from 'axios';
+import City from './City';
 
 // AccordionSection component
 
@@ -58,7 +59,7 @@ console.log(user);
       Lead_Source: '',
       Industry: '',
       Sales_Participants: '',
-      Area: '',
+      // Area: '',
       Interest_Rate: '',
       // Last_Caller: '',
       // nextFollowUpDate: '',
@@ -134,13 +135,13 @@ console.log(user);
       Stage: data.Stage,
       Lead_Source: data.Lead_Source,
       Industry: data.Industry,
-      Area: data.Area,
+      // Area: data.Area,
       Interest_Rate: data.Interest_Rate,
       //Last_Caller: data.Last_Caller,
       // Next_Follow_Up: nextFollowUpFormatted,
       Lead_Owner: user.email,
       Street: data.Street,
-      City_Pick_List: data.City_Pick_List,
+      City_Pick_List: data.City_Pick_List.value,
       State: data.State,
       Zip_Code: data.Zip_Code,
       Country: data.Country,
@@ -176,6 +177,8 @@ console.log(user);
       };
      
       console.log('Request headers:', headers);
+      console.log(leadPayload);
+      
       const response = await axios.post(`${API_BASE_URL}/zoho/create-lead/`,
          leadPayload,
         {headers: headers},
@@ -309,7 +312,7 @@ console.log(user);
           <Stage /> {/* Use the Stage component */}
           <LeadSource /> {/* Uses the LeadSource component */}
           <Industry /> {/* Uses the Industry component */}
-          <Area /> {/* Uses the Area component */}
+          {/* <Area /> Uses the Area component */}
           <InterestRate /> {/* Uses the InterestRate component */}
           {/* <div className="flex flex-col">
             <label className="block text-sm font-medium mb-1 text-gray-400">Last Caller</label>
@@ -350,11 +353,12 @@ console.log(user);
           onToggle={() => toggleSection('isAddressOpen')}
         >
           <InputField label='Street' name='Street' onClear={() => handleClear('Street')} />
-          <SelectField
+          {/* <SelectField
             label='City Pick List'
             name='City_Pick_List'
             options={['London', 'Manchester', 'Birmingham', 'Other']}
-          />
+          /> */}
+          <City/>
           <InputField label='State' name='State' onClear={() => handleClear('State')} />
           <InputField label='Zip Code' name='Zip_Code' onClear={() => handleClear('Zip_Code')} />
           <InputField label='Country' name='Country' onClear={() => handleClear('Country')} />
