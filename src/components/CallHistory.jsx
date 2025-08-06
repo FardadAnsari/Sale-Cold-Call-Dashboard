@@ -119,7 +119,11 @@ useEffect(() => {
   const onSubmitCreateCase = async (formData) => {
     try {
       const authToken = sessionStorage.getItem('authToken');
+      // const now = new Date();
+      // const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
       const leadPayload = {
+        // start_time: localISO,
+        // last_update: localISO,
         start_time: new Date().toISOString(),
         last_update: new Date().toISOString(),
         close_time: new Date().toISOString(),
@@ -130,7 +134,7 @@ useEffect(() => {
           customer_phone: formData.shopOwnerPhone,
           customer_assistant_phone: formData.gateKeeperPhone,
           customer_assistant_name: formData.gateKeeperName,
-          customer_availability: availability
+          customer_availability: availability,
         },
       };
 
@@ -172,11 +176,12 @@ useEffect(() => {
   };
 const submitCallSummary = async (data) => {
   const token = sessionStorage.getItem('authToken');
-
+  const now = new Date();
+  const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
   const payload = {
     date: new Date().toISOString(),
     user_id: user.id || 0,
-    call_time: new Date().toISOString(), // or custom time input if you want
+    call_time: localISO,
     sale_session_id: sessionId ?? 0, // adjust if needed
     call_description: data.callDescription,
     stage: data.callResult,
