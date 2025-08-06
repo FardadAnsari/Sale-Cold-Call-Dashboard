@@ -31,7 +31,7 @@ const City = ({ defaultValue = null }) => {
       <Controller
         name='City_Pick_List'
         control={control}
-        rules={{ required: 'City is required' }}
+        rules={{ required: false }}
         render={({ field }) => (
           <AsyncSelect
             {...field}
@@ -46,12 +46,17 @@ const City = ({ defaultValue = null }) => {
               inputValue.length < 2 ? 'Type at least 2 letters' : 'No matching cities'
             }
             styles={{
-              control: (base) => ({
+              control: (base, state) => ({
                 ...base,
-                backgroundColor: '#4B5563', // bg-gray-600
-                borderColor: '#ffa202ff',
-                color: '#F3F4F6', // text-gray-100
+                backgroundColor: '#4B5563',
+                borderColor: state.isFocused ? '#fb923c' : '#4B5563',
+                color: '#F3F4F6',
                 minHeight: '43px',
+                borderWidth: '1px',
+                boxShadow: state.isFocused ? '0 0 0 1px #fb923c' : 'none',
+                '&:hover': {
+                  borderColor: '#fb923c',
+                },
               }),
               singleValue: (base) => ({
                 ...base,
@@ -59,7 +64,7 @@ const City = ({ defaultValue = null }) => {
               }),
               placeholder: (base) => ({
                 ...base,
-                color: '#424243ff', // placeholder-gray-400
+                color: '#9CA3AF', // gray-400
               }),
               input: (base) => ({
                 ...base,
@@ -68,6 +73,14 @@ const City = ({ defaultValue = null }) => {
               menu: (base) => ({
                 ...base,
                 zIndex: 10,
+                backgroundColor: '#374151', // gray-700
+                color: '#F3F4F6',
+              }),
+              option: (base, { isFocused, isSelected }) => ({
+                ...base,
+                backgroundColor: isSelected ? '#fb923c' : isFocused ? '#6B7280' : '#374151',
+                color: isSelected || isFocused ? '#fff' : '#F3F4F6',
+                cursor: 'pointer',
               }),
             }}
           />

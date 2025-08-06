@@ -170,7 +170,12 @@ const UpdateLead = ({ leadData = {} }) => {
       // Next_Follow_Up: nextFollowUpFormatted,
       Lead_Owner: user.email,
       Street: data.Street,
-      City_Pick_List: data.City_Pick_List.value ?? data.City_Pick_List,
+      City_Pick_List:
+        data.City_Pick_List &&
+        typeof data.City_Pick_List === 'object' &&
+        'value' in data.City_Pick_List
+          ? data.City_Pick_List.value
+          : data.City_Pick_List,
       State: data.State,
       Zip_Code: data.Zip_Code,
       Country: data.Country,
