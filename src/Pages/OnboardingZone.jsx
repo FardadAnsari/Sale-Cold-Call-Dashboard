@@ -313,23 +313,19 @@ const OnboardingZone = () => {
         )}
 
         {/* Active Filters Summary */}
-        {(filters.postcode || ordering)
-         && <div className={`px-3 text-md ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-          <span>Showing results for</span>
-          {filters.postcode ? <strong> {filters.postcode}</strong> : null}
-          {debouncedSearchQuery ? (
-            <>
-              {' '}
-              matching "<strong>{debouncedSearchQuery}</strong>"
-            </>
-          ) : null}
-          {ordering?.length ? (
-            <>
-              {' '}
-              • Sorted by <strong>{formatOrdering(ordering)}</strong>
-            </>
-          ) : null}
-        </div>}
+        {(filters.postcode || city || ordering.length > 0) && (
+          <div className={`text-md px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span>Showing results for</span>
+            {filters.postcode && <strong> {filters.postcode}</strong>}
+            {city && <strong> {city}</strong>}
+            {ordering?.length > 0 && (
+              <>
+                {' '}
+                • Sorted by <strong>{formatOrdering(ordering)}</strong>
+              </>
+            )}
+          </div>
+        )}
 
         {isPageLoading && !isSearchMode && (
           <div className='flex items-center justify-center py-8'>
