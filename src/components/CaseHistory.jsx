@@ -541,11 +541,15 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                   >
                     <option value=''>-- Select --</option>
                     <option value='Intrested'>Interested</option>
-                    <option value='Appointment Is Set'>Appointment is set</option>
-                    <option value='Not Interested'>Not interested</option>
-                    <option value='Follow Up'>Follow up</option>
-                    <option value='Hung Up'>Hang up</option>
-                    <option value='Fourth Action'>Fourth action</option>
+                    <option value='Appointment Is Set'>Appointment Is Set</option>
+                    <option value='Not Interested'>Not Interested</option>
+                    <option value='Follow Up'>Follow Up</option>
+                    <option value='Hung Up'>Hung Up</option>
+                    <option value='Fourth Action'>Fourth Action</option>
+                    <option value='No Answer'>No Answer</option>
+                    <option value='Invalid Number'>Invalid Number</option>
+                    <option value='Voice Mail'>Voice Mail</option>
+                    <option value='Wrong Number'>Wrong Number</option>
                   </select>
                   <div className={formClasses.selectArrow}>
                     <svg className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
