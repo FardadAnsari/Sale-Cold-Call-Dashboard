@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
 import Table from '../components/Table';
@@ -13,26 +13,31 @@ import { API_BASE_URL } from 'src/api';
 import ShopsFilter from '../components/ShopsFilter';
 
 const OnboardingZone = () => {
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const authToken = sessionStorage.getItem('authToken');
 
-  const defaultFilters = {
-   category: 'takeaway',
-   postcode: '',
-  };
-
-  const [filters, setFilters] = useState(defaultFilters);
-  const [ordering, setOrdering] = useState([]);
-  const [pendingFilters, setPendingFilters] = useState(defaultFilters);
-  const [city, setCity] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const [searchInput, setSearchInput] = useState('');
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  // --- INITIAL STATE FROM URL ---
+  const [filters, setFilters] = useState(() => ({
+    category: searchParams.get('category') || 'takeaway',
+    postcode: searchParams.get('postcode') || '',
+  }));
+  const [ordering, setOrdering] = useState(() => {
+    const s = searchParams.get('ordering');
+    return s ? s.split(',') : [];
+  });
+  const [pendingFilters, setPendingFilters] = useState(() => ({
+    category: searchParams.get('category') || 'takeaway',
+    postcode: searchParams.get('postcode') || '',
+  }));
+  const [city, setCity] = useState(''); // (UI-only for ShopsFilter)
+  const [currentPage, setCurrentPage] = useState(() => Number(searchParams.get('page')) || 1);
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') || '');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(
+    () => searchParams.get('q') || ''
+  );
 
   const [showFilter, setShowFilter] = useState(false);
-
   const handleCancelFilter = () => setShowFilter(false);
-
 
   const isDarkMode = true;
 
@@ -43,7 +48,19 @@ const OnboardingZone = () => {
   };
   const orderedCategories = Object.keys(categoryMapping);
 
-  // Debounce
+  const ORDER_LABELS = { rating: 'Rating', reviews: 'Reviews' };
+
+  const formatOrdering = (orderingArray = []) =>
+    orderingArray
+      .map((token) => {
+        const desc = token.startsWith('-');
+        const field = desc ? token.slice(1) : token;
+        const label = ORDER_LABELS[field] || field;
+        return `${label} ${desc ? '↓' : '↑'}`; // ↓ for desc, ↑ for asc
+      })
+      .join(', ');
+
+  // --- DEBOUNCE SEARCH INPUT ---
   const debounceTimer = useRef(null);
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
@@ -55,6 +72,22 @@ const OnboardingZone = () => {
     };
   }, [searchInput]);
 
+  // --- KEEP URL IN SYNC ---
+  useEffect(() => {
+    const params = {
+      category: filters.category || undefined,
+      postcode: filters.postcode || undefined,
+      ordering: ordering.length ? ordering.join(',') : undefined,
+      page: currentPage > 1 ? String(currentPage) : undefined,
+      q: debouncedSearchQuery || undefined,
+    };
+    const cleaned = Object.fromEntries(
+      Object.entries(params).filter(([, v]) => v != null && v !== '')
+    );
+    setSearchParams(cleaned, { replace: true });
+  }, [filters, ordering, currentPage, debouncedSearchQuery, setSearchParams]);
+
+  // --- DATA FETCH ---
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: [
       'shops',
@@ -78,8 +111,6 @@ const OnboardingZone = () => {
           ordering: ordering.length ? ordering.join(',') : undefined,
         },
       });
-      console.log(res);
-
       return res.data;
     },
     keepPreviousData: true,
@@ -91,10 +122,8 @@ const OnboardingZone = () => {
   const isPageLoading = isLoading && data !== undefined;
 
   const handleCategoryClick = (category) => {
-    setFilters((prev) => ({
-     ...prev,
-      category,
-    }));
+    setFilters((prev) => ({ ...prev, category }));
+    setPendingFilters((prev) => ({ ...prev, category }));
     setCurrentPage(1);
   };
 
@@ -102,17 +131,13 @@ const OnboardingZone = () => {
     setCurrentPage(page);
   };
 
-  const handleRowClick = (shopId) => {
-    navigate(`/shop/${shopId}`);
-  };
   const handleClearFilters = () => {
     const cleared = { ...filters, postcode: '' };
     setFilters(cleared);
     setPendingFilters(cleared);
     setCurrentPage(1);
-    refetch();
+    refetch(); // optional; useQuery will refetch anyway due to key change
   };
-
 
   const getIconForCategory = (category) => {
     switch (category) {
@@ -129,7 +154,7 @@ const OnboardingZone = () => {
     }
   };
 
-  //Loading state
+  // --- LOADING STATE ---
   if (isLoading && !data) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
@@ -159,7 +184,7 @@ const OnboardingZone = () => {
     );
   }
 
-  //Error state
+  // --- ERROR STATE ---
   if (error) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
@@ -194,7 +219,7 @@ const OnboardingZone = () => {
     );
   }
 
-  // Main content
+  // --- MAIN ---
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
       <header className='bg-gray-900 shadow-sm'>
@@ -204,7 +229,11 @@ const OnboardingZone = () => {
               key={category}
               onClick={() => handleCategoryClick(category)}
               disabled={isLoading}
-              className={`flex flex-1 items-center justify-center gap-2 py-4 text-lg transition-all ${filters.category === category ? 'scale-95 rounded-lg bg-gray-600 text-gray-200' : 'bg-gray-700 text-gray-400'} ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+              className={`flex flex-1 items-center justify-center gap-2 py-4 text-lg transition-all ${
+                filters.category === category
+                  ? 'scale-95 rounded-lg bg-gray-600 text-gray-200'
+                  : 'bg-gray-700 text-gray-400'
+              } ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               {getIconForCategory(category)}
               <span>{categoryMapping[category].label}</span>
@@ -236,7 +265,9 @@ const OnboardingZone = () => {
               <button
                 onClick={() => setShowFilter(true)}
                 disabled={isLoading}
-                className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+                className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${
+                  isLoading ? 'cursor-not-allowed opacity-50' : ''
+                }`}
               >
                 <FilterIcon fill={'white'} />
                 <span>Filter</span>
@@ -258,7 +289,7 @@ const OnboardingZone = () => {
                       onApply={() => {
                         setFilters(pendingFilters);
                         setCurrentPage(1);
-                        refetch();
+                        refetch(); // optional; useQuery refetches via key changes
                         setShowFilter(false);
                       }}
                     />
@@ -278,6 +309,21 @@ const OnboardingZone = () => {
             <p className='text-sm text-gray-400'>
               {isLoading ? 'Searching...' : `Found ${displayShops.length} results`}
             </p>
+          </div>
+        )}
+
+        {/* Active Filters Summary */}
+        {(filters.postcode || city || ordering.length > 0) && (
+          <div className={`text-md px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+            <span>Showing results for</span>
+            {filters.postcode && <strong> {filters.postcode}</strong>}
+            {city && <strong> {city}</strong>}
+            {ordering?.length > 0 && (
+              <>
+                {' '}
+                • Sorted by <strong>{formatOrdering(ordering)}</strong>
+              </>
+            )}
           </div>
         )}
 
@@ -306,9 +352,11 @@ const OnboardingZone = () => {
                 <Table
                   shops={displayShops}
                   isDarkMode={isDarkMode}
-                  onRowClick={handleRowClick}
                   ordering={ordering}
-                  setOrdering={setOrdering}
+                  setOrdering={(o) => {
+                    setOrdering(o);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             </div>

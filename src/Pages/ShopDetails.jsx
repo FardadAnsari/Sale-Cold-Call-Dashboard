@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CallHistory from '../components/CallHistory';
 import shopIcon from '../images/shopicon.png';
@@ -64,6 +64,8 @@ const parseOpeningHours = (openingHoursData) => {
 const ShopDetails = ({ isDarkMode }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const backTo = (location.state?.from) || `/shops${location.search || ''}`;
   const authToken = sessionStorage.getItem('authToken');
 
   const {
@@ -187,7 +189,7 @@ const ShopDetails = ({ isDarkMode }) => {
       `}</style>
 
       <button
-        onClick={() => navigate('/shops')}
+        onClick={() => navigate(backTo)}
         className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
         aria-label='Go back to Sale Zone'
       >
@@ -213,7 +215,7 @@ const ShopDetails = ({ isDarkMode }) => {
               <label className={commonClasses.label}>Name</label>
               <div className='flex items-center gap-2'>
                 <p className={commonClasses.valueName}>{shop.shop_name}</p>
-                {(shop.website && shop.website !== "None") && (
+                {shop.website && shop.website !== 'None' && (
                   <a
                     href={shop.website}
                     target='_blank'
