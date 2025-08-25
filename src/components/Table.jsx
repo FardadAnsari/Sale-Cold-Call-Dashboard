@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 // import { OpenIcon, ClosedIcon } from '../Icons';
 import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
 
@@ -19,6 +19,7 @@ const handleSort = (field) => {
   };
 
   const navigate = useNavigate();
+  const location = useLocation();
   console.log(shops);
 
   if (!shops.length) {
@@ -39,7 +40,9 @@ const handleSort = (field) => {
     );
   }
   const handleRowClick = (shopId) => {
-    navigate(`/shops/${shopId}`);
+    navigate(`/shops/${shopId}${location.search}`, {
+    state: { from: `/shops${location.search}` },
+    })
   };
 
   return (
@@ -151,7 +154,7 @@ const handleSort = (field) => {
                   className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
                 >
                   <a href={shop.website} target='_balnk'>
-                    {shop.website ? 'Visit' : ''}
+                    {(shop.website && shop.website !== "None") ? 'Visit' : ''}
                   </a>
                 </td>
                 {/* <td
