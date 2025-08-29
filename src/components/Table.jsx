@@ -73,9 +73,9 @@ const handleSort = (field) => {
               <th
                 onClick={() => handleSort('rating')}
                 scope='col'
-                className={`text-center px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                className={`px-6 py-3 text-center text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
-                <div className='flex justify-center items-center'>
+                <div className='flex items-center justify-center'>
                   <span>Rating</span>
                   {ordering.includes('rating') && <TbSortAscending />}
                   {ordering.includes(`-rating`) && <TbSortDescending />}
@@ -84,9 +84,9 @@ const handleSort = (field) => {
               <th
                 onClick={() => handleSort('reviews')}
                 scope='col'
-                className={`text-center px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                className={`px-6 py-3 text-center text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
-                <div className='flex justify-center items-center'>
+                <div className='flex items-center justify-center'>
                   <span>Reviews</span>
                   {ordering.includes('reviews') && <TbSortAscending />}
                   {ordering.includes(`-reviews`) && <TbSortDescending />}
@@ -154,7 +154,7 @@ const handleSort = (field) => {
                   className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
                 >
                   <a href={shop.website} target='_balnk'>
-                    {(shop.website && shop.website !== "None") ? 'Visit' : ''}
+                    {shop.website && shop.website !== 'None' ? 'Visit' : ''}
                   </a>
                 </td>
                 {/* <td
@@ -191,7 +191,7 @@ const handleSort = (field) => {
             </div>
             <div className='text-right'>
               <a href={shop.website} target='_blank' className='text-blue-500'>
-                {shop.website ? 'Visit' : ''}
+                {shop.website && shop.website !== 'None' ? 'Visit' : ''}
               </a>
             </div>
           </div>

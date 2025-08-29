@@ -1,25 +1,53 @@
-import Select from 'react-select/async';
+import AsyncSelect from 'react-select/async';
 import { default as StaticSelect } from 'react-select';
 import axios from 'axios';
-import { useState, useEffect, useRef } from 'react';
-import AsyncSelect from 'react-select/async';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
-const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () => {} }) => {
+const ShopsFilter = ({
+  filters,
+  setFilters,
+  isDarkMode,
+  onClose,
+  onApply = () => {},
+  city: cityProp,
+  setCity: setCityProp,
+  categoryOptions,
+}) => {
   const [postcodes, setPostcodes] = useState([]);
   const [loadingPostcodes, setLoadingPostcodes] = useState(false);
 
+  // Include "All" as the first/default option (value: '' -> falsy => omit from query)
+  const CATEGORY_OPTIONS = useMemo(
+    () =>
+      categoryOptions ?? [
+        { value: '', label: 'All' },
+        { value: 'takeaway', label: 'Takeaway' },
+        { value: 'restaurant', label: 'Restaurant' },
+        { value: 'cafe', label: 'Café' },
+      ],
+    [categoryOptions]
+  );
 
-  const postcodeCache = useRef({}); // city => [postcodes]
+  // Default category to "All" (empty string) if not present
+  const categoryValue = filters.category ?? '';
+
+  const selectedCity = (cityProp ?? filters.city ?? '').trim();
+
+  const postcodeCache = useRef({});
+  const debounceRef = useRef(null);
+
+  const citySelected = Boolean(selectedCity);
+  const postcodeRequired = citySelected;
+  const postcodeMissing = postcodeRequired && !filters.postcode;
 
   useEffect(() => {
-    const city = filters.city;
-    if (!city) {
+    if (!selectedCity) {
       setPostcodes([]);
       return;
     }
 
-    if (postcodeCache.current[city]) {
-      setPostcodes(postcodeCache.current[city]);
+    if (postcodeCache.current[selectedCity]) {
+      setPostcodes(postcodeCache.current[selectedCity]);
       return;
     }
 
@@ -27,34 +55,36 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
       setLoadingPostcodes(true);
       try {
         const res = await axios.get(
-          `https://google.mega-data.co.uk/api/v1/companies/postcode-search/?district=${city}`
+          `https://google.mega-data.co.uk/api/v1/companies/postcode-search/?district=${encodeURIComponent(
+            selectedCity
+          )}`
         );
-        console.log(res);
         const allPostcodes = res.data.map((item) => item.postcode_area).filter(Boolean);
-        postcodeCache.current[city] = allPostcodes;
+        postcodeCache.current[selectedCity] = allPostcodes;
         setPostcodes(allPostcodes);
       } catch (err) {
         console.error('Postcode fetch failed:', err);
         setPostcodes([]);
+      } finally {
+        setLoadingPostcodes(false);
       }
     };
 
     fetchPostcodes();
-  }, [filters.city]);
-
-  const debounceRef = useRef(null);
+  }, [selectedCity]);
 
   const loadCityOptions = (inputValue, callback) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
-      if (inputValue.length < 2) return callback([]);
+      if (!inputValue || inputValue.length < 2) return callback([]);
 
       try {
         const res = await axios.get(
-          `https://google.mega-data.co.uk/api/v1/companies/city-search/?city=${inputValue}`
+          `https://google.mega-data.co.uk/api/v1/companies/city-search/?city=${encodeURIComponent(
+            inputValue
+          )}`
         );
-        console.log(res);
         const allCities = res.data.map((item) => item.district).filter(Boolean);
         callback(allCities.map((district) => ({ value: district, label: district })));
       } catch (err) {
@@ -64,12 +94,47 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
     }, 2000);
   };
 
+  const handleCityChange = (option) => {
+    const nextCity = option?.value || '';
+    if (setCityProp) setCityProp(nextCity);
+    setFilters((prev) => ({
+      ...prev,
+      city: nextCity,
+      postcode: '',
+    }));
+  };
+
   return (
     <div
       className={`w-100 max-w-sm rounded-md border-2 p-5 ${
         isDarkMode ? 'border-blue-400 bg-gray-800' : 'border-blue-500 bg-white'
       }`}
     >
+      {/* Category Select */}
+      <div className='mb-4'>
+        <label
+          className={`mb-1 block text-sm font-medium ${
+            isDarkMode ? 'text-gray-300' : 'text-gray-700'
+          }`}
+        >
+          Category
+        </label>
+        <StaticSelect
+          options={CATEGORY_OPTIONS}
+          value={CATEGORY_OPTIONS.find((o) => o.value === categoryValue) ?? CATEGORY_OPTIONS[0]}
+          onChange={(opt) => {
+            // Set empty string for "All" so the caller can omit category from the endpoint
+            const nextVal = opt?.value ?? '';
+            setFilters((prev) => ({
+              ...prev,
+              category: nextVal,
+            }));
+          }}
+          isClearable={false}
+          className='text-black'
+        />
+      </div>
+
       {/* City Select */}
       <div className='mb-4'>
         <label
@@ -80,33 +145,12 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
           Search a City
         </label>
         <div className='relative'>
-          {/* <svg
-            className={`pointer-events-none absolute top-1/2 left-3 z-10 h-5 w-5 translate-x-1 -translate-y-1/2 transform ${
-              isDarkMode ? 'text-gray-300' : 'text-gray-400'
-            }`}
-            fill='none'
-            stroke='currentColor'
-            viewBox='0 0 24 24'
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              strokeWidth='2'
-              d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-            />
-          </svg> */}
           <AsyncSelect
             loadOptions={loadCityOptions}
             defaultOptions={false}
             cacheOptions
-            onChange={(option) => {
-              setFilters((prev) => ({
-                ...prev,
-                city: option?.value || '',
-                postcode: '',
-              }));
-            }}
-            value={filters.city ? { value: filters.city, label: filters.city } : null}
+            onChange={handleCityChange}
+            value={selectedCity ? { value: selectedCity, label: selectedCity } : null}
             placeholder='e.g. London'
             className='text-black'
             isClearable
@@ -136,34 +180,41 @@ const ShopsFilter = ({ filters, setFilters, isDarkMode, onClose, onApply = () =>
           placeholder='e.g. ML6'
           isClearable
           className='text-black'
-          isDisabled={!filters.city}
+          isDisabled={!citySelected}
+          styles={{
+            control: (base) => ({
+              ...base,
+              borderColor: postcodeMissing ? '#ef4444' : base.borderColor,
+              boxShadow: postcodeMissing ? '0 0 0 1px #ef4444' : base.boxShadow,
+            }),
+          }}
           noOptionsMessage={() =>
             loadingPostcodes
               ? 'Loading postcodes...'
-              : filters.city
+              : citySelected
                 ? 'No postcodes found for this city.'
                 : 'Please select a city first.'
           }
         />
+        {postcodeMissing && (
+          <p className='mt-1 text-xs text-red-500'>Postcode is required when a city is selected.</p>
+        )}
       </div>
 
       <div className='flex justify-between gap-2'>
-        {/* Apply Button */}
         <button
-          onClick={() => {
-            setFilters((prev) => ({ ...prev, postcode: '' }));
-            onApply();
-          }}
+          onClick={onApply}
           className={`rounded-md px-4 py-2 text-sm font-medium ${
             isDarkMode
               ? 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-30'
               : 'bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-30'
           }`}
-          disabled={!filters.postcode}
+          disabled={postcodeMissing}
+          title={postcodeMissing ? 'Select a postcode for the chosen city' : 'Apply filters'}
         >
           Apply
         </button>
-        {/* Cancel Button */}
+
         <button
           onClick={onClose}
           className={`rounded-md px-4 py-2 text-sm font-medium ${

@@ -18,7 +18,7 @@ const OnboardingZone = () => {
 
   // --- INITIAL STATE FROM URL ---
   const [filters, setFilters] = useState(() => ({
-    category: searchParams.get('category') || 'takeaway',
+    category: searchParams.get('category') || '',
     postcode: searchParams.get('postcode') || '',
   }));
   const [ordering, setOrdering] = useState(() => {
@@ -26,7 +26,7 @@ const OnboardingZone = () => {
     return s ? s.split(',') : [];
   });
   const [pendingFilters, setPendingFilters] = useState(() => ({
-    category: searchParams.get('category') || 'takeaway',
+    category: searchParams.get('category') || '',
     postcode: searchParams.get('postcode') || '',
   }));
   const [city, setCity] = useState(''); // (UI-only for ShopsFilter)
@@ -46,6 +46,9 @@ const OnboardingZone = () => {
     restaurant: { label: 'Restaurant', category: 'restaurant' },
     cafe: { label: 'Café', category: 'cafe' },
   };
+  const getCategoryLabel = (cat) =>
+  cat ? (categoryMapping[cat]?.label ?? cat) : 'All';
+
   const orderedCategories = Object.keys(categoryMapping);
 
   const ORDER_LABELS = { rating: 'Rating', reviews: 'Reviews' };
@@ -104,7 +107,7 @@ const OnboardingZone = () => {
           Authorization: `Bearer ${authToken}`,
         },
         params: {
-          category: filters.category || 'takeaway',
+          ...(filters.category ? { category: filters.category } : {}), // omit when All
           page: currentPage,
           search: debouncedSearchQuery || undefined,
           postcode: filters.postcode || undefined,
@@ -132,11 +135,12 @@ const OnboardingZone = () => {
   };
 
   const handleClearFilters = () => {
-    const cleared = { ...filters, postcode: '' };
+    const cleared = { category: '', postcode: '', city: '' };
+    setCity('');
     setFilters(cleared);
-    setPendingFilters(cleared);
+    setPendingFilters(cleared);      
     setCurrentPage(1);
-    refetch(); // optional; useQuery will refetch anyway due to key change
+    refetch();
   };
 
   const getIconForCategory = (category) => {
@@ -158,7 +162,7 @@ const OnboardingZone = () => {
   if (isLoading && !data) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
-        <header className='bg-gray-900 shadow-sm'>
+        {/* <header className='bg-gray-900 shadow-sm'>
           <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
             {orderedCategories.map((category) => (
               <button
@@ -171,8 +175,8 @@ const OnboardingZone = () => {
               </button>
             ))}
           </div>
-        </header>
-        <main className='container mx-auto p-4'>
+        </header> */}
+        <main className='container mx-auto px-4 py-6'>
           <div className='mt-20 flex items-center justify-center'>
             <div className='text-center'>
               <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
@@ -188,7 +192,7 @@ const OnboardingZone = () => {
   if (error) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
-        <header className='bg-gray-900 shadow-sm'>
+        {/* <header className='bg-gray-900 shadow-sm'>
           <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
             {orderedCategories.map((category) => (
               <button
@@ -201,9 +205,9 @@ const OnboardingZone = () => {
               </button>
             ))}
           </div>
-        </header>
-        <main className='container mx-auto p-4'>
-          <div className='mt-20 flex flex-col items-center justify-center'>
+        </header> */}
+        <main className='container mx-auto px-4 py-6'>
+          <div className='flex flex-col items-center justify-center'>
             <img src={sadMaskImg} alt='Error' className='mb-4 h-32 w-32' />
             <p className='mb-2 text-2xl font-medium text-white'>Unable to load shop data.</p>
             <p className='mb-4 text-gray-400'>Error: {error.message}</p>
@@ -222,7 +226,7 @@ const OnboardingZone = () => {
   // --- MAIN ---
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
-      <header className='bg-gray-900 shadow-sm'>
+      {/* <header className='bg-gray-900 shadow-sm'>
         <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
           {orderedCategories.map((category) => (
             <button
@@ -240,10 +244,9 @@ const OnboardingZone = () => {
             </button>
           ))}
         </div>
-      </header>
-
-      <main className='container mx-auto space-y-6 p-4'>
-        <div className='mt-5 flex items-center justify-between pb-4'>
+      </header> */}
+      <main className='container mx-auto space-y-6 px-4 py-6'>
+        <div className='flex items-center justify-between'>
           <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>
             <Search
               searchTerm={searchInput}
@@ -253,7 +256,7 @@ const OnboardingZone = () => {
             />
           </div>
           <div className='ml-4 flex items-center space-x-3'>
-            {filters.postcode && (
+            {(filters.postcode || filters.category !== '' || city) && (
               <button
                 onClick={handleClearFilters}
                 className='ml-2 rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
@@ -303,8 +306,7 @@ const OnboardingZone = () => {
         {isSearchMode && (
           <div className='mb-4'>
             <h2 className='mb-2 text-xl font-semibold text-gray-200'>
-              Search Results for "{debouncedSearchQuery}" in{' '}
-              {categoryMapping[filters.category].label}
+              Search Results for "{debouncedSearchQuery}" in {getCategoryLabel(filters.category)}
             </h2>
             <p className='text-sm text-gray-400'>
               {isLoading ? 'Searching...' : `Found ${displayShops.length} results`}
@@ -315,9 +317,11 @@ const OnboardingZone = () => {
         {/* Active Filters Summary */}
         {(filters.postcode || city || ordering.length > 0) && (
           <div className={`text-md px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-            <span>Showing results for</span>
+            <span>Showing </span>
+            <strong>{getCategoryLabel(filters.category)}</strong>
+            <span> results</span>
+            {(city || filters.postcode) && <span> for</span>}
             {filters.postcode && <strong> {filters.postcode}</strong>}
-            {city && <strong> {city}</strong>}
             {ordering?.length > 0 && (
               <>
                 {' '}
@@ -341,7 +345,7 @@ const OnboardingZone = () => {
             <img src={sadMaskImg} alt='No Results' className='mb-4 h-32 w-32' />
             <p className='text-center text-2xl font-medium text-white'>
               {isSearchMode
-                ? `No results found for "${debouncedSearchQuery}" in ${categoryMapping[filters.category].label}`
+                ? `No results found for "${debouncedSearchQuery}" in ${getCategoryLabel(filters.category)}`
                 : 'No shops found. Try another category or search term.'}
             </p>
           </div>
