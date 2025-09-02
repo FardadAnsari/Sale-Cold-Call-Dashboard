@@ -162,21 +162,63 @@ const OnboardingZone = () => {
   if (isLoading && !data) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
-        {/* <header className='bg-gray-900 shadow-sm'>
-          <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
-            {orderedCategories.map((category) => (
-              <button
-                key={category}
-                disabled
-                className='flex flex-1 items-center justify-center gap-2 py-4 text-lg text-gray-400 opacity-50'
-              >
-                {getIconForCategory(category)}
-                <span>{categoryMapping[category].label}</span>
-              </button>
-            ))}
-          </div>
-        </header> */}
         <main className='container mx-auto px-4 py-6'>
+          <div className='flex items-center justify-between'>
+            <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>
+              <Search
+                searchTerm={searchInput}
+                setSearchTerm={setSearchInput}
+                isDarkMode={isDarkMode}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className='ml-4 flex items-center space-x-3'>
+              {(filters.postcode || filters.category !== '' || city) && (
+                <button
+                  onClick={handleClearFilters}
+                  className='ml-2 rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
+                >
+                  Clear Filters
+                </button>
+              )}
+              <div className='relative inline-block text-left'>
+                <button
+                  onClick={() => setShowFilter(true)}
+                  disabled={isLoading}
+                  className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${
+                    isLoading ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                >
+                  <FilterIcon fill={'white'} />
+                  <span>Filter</span>
+                </button>
+                {showFilter && (
+                  <div>
+                    <div
+                      className='fixed inset-0 z-40 bg-black/20 backdrop-blur-sm'
+                      onClick={handleCancelFilter}
+                    ></div>
+                    <div className='absolute right-0 z-50 mt-2'>
+                      <ShopsFilter
+                        isDarkMode={isDarkMode}
+                        filters={pendingFilters}
+                        setFilters={setPendingFilters}
+                        city={city}
+                        setCity={setCity}
+                        onClose={handleCancelFilter}
+                        onApply={() => {
+                          setFilters(pendingFilters);
+                          setCurrentPage(1);
+                          refetch(); // optional; useQuery refetches via key changes
+                          setShowFilter(false);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <div className='mt-20 flex items-center justify-center'>
             <div className='text-center'>
               <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
@@ -192,21 +234,63 @@ const OnboardingZone = () => {
   if (error) {
     return (
       <div className='min-h-screen bg-gray-900 text-white'>
-        {/* <header className='bg-gray-900 shadow-sm'>
-          <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
-            {orderedCategories.map((category) => (
-              <button
-                key={category}
-                disabled
-                className='flex flex-1 items-center justify-center gap-2 py-4 text-lg text-gray-400 opacity-50'
-              >
-                {getIconForCategory(category)}
-                <span>{categoryMapping[category].label}</span>
-              </button>
-            ))}
-          </div>
-        </header> */}
         <main className='container mx-auto px-4 py-6'>
+          <div className='flex items-center justify-between'>
+            <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>
+              <Search
+                searchTerm={searchInput}
+                setSearchTerm={setSearchInput}
+                isDarkMode={isDarkMode}
+                isLoading={isLoading}
+              />
+            </div>
+            <div className='ml-4 flex items-center space-x-3'>
+              {(filters.postcode || filters.category !== '' || city) && (
+                <button
+                  onClick={handleClearFilters}
+                  className='ml-2 rounded border border-gray-600 bg-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-600'
+                >
+                  Clear Filters
+                </button>
+              )}
+              <div className='relative inline-block text-left'>
+                <button
+                  onClick={() => setShowFilter(true)}
+                  disabled={isLoading}
+                  className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${
+                    isLoading ? 'cursor-not-allowed opacity-50' : ''
+                  }`}
+                >
+                  <FilterIcon fill={'white'} />
+                  <span>Filter</span>
+                </button>
+                {showFilter && (
+                  <div>
+                    <div
+                      className='fixed inset-0 z-40 bg-black/20 backdrop-blur-sm'
+                      onClick={handleCancelFilter}
+                    ></div>
+                    <div className='absolute right-0 z-50 mt-2'>
+                      <ShopsFilter
+                        isDarkMode={isDarkMode}
+                        filters={pendingFilters}
+                        setFilters={setPendingFilters}
+                        city={city}
+                        setCity={setCity}
+                        onClose={handleCancelFilter}
+                        onApply={() => {
+                          setFilters(pendingFilters);
+                          setCurrentPage(1);
+                          refetch(); // optional; useQuery refetches via key changes
+                          setShowFilter(false);
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
           <div className='flex flex-col items-center justify-center'>
             <img src={sadMaskImg} alt='Error' className='mb-4 h-32 w-32' />
             <p className='mb-2 text-2xl font-medium text-white'>Unable to load shop data.</p>
@@ -226,25 +310,6 @@ const OnboardingZone = () => {
   // --- MAIN ---
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
-      {/* <header className='bg-gray-900 shadow-sm'>
-        <div className='flex rounded-b-2xl bg-gray-700 px-3 py-4'>
-          {orderedCategories.map((category) => (
-            <button
-              key={category}
-              onClick={() => handleCategoryClick(category)}
-              disabled={isLoading}
-              className={`flex flex-1 items-center justify-center gap-2 py-4 text-lg transition-all ${
-                filters.category === category
-                  ? 'scale-95 rounded-lg bg-gray-600 text-gray-200'
-                  : 'bg-gray-700 text-gray-400'
-              } ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
-            >
-              {getIconForCategory(category)}
-              <span>{categoryMapping[category].label}</span>
-            </button>
-          ))}
-        </div>
-      </header> */}
       <main className='container mx-auto space-y-6 px-4 py-6'>
         <div className='flex items-center justify-between'>
           <div className='max-w-md flex-grow md:max-w-xl lg:max-w-2xl'>

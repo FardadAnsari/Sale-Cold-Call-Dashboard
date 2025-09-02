@@ -83,14 +83,14 @@ const Leads = () => {
       <main className='container mx-auto space-y-6 px-4 py-6'>
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} isDarkMode={isDarkMode} />
         {isLoading && (
-          <div className='flex justify-center py-16'>
+          
             <div className='mt-20 flex items-center justify-center'>
               <div className='text-center'>
                 <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
                 <p className='text-xl text-gray-300'>Loading leads data...</p>
               </div>
             </div>
-          </div>
+         
         )}
         {!isLoading && !isError && (
           <>
