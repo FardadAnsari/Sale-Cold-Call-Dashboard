@@ -380,7 +380,7 @@ const OnboardingZone = () => {
         )}
 
         {/* Active Filters Summary */}
-        {(filters.postcode || city || ordering.length > 0) && (
+        {(filters.category || filters.postcode || city || ordering.length > 0) && (
           <div className={`text-md px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <span>Showing </span>
             <strong>{getCategoryLabel(filters.category)}</strong>
