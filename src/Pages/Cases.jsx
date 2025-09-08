@@ -30,9 +30,12 @@ const Cases = () => {
   const initialSelectedDate = initialDateStr ? new Date(initialDateStr) : null;
 
   // --- search / page ---
-  const [searchInput, setSearchInput] = useState(initialQ);
-  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(initialQ);
+  const [searchInput, setSearchInput] = useState(() => searchParams.get('q') || '');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(
+    () => searchParams.get('q') || ''
+  );
   const [currentPage, setCurrentPage] = useState(initialPage);
+
 
   // --- filters in effect (used by query) ---
   const [filters, setFilters] = useState({
@@ -130,7 +133,6 @@ const Cases = () => {
   // --- KEEP URL IN SYNC (like OnboardingZone) ---
   useEffect(() => {
     const params = {
-      q: debouncedSearchQuery || undefined,
       page: currentPage > 1 ? String(currentPage) : undefined,
       category: filters.category || undefined,
       postcode: filters.postcode || undefined,
@@ -152,6 +154,7 @@ const Cases = () => {
     ordering,
     setSearchParams,
   ]);
+  
 
   // --- DATA FETCH ---
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
@@ -180,6 +183,11 @@ const Cases = () => {
     },
     keepPreviousData: true,
   });
+
+
+const displayCases = data?.results || [];
+const totalPages = data?.totalPages || 1;
+const isSearchMode = debouncedSearchQuery.trim().length > 0;
 
   const overallLoading = isLoading || isFetching;
   const isEmpty = !overallLoading && data?.results?.length === 0;
@@ -315,6 +323,15 @@ const Cases = () => {
             </div>
           </div>
         </div>
+
+        {isSearchMode && (
+          <div className='mb-4'>
+            <h2 className='mb-2 text-md font-semibold text-gray-200'>
+              Search results for “{debouncedSearchQuery}” in {getCategoryLabel(filters.category)}
+            </h2>
+          </div>
+        )}
+
         {/* Active Filters Summary */}
         {(filters.category ||
           filters.postcode ||
@@ -325,8 +342,7 @@ const Cases = () => {
             <span>Showing </span>
             <strong>{getCategoryLabel(filters.category)}</strong>
             <span> cases</span>
-            {(city || filters.postcode) && <span> for</span>}
-            {city && <strong> {city}</strong>}
+            {filters.postcode && <span> for</span>}
             {filters.postcode && <strong> {filters.postcode}</strong>}
             {filters.selectedDate && (
               <>

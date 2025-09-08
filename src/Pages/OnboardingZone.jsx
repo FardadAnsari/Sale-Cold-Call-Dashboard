@@ -82,7 +82,6 @@ const OnboardingZone = () => {
       postcode: filters.postcode || undefined,
       ordering: ordering.length ? ordering.join(',') : undefined,
       page: currentPage > 1 ? String(currentPage) : undefined,
-      q: debouncedSearchQuery || undefined,
     };
     const cleaned = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v != null && v !== '')
@@ -370,12 +369,9 @@ const OnboardingZone = () => {
 
         {isSearchMode && (
           <div className='mb-4'>
-            <h2 className='mb-2 text-xl font-semibold text-gray-200'>
+            <h2 className='mb-2 text-md font-semibold text-gray-200'>
               Search Results for "{debouncedSearchQuery}" in {getCategoryLabel(filters.category)}
             </h2>
-            <p className='text-sm text-gray-400'>
-              {isLoading ? 'Searching...' : `Found ${displayShops.length} results`}
-            </p>
           </div>
         )}
 
@@ -384,14 +380,12 @@ const OnboardingZone = () => {
         {(filters.category ||
           filters.postcode ||
           city ||
-          filters.selectedDate ||
           ordering.length > 0) && (
           <div className={`text-md px-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <span>Showing </span>
             <strong>{getCategoryLabel(filters.category)}</strong>
             <span> shops</span>
-            {(city || filters.postcode) && <span> for</span>}
-            {city && <strong> {city}</strong>}
+            {filters.postcode && <span> for</span>}
             {filters.postcode && <strong> {filters.postcode}</strong>}
            
             {ordering.length > 0 && (
