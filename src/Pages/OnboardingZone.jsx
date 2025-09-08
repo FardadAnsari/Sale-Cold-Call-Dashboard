@@ -380,14 +380,21 @@ const OnboardingZone = () => {
         )}
 
         {/* Active Filters Summary */}
-        {(filters.category || filters.postcode || city || ordering.length > 0) && (
-          <div className={`text-md px-3 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+
+        {(filters.category ||
+          filters.postcode ||
+          city ||
+          filters.selectedDate ||
+          ordering.length > 0) && (
+          <div className={`text-md px-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <span>Showing </span>
             <strong>{getCategoryLabel(filters.category)}</strong>
-            <span> results</span>
+            <span> shops</span>
             {(city || filters.postcode) && <span> for</span>}
+            {city && <strong> {city}</strong>}
             {filters.postcode && <strong> {filters.postcode}</strong>}
-            {ordering?.length > 0 && (
+           
+            {ordering.length > 0 && (
               <>
                 {' '}
                 • Sorted by <strong>{formatOrdering(ordering)}</strong>

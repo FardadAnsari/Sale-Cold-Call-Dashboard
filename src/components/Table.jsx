@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-// import { OpenIcon, ClosedIcon } from '../Icons';
 import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
 
 const Table = ({ shops = [], isDarkMode, ordering = [] , setOrdering }) => {
@@ -66,7 +65,13 @@ const handleSort = (field) => {
               </th>
               <th
                 scope='col'
-                className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                className={`text-l px-6 py-3 text-center font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Postcode
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
                 Service Type
               </th>
@@ -94,22 +99,10 @@ const handleSort = (field) => {
               </th>
               <th
                 scope='col'
-                className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
-              >
-                Postcode
-              </th>
-              <th
-                scope='col'
-                className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                className={`text-l px-6 py-3 text-center font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
                 Website
               </th>
-              {/* <th
-                scope='col'
-                className={`text-l px-6 py-3 text-right font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
-              >
-                Status
-              </th> */}
             </tr>
           </thead>
           <tbody
@@ -131,7 +124,12 @@ const handleSort = (field) => {
                   {shop.shop_name}
                 </td>
                 <td
-                  className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                  className={`px-6 py-4 text-center font-mono text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {shop.postcode}
+                </td>
+                <td
+                  className={`px-6 py-4 text-left text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
                 >
                   {shop.services}
                 </td>
@@ -145,25 +143,14 @@ const handleSort = (field) => {
                 >
                   {shop.reviews}
                 </td>
+
                 <td
-                  className={`px-6 py-4 text-right font-mono text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
-                >
-                  {shop.postcode}
-                </td>
-                <td
-                  className={`px-6 py-4 text-right text-sm whitespace-nowrap ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
+                  className={`px-6 py-4 text-center text-sm whitespace-nowrap ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}
                 >
                   <a href={shop.website} target='_balnk'>
                     {shop.website && shop.website !== 'None' ? 'Visit' : ''}
                   </a>
                 </td>
-                {/* <td
-                  className={`px-6 py-4 text-right whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
-                >
-                  <span className='inline-flex items-center'>
-                    {shops.is_open_now ? <OpenIcon /> : <ClosedIcon />}
-                  </span>
-                </td> */}
               </tr>
             ))}
           </tbody>
@@ -184,7 +171,6 @@ const handleSort = (field) => {
               <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                 {shop.shop_name}
               </h3>
-              {/* {shops.is_open_now ? <OpenIcon /> : <ClosedIcon />} */}
             </div>
             <div className='flex justify-between'>
               <p className='text-sm'>{shop.postcode}</p>
