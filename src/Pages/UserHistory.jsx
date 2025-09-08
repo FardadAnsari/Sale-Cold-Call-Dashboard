@@ -4,12 +4,13 @@ import Pagination from '../components/Pagination';
 import { FilterIcon } from '../Icons';
 
 import sadMaskImg from '../images/sad-mask.png';
-import HistoryFilter from '../components/HistoryFilter';
 import HistoryContent from '../components/HistoryContent';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
 import { useParams } from 'react-router-dom';
+import DateFilter from '@components/DateFilter';
+import { BsCalendar2Date } from 'react-icons/bs';
 
 const UserHistory = () => {
   const { id } = useParams();
@@ -145,10 +146,9 @@ const UserHistory = () => {
               <button
                 onClick={() => setShowDatePicker(true)}
                 disabled={overallLoading}
-                className={`flex items-center gap-2 rounded border bg-gray-700 px-4 py-2 text-gray-200 transition-colors hover:bg-gray-600 ${overallLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+                className={`flex items-center gap-2 rounded border bg-gray-700 p-2 text-gray-200 transition-colors hover:bg-gray-600 ${overallLoading ? 'cursor-not-allowed opacity-50' : ''}`}
               >
-                <FilterIcon fill={'white'} />
-                <span>Filter by Date</span>
+             <BsCalendar2Date size={25} fill={'white'} />
               </button>
               {showDatePicker && (
                 <>
@@ -157,7 +157,7 @@ const UserHistory = () => {
                     onClick={handleCancelDateFilter}
                   ></div>
                   <div className='absolute right-0 z-50 mt-2'>
-                    <HistoryFilter
+                    <DateFilter
                       isDarkMode={isDarkMode}
                       onClose={handleCancelDateFilter}
                       onApply={handleApplyDateFilter}

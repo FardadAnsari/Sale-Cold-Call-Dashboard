@@ -1,11 +1,10 @@
-// src/components/HistoryFilter.jsx
+
 import React, { useState, useEffect } from 'react';
-// Import image assets
 import calendarImg from '../images/calendar.png';
 import arrowleftImg from '../images/arrow-left.png';
 import arrowrightImg from '../images/arrow-right.png';
 
-const HistoryFilter = ({
+const DateFilter = ({
   isDarkMode,
   onClose,
   onApply = () => {}, // onApply will be called when the user clicks 'Apply'
@@ -99,7 +98,7 @@ const HistoryFilter = ({
         }`}>
           <img src={calendarImg} alt="Calendar Icon" className="w-5 h-5" />
           <span className="text-center flex-grow">
-            {tempSelectedDate ? tempSelectedDate.toLocaleDateString('en-GB') : 'Select date'}
+            {tempSelectedDate ? tempSelectedDate.toLocaleDateString('en-GB') : 'Select Start Time'}
           </span>
         </div>
       </div>
@@ -180,4 +179,4 @@ const HistoryFilter = ({
   );
 };
 
-export default HistoryFilter;
+export default DateFilter;
