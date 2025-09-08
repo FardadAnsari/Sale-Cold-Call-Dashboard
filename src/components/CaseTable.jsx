@@ -1,8 +1,9 @@
 import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for row click navigation
+import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate for row click navigation
 
 const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const handleSort = (field) => {
     let newOrdering = [...ordering];
     const ascIndex = newOrdering.indexOf(field);
@@ -36,8 +37,10 @@ const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
     );
   }
 
-  const handleRowClick = (caseId) => {
-    navigate(`/cases/${caseId}`);
+   const handleRowClick = (caseId) => {
+    navigate(`/cases/${caseId}${location.search}`, {
+    state: { from: `/cases${location.search}` },
+   });
   };
 
   return (
@@ -58,6 +61,12 @@ const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
                 className={`text-l px-6 py-6 text-left font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
               >
                 Shop Name
+              </th>
+              <th
+                scope='col'
+                className={`text-l px-6 py-3 text-center font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+              >
+                Postcode
               </th>
               <th
                 onClick={() => handleSort('session_start_date')}
@@ -112,6 +121,11 @@ const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
                   className={`px-6 py-4 text-sm font-medium whitespace-nowrap ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}
                 >
                   {caseItem.shop}
+                </td>
+                <td
+                  className={`px-6 py-4 text-center text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}
+                >
+                  {caseItem.postcode}
                 </td>
                 <td
                   className={`px-6 py-4 text-center text-sm whitespace-nowrap ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}

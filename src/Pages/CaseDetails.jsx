@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import CaseHistory from '../components/CaseHistory';
 import shopIcon from '../images/shopicon.png';
@@ -64,6 +64,8 @@ const parseOpeningHours = (openingHoursData) => {
 const CaseDetails = ({ isDarkMode }) => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
+    const backTarget = location.state?.from || `/cases${location.search || ''}`;
     const authToken = sessionStorage.getItem('authToken');
     const [activeLeftTab, setActiveLeftTab] = useState('details');
 
@@ -144,11 +146,14 @@ const CaseDetails = ({ isDarkMode }) => {
 
   if (isError) {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center p-8 bg-gray-900 text-red-400 min-h-screen">
-        <img src={sadMaskImg} alt="Error" className="w-32 h-32 mb-4" />
-        <p className="mb-2 text-xl font-medium">Error loading case details:</p>
-        <p className="text-center mb-4">{error.message}</p>
-        <button onClick={() => navigate('/cases')} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">
+      <div className='flex min-h-screen flex-1 flex-col items-center justify-center bg-gray-900 p-8 text-red-400'>
+        <img src={sadMaskImg} alt='Error' className='mb-4 h-32 w-32' />
+        <p className='mb-2 text-xl font-medium'>Error loading case details:</p>
+        <p className='mb-4 text-center'>{error.message}</p>
+        <button
+          onClick={() => navigate(backTarget)}
+          className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
+        >
           Go Back to Cases
         </button>
       </div>
@@ -157,11 +162,16 @@ const CaseDetails = ({ isDarkMode }) => {
 
   if (!caseDetails) {
     return (
-      <div className="flex flex-col flex-1 items-center justify-center p-8 bg-gray-900 text-gray-400 min-h-screen">
-        <img src={sadMaskImg} alt="Sad Mask" className="w-32 h-32 mb-4" />
-        <p className="mb-2 text-xl font-medium">No details found for this case.</p>
-        <p className="text-sm text-center mb-4">The case ID `{id}` might be invalid or no data is available.</p>
-        <button onClick={() => navigate('/cases')} className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded transition-colors">
+      <div className='flex min-h-screen flex-1 flex-col items-center justify-center bg-gray-900 p-8 text-gray-400'>
+        <img src={sadMaskImg} alt='Sad Mask' className='mb-4 h-32 w-32' />
+        <p className='mb-2 text-xl font-medium'>No details found for this case.</p>
+        <p className='mb-4 text-center text-sm'>
+          The case ID `{id}` might be invalid or no data is available.
+        </p>
+        <button
+          onClick={() => navigate(backTarget)}
+          className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
+        >
           Go Back to Cases
         </button>
       </div>
@@ -198,7 +208,7 @@ const CaseDetails = ({ isDarkMode }) => {
         }
       `}</style>
       <button
-        onClick={() => navigate('/cases')}
+        onClick={() => navigate(backTarget)}
         className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
         aria-label='Go back to Cases'
       >
@@ -238,16 +248,17 @@ const CaseDetails = ({ isDarkMode }) => {
 
                   <div className='flex items-center gap-2'>
                     <p className={commonClasses.valueName}>{caseDetails.googlemaps.shop_name}</p>
-                    {caseDetails.googlemaps.website && caseDetails.googlemaps.website !== "None" && (
-                      <a
-                        href={caseDetails.googlemaps.website}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='text-xs text-blue-400 hover:underline'
-                      >
-                        visit website
-                      </a>
-                    )}
+                    {caseDetails.googlemaps.website &&
+                      caseDetails.googlemaps.website !== 'None' && (
+                        <a
+                          href={caseDetails.googlemaps.website}
+                          target='_blank'
+                          rel='noopener noreferrer'
+                          className='text-xs text-blue-400 hover:underline'
+                        >
+                          visit website
+                        </a>
+                      )}
                   </div>
                 </div>
               </div>
