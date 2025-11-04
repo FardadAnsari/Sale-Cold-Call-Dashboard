@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation } from '@tanstack/react-query';
-import CreateLead from './CreateLead';
 import plusIcon from '../images/Plus.png';
 import deleteContainerImg from '../images/DeleteContainer.png';
 import Swal from 'sweetalert2';
@@ -9,8 +8,8 @@ import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
 import useUser from 'src/useUser';
 
-const CallHistory = ({ isDarkMode = true , shopId}) => {
- const { data: user} = useUser();
+const CallHistory = ({ isDarkMode = true, shopId }) => {
+  const { data: user } = useUser();
   const {
     register: registerCase,
     handleSubmit: handleSubmitCase,
@@ -24,8 +23,8 @@ const CallHistory = ({ isDarkMode = true , shopId}) => {
     formState: { errors: summaryErrors },
     reset: resetSummary,
   } = useForm();
-const [sessionId, setSessionId]= useState(0)
 
+  const [sessionId, setSessionId] = useState(0);
   const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
   const [availability, setAvailability] = useState({
     Monday: [],
@@ -37,46 +36,11 @@ const [sessionId, setSessionId]= useState(0)
     Sunday: [],
   });
   const [openDay, setOpenDay] = useState('Monday');
-  const [activeInternalTab, setActiveInternalTab] = useState('callSummary');
   const [caseCreated, setCaseCreated] = useState(false);
-useEffect(() => {
-  console.log('Received shopId in CallHistory:', shopId);
-}, [shopId]);
-  const formClasses = {
-    container: `flex-1 bg-gray-700 rounded-lg shadow-md p-4 flex flex-col h-full relative`,
-    heading: `text-lg font-semibold mb-3 ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`,
-    label: `block text-sm font-medium mb-1 ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`,
-    requiredStar: `text-red-500 ml-1`,
-    inputGroup: `relative flex items-center`,
-    inputBase: `w-full h-[36px] py-2 px-3 text-sm font-medium border border-gray-600 rounded-md focus:outline-none focus:ring-1
-      ${isDarkMode
-        ? 'bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400'
-        : 'bg-gray-100 border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
-      } placeholder:text-xs`,
-    clearButton: `absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 cursor-pointer text-lg font-bold`,
-    textArea: `w-full p-2 border rounded-md focus:outline-none focus:ring-1 resize-none text-sm ${
-      isDarkMode
-        ? 'bg-gray-600 border-gray-600 text-gray-100 placeholder-gray-400 focus:border-yellow-400 focus:ring-yellow-400'
-        : 'border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
-    } placeholder:text-xs`,
-    select: `w-full h-[36px] py-2 px-3 text-sm appearance-none border border-gray-600 rounded-md focus:outline-none focus:ring-1
-      ${isDarkMode
-        ? 'bg-gray-600 text-gray-100 focus:border-orange-400 focus:ring-orange-400'
-        : 'bg-gray-100 border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
-      }`,
-    selectArrow: `pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 ${isDarkMode ? 'text-orange-400' : 'text-gray-400'}`,
-    buttonAddAvailability: `flex-1 h-[28px] flex items-center justify-center gap-1 px-2 rounded-md transition-colors duration-200 text-white text-sm font-medium
-      border border-white bg-gray-700 hover:bg-gray-800 whitespace-nowrap`,
-    buttonCreateCase: `w-full h-[36px] mt-2 mb-2 px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors duration-200 font-medium`,
-    buttonSubmit: `w-full h-[36px] px-4 py-2 bg-orange-500 text-white text-sm rounded-md hover:bg-orange-600 transition-colors duration-200 font-medium
-      disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-orange-500`,
-    availabilitySection: `bg-gray-800 p-3 rounded-md mb-2`,
-    availabilityDayHeader: `flex justify-between items-center cursor-pointer`,
-    availabilityDayContent: `mt-3 space-y-2`,
-    timeSlotContainer: `flex items-center gap-2`,
-    timeInput: `bg-gray-600 border border-gray-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:border-orange-400`,
-    scrollableArea: `flex-1 overflow-y-auto pr-2 pb-4 custom-scrollbar`,
-  };
+
+  useEffect(() => {
+    console.log('Received shopId in CallHistory:', shopId);
+  }, [shopId]);
 
   const handleTimeChange = (day, index, field, value) => {
     setAvailability((prev) => ({
@@ -93,7 +57,7 @@ useEffect(() => {
   };
 
   const removeTimeSlot = (day, index) => {
-    setAvailability(prev => ({
+    setAvailability((prev) => ({
       ...prev,
       [day]: prev[day].filter((_, i) => i !== index),
     }));
@@ -119,11 +83,7 @@ useEffect(() => {
   const onSubmitCreateCase = async (formData) => {
     try {
       const authToken = sessionStorage.getItem('authToken');
-      // const now = new Date();
-      // const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
       const leadPayload = {
-        // start_time: localISO,
-        // last_update: localISO,
         start_time: new Date().toISOString(),
         last_update: new Date().toISOString(),
         close_time: new Date().toISOString(),
@@ -138,19 +98,15 @@ useEffect(() => {
         },
       };
 
-      const res = await axios.post(
-        `${API_BASE_URL}/history/create-sale-session/`,
-        leadPayload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
+      const res = await axios.post(`${API_BASE_URL}/history/create-sale-session/`, leadPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
       console.log(res);
-      resetCase()
-      
+      resetCase();
+
       setSessionId(res?.data?.sale_session_id);
       setCaseCreated(true);
 
@@ -174,30 +130,31 @@ useEffect(() => {
       });
     }
   };
-const submitCallSummary = async (data) => {
-  const token = sessionStorage.getItem('authToken');
-  const now = new Date();
-  const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
-  const payload = {
-    date: new Date().toISOString(),
-    user_id: user.id || 0,
-    call_time: localISO,
-    sale_session_id: sessionId ?? 0, // adjust if needed
-    call_description: data.callDescription,
-    stage: data.callResult,
+
+  const submitCallSummary = async (data) => {
+    const token = sessionStorage.getItem('authToken');
+    const now = new Date();
+    const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString();
+    const payload = {
+      date: new Date().toISOString(),
+      user_id: user.id || 0,
+      call_time: localISO,
+      sale_session_id: sessionId ?? 0,
+      call_description: data.callDescription,
+      stage: data.callResult,
+    };
+    console.log(payload);
+
+    const res = await axios.post(`${API_BASE_URL}/history/create-history/`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log(res);
+
+    return res.data;
   };
-  console.log(payload);
-
-  const res = await axios.post(`${API_BASE_URL}/history/create-history/`, payload, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-  console.log(res);
-
-  return res.data;
-};
 
   const mutation = useMutation({
     mutationFn: submitCallSummary,
@@ -226,9 +183,8 @@ const submitCallSummary = async (data) => {
 
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-
   return (
-    <div className={formClasses.container}>
+    <div className='relative flex h-full flex-1 flex-col rounded-lg bg-gray-700 shadow-md'>
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
@@ -254,50 +210,20 @@ const submitCallSummary = async (data) => {
         }
       `}</style>
 
-      <div className='-mx-4 -mt-2 mb-4 flex border-b border-gray-600 px-4 pt-2'>
-        <button
-          className={`px-4 py-2 text-sm font-medium focus:outline-none ${
-            activeInternalTab === 'callSummary'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : `${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`
-          }`}
-          onClick={() => {
-            setActiveInternalTab('callSummary');
-          }}
-        >
-          Call Summary
-        </button>
-        <button
-          className={`px-4 py-2 text-sm font-medium focus:outline-none ${
-            activeInternalTab === 'createLead'
-              ? 'border-b-2 border-blue-500 text-blue-500'
-              : `${isDarkMode ? 'text-gray-400 hover:text-gray-200' : 'text-gray-600 hover:text-gray-800'}`
-          }`}
-          onClick={() => {
-            setActiveInternalTab('createLead');
-            setShowAvailabilityForm(false);
-          }}
-        >
-          Create Lead
-        </button>
-      </div>
-
-      {activeInternalTab === 'createLead' ? (
+      {showAvailabilityForm ? (
         <>
-          <div className={formClasses.scrollableArea}>
-            <CreateLead isDarkMode={isDarkMode} />
-          </div>
-        </>
-      ) : showAvailabilityForm ? (
-        <>
-          <h2 className={formClasses.heading}>Set Owner Availability</h2>
-          <div className={formClasses.scrollableArea}>
+          <h2
+            className={`mb-3 text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
+          >
+            Set Owner Availability
+          </h2>
+          <div className='custom-scrollbar flex-1 overflow-y-auto pr-2 pb-4'>
             <div className='flex h-full flex-col'>
               <div className='custom-scrollbar flex-1 overflow-y-auto pr-2'>
                 {daysOfWeek.map((day) => (
-                  <div key={day} className={formClasses.availabilitySection}>
+                  <div key={day} className='mb-2 rounded-md bg-gray-800 p-3'>
                     <div
-                      className={formClasses.availabilityDayHeader}
+                      className='flex cursor-pointer items-center justify-between'
                       onClick={() => setOpenDay(openDay === day ? null : day)}
                     >
                       <span className='font-medium text-gray-200'>{day}</span>
@@ -315,9 +241,9 @@ const submitCallSummary = async (data) => {
                       </svg>
                     </div>
                     {openDay === day && (
-                      <div className={formClasses.availabilityDayContent}>
+                      <div className='mt-3 space-y-2'>
                         {availability[day].map((slot, slotIndex) => (
-                          <div key={slotIndex} className={formClasses.timeSlotContainer}>
+                          <div key={slotIndex} className='flex items-center gap-2'>
                             <div className='flex flex-1 items-center gap-2'>
                               <input
                                 type='time'
@@ -325,7 +251,7 @@ const submitCallSummary = async (data) => {
                                 onChange={(e) =>
                                   handleTimeChange(day, slotIndex, 'start', e.target.value)
                                 }
-                                className={formClasses.timeInput}
+                                className='rounded border border-gray-500 bg-gray-600 px-2 py-1 text-sm text-white focus:border-orange-400 focus:outline-none'
                               />
                               <span className='text-sm text-gray-300'>To</span>
                               <input
@@ -334,7 +260,7 @@ const submitCallSummary = async (data) => {
                                 onChange={(e) =>
                                   handleTimeChange(day, slotIndex, 'end', e.target.value)
                                 }
-                                className={formClasses.timeInput}
+                                className='rounded border border-gray-500 bg-gray-600 px-2 py-1 text-sm text-white focus:border-orange-400 focus:outline-none'
                               />
                             </div>
                             <button
@@ -378,209 +304,249 @@ const submitCallSummary = async (data) => {
           </div>
         </>
       ) : (
-        <>
-          <div className={`flex flex-col gap-6 ${formClasses.scrollableArea}`}>
-            {/* Create Case Form */}
-            <form
-              onSubmit={handleSubmitCase(onSubmitCreateCase)}
-              className='space-y-4 rounded-lg bg-gray-800 p-4'
+        <div className={`custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto pr-2 pb-4`}>
+          {/* Create Case Form */}
+          <form
+            onSubmit={handleSubmitCase(onSubmitCreateCase)}
+            className='space-y-4 rounded-lg bg-gray-800 p-4'
+          >
+            <h1
+              className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
             >
-              <h1
-                className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
-              >
-                Create Case Form
-              </h1>
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <div>
-                  <label htmlFor='shopOwnerName' className={formClasses.label}>
-                    Shop Owner's Name
-                  </label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type='text'
-                      id='shopOwnerName'
-                      className={formClasses.inputBase}
-                      placeholder="Enter owner's name"
-                      {...registerCase('shopOwnerName')}
-                    />
-                  </div>
-                  {caseErrors.shopOwnerName && (
-                    <span className='text-xs text-red-500'>Required</span>
-                  )}
-                </div>
-
-                <div>
-                  <label htmlFor='shopOwnerPhone' className={formClasses.label}>
-                    Shop Owner's Phone
-                  </label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type='tel'
-                      id='shopOwnerPhone'
-                      className={formClasses.inputBase}
-                      placeholder="Enter owner's phone"
-                      {...registerCase('shopOwnerPhone')}
-                    />
-                  </div>
-                  {caseErrors.shopOwnerPhone && (
-                    <span className='text-xs text-red-500'>Required</span>
-                  )}
-                </div>
-              </div>
-
-              <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-                <div>
-                  <label htmlFor='gateKeeperName' className={formClasses.label}>
-                    Gate Keeper's Name
-                  </label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type='text'
-                      id='gateKeeperName'
-                      className={formClasses.inputBase}
-                      placeholder="Enter gatekeeper's name"
-                      {...registerCase('gateKeeperName')}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor='gateKeeperPhone' className={formClasses.label}>
-                    Gate Keeper's Phone
-                  </label>
-                  <div className={formClasses.inputGroup}>
-                    <input
-                      type='tel'
-                      id='gateKeeperPhone'
-                      className={formClasses.inputBase}
-                      placeholder="Enter gatekeeper's phone"
-                      {...registerCase('gateKeeperPhone')}
-                    />
-                  </div>
-                </div>
-              </div>
-
+              Create Case Form
+            </h1>
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
               <div>
-                <button
-                  type='button'
-                  onClick={toggleAvailabilityForm}
-                  className={formClasses.buttonAddAvailability}
+                <label
+                  htmlFor='shopOwnerName'
+                  className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
                 >
-                  <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
-                  Add Owner Availability
-                </button>
+                  Shop Owner's Name
+                </label>
+                <div className='relative flex items-center'>
+                  <input
+                    type='text'
+                    id='shopOwnerName'
+                    className={`h-[36px] w-full rounded-md border border-gray-600 px-3 py-2 text-sm font-medium focus:ring-1 focus:outline-none ${
+                      isDarkMode
+                        ? 'bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400'
+                        : 'border-gray-300 bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
+                    } placeholder:text-xs`}
+                    placeholder="Enter owner's name"
+                    {...registerCase('shopOwnerName')}
+                  />
+                </div>
+                {caseErrors.shopOwnerName && <span className='text-xs text-red-500'>Required</span>}
               </div>
 
-              {availability && (
-                <div className='mt-3 rounded-md bg-gray-900 p-3 text-sm text-gray-200'>
-                  <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
-                  <ul className='list-inside list-disc space-y-1'>
-                    {daysOfWeek.map((day) => {
-                      const validSlots = availability[day]?.filter(
-                        (slot) => slot.start !== '00:00' || slot.end !== '00:00'
-                      );
-                      if (validSlots && validSlots.length > 0) {
-                        const times = validSlots
-                          .map((slot) => `${slot.start}-${slot.end}`)
-                          .join(', ');
-                        return (
-                          <li key={day}>
-                            <span className='font-semibold'>{day}</span>: {times}
-                          </li>
-                        );
-                      }
-                      return null;
-                    })}
-                  </ul>
-                </div>
-              )}
-
-              <div className='flex justify-center'>
-                <button
-                  type='submit'
-                  className={formClasses.buttonCreateCase}
-                  disabled={caseCreated}
+              <div>
+                <label
+                  htmlFor='shopOwnerPhone'
+                  className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
                 >
-                  {caseCreated ? 'Case Created' : 'Create Case'}
-                </button>
-              </div>
-            </form>
-
-            {/* Call Summary Form */}
-            <form
-              onSubmit={handleSubmitSummary(mutation.mutate)}
-              className='space-y-4 rounded-lg bg-gray-800 p-4'
-            >
-              <h1
-                className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
-              >
-                Call Summary Form
-              </h1>
-              <div>
-                <label htmlFor='callResult' className={formClasses.label}>
-                  Select Call Result<span className={formClasses.requiredStar}>*</span>
+                  Shop Owner's Phone
                 </label>
-                <div className='relative'>
-                  <select
-                    id='callResult'
-                    className={formClasses.select}
-                    disabled={!caseCreated}
-                    {...registerSummary('callResult', { required: true })}
-                  >
-                    <option value=''>-- Select --</option>
-                    <option value='Intrested'>Interested</option>
-                    <option value='Appointment Is Set'>Appointment Is Set</option>
-                    <option value='Not Interested'>Not Interested</option>
-                    <option value='Follow Up'>Follow Up</option>
-                    <option value='Hung Up'>Hung Up</option>
-                    <option value='Fourth Action'>Fourth Action</option>
-                    <option value='No Answer'>No Answer</option>
-                    <option value='Invalid Number'>Invalid Number</option>
-                    <option value='Voice Mail'>Voice Mail</option>
-                    <option value='Wrong Number'>Wrong Number</option>
-                  </select>
-                  <div className={formClasses.selectArrow}>
-                    <svg className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
-                      <path
-                        fillRule='evenodd'
-                        d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
-                        clipRule='evenodd'
-                      />
-                    </svg>
-                  </div>
+                <div className='relative flex items-center'>
+                  <input
+                    type='tel'
+                    id='shopOwnerPhone'
+                    className={`h-[36px] w-full rounded-md border border-gray-600 px-3 py-2 text-sm font-medium focus:ring-1 focus:outline-none ${
+                      isDarkMode
+                        ? 'bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400'
+                        : 'border-gray-300 bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
+                    } placeholder:text-xs`}
+                    placeholder="Enter owner's phone"
+                    {...registerCase('shopOwnerPhone')}
+                  />
                 </div>
-                {summaryErrors.callResult && <span className='text-xs text-red-500'>Required</span>}
-              </div>
-
-              <div>
-                <label htmlFor='callDescription' className={formClasses.label}>
-                  Call Description<span className={formClasses.requiredStar}>*</span>
-                </label>
-                <textarea
-                  id='callDescription'
-                  rows='4'
-                  className={formClasses.textArea}
-                  placeholder='Enter call description...'
-                  disabled={!caseCreated}
-                  {...registerSummary('callDescription', { required: true })}
-                ></textarea>
-                {summaryErrors.callDescription && (
+                {caseErrors.shopOwnerPhone && (
                   <span className='text-xs text-red-500'>Required</span>
                 )}
               </div>
+            </div>
 
-              <div className='flex justify-center'>
-                <button
-                  type='submit'
-                  className={formClasses.buttonSubmit}
-                  disabled={!caseCreated || mutation.isLoading}
+            <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+              <div>
+                <label
+                  htmlFor='gateKeeperName'
+                  className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
                 >
-                  {mutation.isLoading ? 'Submitting...' : 'Submit Call Summary'}
-                </button>
+                  Gate Keeper's Name
+                </label>
+                <div className='relative flex items-center'>
+                  <input
+                    type='text'
+                    id='gateKeeperName'
+                    className={`h-[36px] w-full rounded-md border border-gray-600 px-3 py-2 text-sm font-medium focus:ring-1 focus:outline-none ${
+                      isDarkMode
+                        ? 'bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400'
+                        : 'border-gray-300 bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
+                    } placeholder:text-xs`}
+                    placeholder="Enter gatekeeper's name"
+                    {...registerCase('gateKeeperName')}
+                  />
+                </div>
               </div>
-            </form>
-          </div>
-        </>
+
+              <div>
+                <label
+                  htmlFor='gateKeeperPhone'
+                  className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
+                >
+                  Gate Keeper's Phone
+                </label>
+                <div className='relative flex items-center'>
+                  <input
+                    type='tel'
+                    id='gateKeeperPhone'
+                    className={`h-[36px] w-full rounded-md border border-gray-600 px-3 py-2 text-sm font-medium focus:ring-1 focus:outline-none ${
+                      isDarkMode
+                        ? 'bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400'
+                        : 'border-gray-300 bg-gray-100 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
+                    } placeholder:text-xs`}
+                    placeholder="Enter gatekeeper's phone"
+                    {...registerCase('gateKeeperPhone')}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <button
+                type='button'
+                onClick={toggleAvailabilityForm}
+                className='flex h-[28px] flex-1 items-center justify-center gap-1 rounded-md border border-white bg-gray-700 px-2 text-sm font-medium whitespace-nowrap text-white transition-colors duration-200 hover:bg-gray-800'
+              >
+                <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
+                Add Owner Availability
+              </button>
+            </div>
+
+            {availability && (
+              <div className='mt-3 rounded-md bg-gray-900 p-3 text-sm text-gray-200'>
+                <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
+                <ul className='list-inside list-disc space-y-1'>
+                  {daysOfWeek.map((day) => {
+                    const validSlots = availability[day]?.filter(
+                      (slot) => slot.start !== '00:00' || slot.end !== '00:00'
+                    );
+                    if (validSlots && validSlots.length > 0) {
+                      const times = validSlots
+                        .map((slot) => `${slot.start}-${slot.end}`)
+                        .join(', ');
+                      return (
+                        <li key={day}>
+                          <span className='font-semibold'>{day}</span>: {times}
+                        </li>
+                      );
+                    }
+                    return null;
+                  })}
+                </ul>
+              </div>
+            )}
+
+            <div className='flex justify-center'>
+              <button
+                type='submit'
+                className='mt-2 mb-2 h-[36px] w-full rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-orange-600'
+                disabled={caseCreated}
+              >
+                {caseCreated ? 'Case Created' : 'Create Case'}
+              </button>
+            </div>
+          </form>
+
+          {/* Call Summary Form */}
+          <form
+            onSubmit={handleSubmitSummary(mutation.mutate)}
+            className='space-y-4 rounded-lg bg-gray-800 p-4'
+          >
+            <h1
+              className={`text-md mb-2 block font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}
+            >
+              Call Summary Form
+            </h1>
+            <div>
+              <label
+                htmlFor='callResult'
+                className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
+              >
+                Select Call Result<span className='ml-1 text-red-500'>*</span>
+              </label>
+              <div className='relative'>
+                <select
+                  id='callResult'
+                  className={`h-[36px] w-full appearance-none rounded-md border border-gray-600 px-3 py-2 text-sm focus:ring-1 focus:outline-none ${
+                    isDarkMode
+                      ? 'bg-gray-600 text-gray-100 focus:border-orange-400 focus:ring-orange-400'
+                      : 'border-gray-300 bg-gray-100 text-gray-900 focus:border-blue-500 focus:ring-blue-500'
+                  }`}
+                  disabled={!caseCreated}
+                  {...registerSummary('callResult', { required: true })}
+                >
+                  <option value=''>-- Select --</option>
+                  <option value='Intrested'>Interested</option>
+                  <option value='Appointment Is Set'>Appointment Is Set</option>
+                  <option value='Not Interested'>Not Interested</option>
+                  <option value='Follow Up'>Follow Up</option>
+                  <option value='Hung Up'>Hung Up</option>
+                  <option value='Fourth Action'>Fourth Action</option>
+                  <option value='No Answer'>No Answer</option>
+                  <option value='Invalid Number'>Invalid Number</option>
+                  <option value='Voice Mail'>Voice Mail</option>
+                  <option value='Wrong Number'>Wrong Number</option>
+                </select>
+                <div
+                  className={`pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 ${isDarkMode ? 'text-orange-400' : 'text-gray-400'}`}
+                >
+                  <svg className='h-4 w-4' viewBox='0 0 20 20' fill='currentColor'>
+                    <path
+                      fillRule='evenodd'
+                      d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+                      clipRule='evenodd'
+                    />
+                  </svg>
+                </div>
+              </div>
+              {summaryErrors.callResult && <span className='text-xs text-red-500'>Required</span>}
+            </div>
+
+            <div>
+              <label
+                htmlFor='callDescription'
+                className={`mb-1 block text-sm font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-700'}`}
+              >
+                Call Description<span className='ml-1 text-red-500'>*</span>
+              </label>
+              <textarea
+                id='callDescription'
+                rows='4'
+                className={`w-full resize-none rounded-md border p-2 text-sm focus:ring-1 focus:outline-none ${
+                  isDarkMode
+                    ? 'border-gray-600 bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-yellow-400 focus:ring-yellow-400'
+                    : 'border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-blue-500'
+                } placeholder:text-xs`}
+                placeholder='Enter call description...'
+                disabled={!caseCreated}
+                {...registerSummary('callDescription', { required: true })}
+              ></textarea>
+              {summaryErrors.callDescription && (
+                <span className='text-xs text-red-500'>Required</span>
+              )}
+            </div>
+
+            <div className='flex justify-center'>
+              <button
+                type='submit'
+                className='h-[36px] w-full rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-orange-500'
+                disabled={!caseCreated || mutation.isLoading}
+              >
+                {mutation.isLoading ? 'Submitting...' : 'Submit Call Summary'}
+              </button>
+            </div>
+          </form>
+        </div>
       )}
     </div>
   );
