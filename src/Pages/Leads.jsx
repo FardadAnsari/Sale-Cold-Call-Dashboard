@@ -95,13 +95,11 @@ const Leads = () => {
         {!isLoading && !isError && (
           <>
             <div className='space-y-8'>
-              <div className='rounded-lg bg-gray-800 p-4'>
                 <LeadsTable
                   shops={paginatedLeads}
                   isDarkMode={isDarkMode}
                   onRowClick={handleRowClick}
                 />
-              </div>
             </div>
             <Pagination
               currentPage={currentPage}

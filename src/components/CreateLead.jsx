@@ -245,7 +245,7 @@ console.log(user);
   };
   // Tailwind CSS classes for consistent styling
   const formClasses = {
-    container: `bg-gray-700 rounded-lg shadow-md p-6 mt-6`,
+    container: `bg-gray-700 rounded-lg shadow-md p-6`,
     addNumberButton: `flex items-center justify-center px-4 py-2 border border-white rounded-md text-white text-sm font-medium transition-colors duration-200 bg-gray-800 hover:bg-gray-700 whitespace-nowrap ml-2 h-[43px]`,
     dateInput: `w-full h-[43px] py-2 px-3 font-medium border border-gray-600 rounded-md focus:outline-none focus:ring-1 bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400 placeholder:text-sm`,
     timeInput: `w-full h-[43px] py-2 px-3 font-medium border border-gray-600 rounded-md focus:outline-none focus:ring-1 bg-gray-600 text-gray-100 placeholder-gray-400 focus:border-orange-400 focus:ring-orange-400 placeholder:text-sm`,
