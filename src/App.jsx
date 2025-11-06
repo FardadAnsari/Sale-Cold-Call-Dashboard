@@ -3,16 +3,14 @@ import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import ScrollBar from './components/ScrollBar';
 import Sidebar from './components/Sidebar';
-import OnboardingZone from './Pages/OnboardingZone';
 import YourHistory from './Pages/YourHistory';
 import Login from './Pages/Login';
-import CaseDetails from './Pages/CaseDetails';
-import ShopDetails from './Pages/ShopDetails';
 import ProtectedRoute from './components/ProtectedRoute';
 import Leads from './Pages/Leads';
 import Cases from './Pages/Cases'; 
 import UsersHistories from './Pages/UsersHistories';
 import UserHistory from './Pages/UserHistory';
+import Shops from './Pages/Shops';
 
 // Create a client
 const queryClient = new QueryClient({
@@ -49,13 +47,11 @@ const App = () => {
         <Route path='/login' element={<Login />} />
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout isDarkMode={isDarkMode} toggleDarkMode={toggleDarkMode} />}>
-            <Route path='/shops' element={<OnboardingZone />} />
+            <Route path='/shops' element={<Shops />} />
             <Route path='/your-history' element={<YourHistory />} />
             <Route path='/users-histories' element={<UsersHistories />} />
             <Route path='/users-histories/:id' element={<UserHistory />} />
             <Route path='/cases' element={<Cases />} />
-            <Route path='/cases/:id' element={<CaseDetails isDarkMode={isDarkMode} />} />
-            <Route path='/shops/:id' element={<ShopDetails isDarkMode={isDarkMode} />} />
             <Route path='/leads' element={<Leads />} />
           </Route>
         </Route>
