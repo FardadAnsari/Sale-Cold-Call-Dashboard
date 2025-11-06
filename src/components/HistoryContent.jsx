@@ -1,15 +1,14 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
-const HistoryContent = ({ historyItems }) => {
+const HistoryContent = ({ historyItems, onOpenCase }) => {
   if (!historyItems || historyItems.length === 0) {
     return null;
   }
-console.log(historyItems);
+  console.log(historyItems);
 
   const limitDescription = (description, maxLength = 150) => {
     if (description && description.length > maxLength) {
-      return description.substring(0, maxLength) + '...'; // Add ellipsis if it's too long
+      return description.substring(0, maxLength) + '...';
     }
     return description;
   };
@@ -42,12 +41,12 @@ console.log(historyItems);
             </div>
           </div>
           <div className='mt-6 flex justify-center'>
-            <Link
+            <button
+              onClick={() => onOpenCase(item)}
               className='w-[95%] rounded-lg border border-gray-600 bg-gray-800 py-2 text-center text-sm font-medium text-blue-400 hover:bg-gray-700 hover:text-blue-300'
-              to={`/cases/${item.sale_session_id}`}
             >
               Open Relevant Case
-            </Link>
+            </button>
           </div>
         </div>
       ))}
