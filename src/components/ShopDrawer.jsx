@@ -6,39 +6,63 @@ import clsx from 'clsx';
 import ShopInfo from './ShopInfo';
 import CallHistory from './CallHistory';
 import CreateLead from './CreateLead';
+import ActivityHistory from './ActivityHistory';
 
-const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop }) => {
+const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, caseData, mode = 'shop' }) => {
+  const [sessionId, setSessionId] = useState('');
   const authToken = sessionStorage.getItem('authToken');
-  const [activeTab, setActiveTab] = useState('shopInfo');
+  const [activeTab, setActiveTab] = useState(mode === 'case' ? 'activity' : 'shopInfo');
 
-  // Fetch detailed shop data when drawer opens with a shop
-  const { data: detailedShop, isLoading } = useQuery({
-    queryKey: ['shopDetails', shop?.shop_id_GB],
+  // Fetch detailed data based on mode
+  const { data: detailedData, isLoading } = useQuery({
+    queryKey: [
+      mode === 'case' ? 'caseDetails' : 'shopDetails',
+      mode === 'case' ? caseData?.sale_session_id : shop?.shop_id_GB,
+    ],
     queryFn: async () => {
-      if (!shop?.shop_id_GB) return null;
+      if (mode === 'case') {
+        // Fetch case details
+        if (!caseData?.sale_session_id) return null;
 
-      const url = `${API_BASE_URL}/Shops/?id=${shop.shop_id_GB}`;
-
-      try {
-        const response = await axios.get(url, {
-          headers: {
-            accept: 'application/json',
-            Authorization: `Bearer ${authToken}`,
-          },
-        });
-
-        const data = response.data;
-
-        if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-          return data.results[0];
-        } else {
-          throw new Error('Shop details not found');
+        const url = `${API_BASE_URL}/history/get-sale-session-detail/${caseData.sale_session_id}/`;
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              Accept: 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+          return response.data;
+        } catch (err) {
+          throw new Error(`Error fetching case details: ${err.response?.status || 'unknown'}`);
         }
-      } catch (err) {
-        throw new Error(`Error fetching shop details: ${err.response?.status || 'unknown'}`);
+      } else {
+        // Fetch shop details (original functionality)
+        if (!shop?.shop_id_GB) return null;
+
+        const url = `${API_BASE_URL}/Shops/?id=${shop.shop_id_GB}`;
+        try {
+          const response = await axios.get(url, {
+            headers: {
+              accept: 'application/json',
+              Authorization: `Bearer ${authToken}`,
+            },
+          });
+
+          const data = response.data;
+          if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+            return data.results[0];
+          } else {
+            throw new Error('Shop details not found');
+          }
+        } catch (err) {
+          throw new Error(`Error fetching shop details: ${err.response?.status || 'unknown'}`);
+        }
       }
     },
-    enabled: isOpen && !!shop?.shop_id_GB,
+    enabled:
+      isOpen &&
+      ((mode === 'case' && !!caseData?.sale_session_id) || (mode === 'shop' && !!shop?.shop_id_company)),
   });
 
   const tabClasses = {
@@ -48,6 +72,16 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop }) => {
       ? 'text-gray-400 hover:text-gray-200 border-b-2 border-transparent'
       : 'text-gray-600 hover:text-gray-800 border-b-2 border-transparent',
   };
+
+  // Determine available tabs based on mode
+  const getAvailableTabs = () => {
+    if (mode === 'case') {
+      return ['activity', 'shopInfo', 'callSummary', 'createLead'];
+    }
+    return ['shopInfo', 'callSummary', 'createLead', 'activity'];
+  };
+
+  const availableTabs = getAvailableTabs();
 
   return (
     <>
@@ -63,12 +97,12 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop }) => {
       {/* Drawer */}
       <div
         className={clsx(
-          'fixed top-0 right-0 z-50 h-full w-1/3 overflow-y-auto bg-gray-800 text-white shadow-xl transition-transform duration-300 ease-in-out ',
+          'fixed top-0 right-0 z-50 flex h-full w-2/5 flex-col bg-gray-800 text-white shadow-xl transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
         {/* Close Button */}
-        <button
+        {/* <button
           className='absolute top-4 right-4 z-10 rounded-full bg-gray-700 p-2 text-white transition-colors duration-200 hover:bg-gray-600'
           onClick={onClose}
         >
@@ -82,100 +116,142 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop }) => {
           >
             <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
           </svg>
-        </button>
+        </button> */}
 
         {/* Tabs Navigation */}
-        <div className='border-b border-gray-700 bg-gray-800'>
+        <div className='flex-shrink-0 border-b border-gray-700 bg-gray-800'>
           <div className='flex'>
-            <button
-              className={clsx(
-                tabClasses.base,
-                activeTab === 'shopInfo' ? tabClasses.active : tabClasses.inactive
-              )}
-              onClick={() => setActiveTab('shopInfo')}
-            >
-              Shop Info
-            </button>
-            <button
-              className={clsx(
-                tabClasses.base,
-                activeTab === 'callSummary' ? tabClasses.active : tabClasses.inactive
-              )}
-              onClick={() => setActiveTab('callSummary')}
-            >
-              Call Summary
-            </button>
-            <button
-              className={clsx(
-                tabClasses.base,
-                activeTab === 'createLead' ? tabClasses.active : tabClasses.inactive
-              )}
-              onClick={() => setActiveTab('createLead')}
-            >
-              Create Lead
-            </button>
+            {availableTabs.includes('shopInfo') && (
+              <button
+                className={clsx(
+                  tabClasses.base,
+                  activeTab === 'shopInfo' ? tabClasses.active : tabClasses.inactive
+                )}
+                onClick={() => setActiveTab('shopInfo')}
+              >
+                Shop Info
+              </button>
+            )}
+            {availableTabs.includes('callSummary') && (
+              <button
+                className={clsx(
+                  tabClasses.base,
+                  activeTab === 'callSummary' ? tabClasses.active : tabClasses.inactive
+                )}
+                onClick={() => setActiveTab('callSummary')}
+              >
+                Call Summary
+              </button>
+            )}
+            {availableTabs.includes('createLead') && (
+              <button
+                className={clsx(
+                  tabClasses.base,
+                  activeTab === 'createLead' ? tabClasses.active : tabClasses.inactive
+                )}
+                onClick={() => setActiveTab('createLead')}
+              >
+                Create Lead
+              </button>
+            )}
+            {/* {availableTabs.includes('activity') && (
+              <button
+                className={clsx(
+                  tabClasses.base,
+                  activeTab === 'activity' ? tabClasses.active : tabClasses.inactive
+                )}
+                onClick={() => setActiveTab('activity')}
+              >
+                Activity History
+              </button>
+            )} */}
           </div>
         </div>
 
-        {/* Tab Content */}
-        <div className='h-full'>
+        {/* Tab Content - Single scrollable container */}
+        <div className='flex-1 overflow-hidden'>
           {/* Loading State */}
           {isLoading && (
             <div className='flex h-full items-center justify-center'>
               <div className='mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-b-2 border-orange-500'></div>
-              <p className='text-xl text-gray-300'>Loading shop details...</p>
+              <p className='text-xl text-gray-300'>
+                Loading {mode === 'case' ? 'case' : 'shop'} details...
+              </p>
             </div>
           )}
 
           {/* Shop Info Tab */}
-          {!isLoading && activeTab === 'shopInfo' && detailedShop && (
+          {!isLoading && activeTab === 'shopInfo' && detailedData && (
             <div className='h-full overflow-y-auto'>
               <ShopInfo
-                shop={detailedShop}
+                shop={mode === 'case' ? detailedData.googlemaps : detailedData}
                 isDarkMode={isDarkMode}
                 isDrawer={true}
                 onClose={onClose}
+                onSessionCreated={setSessionId}
               />
             </div>
           )}
 
           {/* Call Summary Tab */}
-          {!isLoading && activeTab === 'callSummary' && detailedShop && (
-            <div className='h-full p-4'>
+          {!isLoading && activeTab === 'callSummary' && detailedData && (
+            <div className='h-full overflow-y-auto p-4'>
               <CallHistory
                 isDarkMode={isDarkMode}
-                shopId={detailedShop.shop_id_company}
+                shopId={
+                  mode === 'case'
+                    ? detailedData.customer?.shop_id_company
+                    : detailedData.shop_id_company
+                }
+                sessionId={sessionId} // Pass sessionId
                 isDrawer={true}
-                hideInternalTabs={true} // Add this prop to hide internal tabs in drawer mode
+                hideInternalTabs={true}
               />
             </div>
           )}
 
           {/* Create Lead Tab */}
-          {!isLoading && activeTab === 'createLead' && detailedShop && (
-            <div className='h-full p-4'>
+          {!isLoading && activeTab === 'createLead' && detailedData && (
+            <div className='h-full overflow-y-auto p-4'>
               <CreateLead
                 isDarkMode={isDarkMode}
-                shopId={detailedShop.shop_id_company}
-                shopName={detailedShop.shop_name}
+                shopId={
+                  mode === 'case'
+                    ? detailedData.customer?.shop_id_company
+                    : detailedData.shop_id_company
+                }
+                shopName={
+                  mode === 'case' ? detailedData.googlemaps?.shop_name : detailedData.shop_name
+                }
                 isDrawer={true}
               />
             </div>
           )}
 
-          {/* Error State */}
-          {!isLoading && shop && !detailedShop && (
-            <div className='flex h-full flex-col items-center justify-center p-8 text-red-400'>
-              <p className='mb-2 text-xl font-medium'>Error loading shop details</p>
-              <p className='mb-4 text-center'>Unable to load details for this shop.</p>
-              <button
-                onClick={onClose}
-                className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
-              >
-                Close
-              </button>
+          {/* Activity History Tab */}
+          {!isLoading && activeTab === 'activity' && detailedData && (
+            <div className='h-full overflow-y-auto p-4'>
+              <ActivityHistory caseDetails={detailedData} isDarkMode={isDarkMode} isDrawer={true} />
             </div>
           )}
+
+          {/* Error State */}
+          {!isLoading &&
+            ((mode === 'case' && caseData) || (mode === 'shop' && shop)) &&
+            !detailedData && (
+              <div className='flex h-full flex-col items-center justify-center p-8 text-red-400'>
+                <p className='mb-2 text-xl font-medium'>
+                  Error loading {mode === 'case' ? 'case' : 'shop'} details
+                </p>
+                <p className='mb-4 text-center'>Unable to load details.</p>
+                <button
+                  onClick={onClose}
+                  className='rounded bg-orange-500 px-6 py-3 text-white transition-colors hover:bg-orange-600'
+                >
+                  Close
+                </button>
+              </div>
+            )}
         </div>
       </div>
     </>

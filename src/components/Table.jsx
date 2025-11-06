@@ -169,39 +169,6 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
             </tbody>
           </table>
         </div>
-
-        {/* Mobile View */}
-        <div
-          className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}
-        >
-          {shops.map((shop) => (
-            <div
-              key={shop.shop_id_GB}
-              onClick={() => handleRowClick(shop)}
-              className={`space-y-3 px-6 py-4 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}
-            >
-              <div className='flex items-center justify-between'>
-                <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                  {shop.shop_name}
-                </h3>
-              </div>
-              <div className='flex justify-between'>
-                <p className='text-sm'>{shop.postcode}</p>
-              </div>
-              <div className='text-right'>
-                <a
-                  href={shop.website}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='text-blue-500'
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {shop.website && shop.website !== 'None' ? 'Visit' : ''}
-                </a>
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <ShopDrawer

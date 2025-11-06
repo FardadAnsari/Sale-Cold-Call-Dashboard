@@ -10,6 +10,9 @@ import phoneIcon from '../images/phone2.png';
 import sadMaskImg from '../images/sad-mask.png';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
+import { useState } from 'react';
+import Swal from 'sweetalert2';
+import useUser from 'src/useUser';
 
 // Memoize the sanitize function to prevent recreating on every render
 const sanitizeString = (value, defaultValue = 'N/A') => {
@@ -64,12 +67,23 @@ const parseOpeningHours = (openingHoursData) => {
   return defaultHours;
 };
 
-const ShopInfo = ({ isDarkMode, isDrawer = false, onClose, shop: propShop }) => {
+const ShopInfo = ({
+  isDarkMode,
+  isDrawer = false,
+  onClose,
+  shop: propShop,
+  onSessionCreated,
+  hideCreateCase = false,
+}) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
   const backTo = location.state?.from || `/shops${location.search || ''}`;
   const authToken = sessionStorage.getItem('authToken');
+  const { data: user } = useUser();
+
+  const [sessionId, setSessionId] = useState('');
+  const [isCreatingCase, setIsCreatingCase] = useState(false);
 
   // Use prop shop if provided (from drawer), otherwise fetch by ID
   const {
@@ -111,6 +125,77 @@ const ShopInfo = ({ isDarkMode, isDrawer = false, onClose, shop: propShop }) => 
     },
     enabled: !!propShop || !!id,
   });
+
+  const handleCreateCase = async () => {
+    if (!shop?.shop_id_company) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'Shop information is not available.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+      return;
+    }
+
+    setIsCreatingCase(true);
+
+    try {
+      const leadPayload = {
+        start_time: new Date().toISOString(),
+        last_update: new Date().toISOString(),
+        close_time: new Date().toISOString(),
+        created_by: user?.id,
+        customer: {
+          shop_id_company: shop.shop_id_company,
+        },
+      };
+
+      const sessionResponse = await axios.post(
+        `${API_BASE_URL}/history/create-sale-session/`,
+        leadPayload,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+        }
+      );
+
+      const newSessionId = sessionResponse?.data?.sale_session_id;
+      setSessionId(newSessionId);
+
+      // Pass session ID to parent
+      if (onSessionCreated) {
+        onSessionCreated(newSessionId);
+      }
+
+      // Success message
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Case created successfully.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+
+      console.log('Case created with session ID:', newSessionId);
+    } catch (error) {
+      console.error('Create Case Error:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: 'An error occurred while creating the case.',
+        background: isDarkMode ? '#4A5568' : '#fff',
+        color: isDarkMode ? '#E2E8F0' : '#1A202C',
+        confirmButtonColor: '#A78BFA',
+      });
+    } finally {
+      setIsCreatingCase(false);
+    }
+  };
 
   // Loading state
   if (isLoading) {
@@ -161,73 +246,26 @@ const ShopInfo = ({ isDarkMode, isDrawer = false, onClose, shop: propShop }) => 
   const parsedOpeningHours = parseOpeningHours(shop.opening_hours);
 
   return (
-    <div
-      className={`relative mx-auto flex flex-col gap-6 p-6 lg:flex-row ${isDrawer ? 'h-full' : 'h-screen'} w-full ${isDrawer ? '' : 'lg:max-w-7xl'} overflow-hidden`}
-    >
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #374151;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #6b7280;
-          border-radius: 4px;
-          transition: background 0.2s ease;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #6b7280 #374151;
-          scroll-behavior: smooth;
-        }
-      `}</style>
-
-      {/* Back/Close Button - Only show if not in drawer mode, or show close button in drawer */}
-      {!isDrawer ? (
-        <button
-          onClick={() => navigate(backTo)}
-          className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
-          aria-label='Go back to Sale Zone'
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-6 w-6'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-            strokeWidth='2'
-          >
-            <path strokeLinecap='round' strokeLinejoin='round' d='M15 19l-7-7 7-7' />
-          </svg>
-        </button>
-      ) : (
-        <button
-          onClick={onClose}
-          className='absolute top-4 left-4 z-10 rounded-full bg-gray-800 p-2 text-gray-300 transition-colors duration-200 hover:bg-gray-700 hover:text-white'
-          aria-label='Close drawer'
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-6 w-6'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-            strokeWidth='2'
-          >
-            <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
-          </svg>
-        </button>
-      )}
-
-      <div className='flex min-w-0 flex-1 flex-col rounded-lg bg-gray-700 p-6 shadow-md'>
-        <div className='custom-scrollbar flex-1 overflow-y-auto pr-2 pb-4'>
-          <h2 className='mb-4 text-xl font-semibold text-gray-200'>Shop Details</h2>
-
+    <div className='flex h-full w-full flex-col gap-6 p-4'>
+      <div className='flex flex-1 flex-col rounded-lg bg-gray-700 shadow-md'>
+        <div className='p-4'>
+          <div className='flex items-center justify-between'>
+            <p className='mb-4 text-xl font-semibold text-gray-200'>Shop Details</p>
+            {/* Conditionally render Create Case button */}
+            {!hideCreateCase && (
+              <button
+                onClick={handleCreateCase}
+                disabled={isCreatingCase}
+                className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 ${
+                  isCreatingCase
+                    ? 'cursor-not-allowed bg-orange-400 text-white'
+                    : 'text-orange-500 hover:bg-orange-200'
+                }`}
+              >
+                {isCreatingCase ? 'Creating Case...' : 'Create Case'}
+              </button>
+            )}
+          </div>
           <div className='mb-4 flex items-start'>
             <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-5 w-5' />
             <div>
@@ -321,15 +359,17 @@ const ShopInfo = ({ isDarkMode, isDrawer = false, onClose, shop: propShop }) => 
               </>
             )}
           </div>
+
+          {/* Display session ID if case was created */}
+          {sessionId && (
+            <div className='mt-4 rounded-md bg-green-900 p-3'>
+              <p className='text-sm text-green-300'>
+                Case created successfully! Session ID: <strong>{sessionId}</strong>
+              </p>
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Call History - Only show if not in drawer mode or if there's enough space */}
-      {!isDrawer && (
-        <div className='flex min-w-0 flex-1 flex-col'>
-          <CallHistory isDarkMode={isDarkMode} shopId={shop.shop_id_company} />
-        </div>
-      )}
     </div>
   );
 };

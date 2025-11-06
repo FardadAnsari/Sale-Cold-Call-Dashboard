@@ -12,7 +12,7 @@ import sadMaskImg from '../images/sad-mask.png';
 import { API_BASE_URL } from 'src/api';
 import ShopsFilter from '../components/ShopsFilter';
 
-const OnboardingZone = () => {
+const Shops = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const authToken = sessionStorage.getItem('authToken');
 
@@ -418,7 +418,6 @@ const OnboardingZone = () => {
         ) : (
           <>
             <div className='space-y-8'>
-              <div className='rounded-lg bg-gray-800 p-4'>
                 <Table
                   shops={displayShops}
                   isDarkMode={isDarkMode}
@@ -428,7 +427,7 @@ const OnboardingZone = () => {
                     setCurrentPage(1);
                   }}
                 />
-              </div>
+              
             </div>
 
             <div className='mt-12 mb-8'>
@@ -446,4 +445,4 @@ const OnboardingZone = () => {
   );
 };
 
-export default OnboardingZone;
+export default Shops;
