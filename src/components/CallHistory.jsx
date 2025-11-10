@@ -175,7 +175,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
   const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
   return (
-    <div className='relative flex h-full flex-1 flex-col rounded-lg bg-gray-700 shadow-md'>
+    <div className='relative flex h-full flex-1 flex-col'>
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 8px;
@@ -293,9 +293,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
       ) : (
         <div className='custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto'>
           {/* Combined Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 rounded-lg p-4'>
-            <h1 className='text-md mb-2 block font-medium text-gray-300'>Call History Form</h1>
-
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 rounded-lg px-4'>
             {/* Case Creation Section */}
             <div className='space-y-4'>
               <h2 className='text-sm font-medium text-gray-400'>Shop Information</h2>
