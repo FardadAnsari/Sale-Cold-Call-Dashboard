@@ -8,7 +8,15 @@ import CallHistory from './CallHistory';
 import CreateLead from './CreateLead';
 import ActivityHistory from './ActivityHistory';
 
-const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, caseData, mode = 'shop' }) => {
+const ShopDrawer = ({
+  isOpen,
+  onClose,
+  isDarkMode = true,
+  shop,
+  caseData,
+  mode = 'shop',
+  onCaseCreated,
+}) => {
   const [sessionId, setSessionId] = useState('');
   const authToken = sessionStorage.getItem('authToken');
   const [activeTab, setActiveTab] = useState(mode === 'case' ? 'activity' : 'shopInfo');
@@ -62,15 +70,16 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, caseData, mode =
     },
     enabled:
       isOpen &&
-      ((mode === 'case' && !!caseData?.sale_session_id) || (mode === 'shop' && !!shop?.shop_id_company)),
+      ((mode === 'case' && !!caseData?.sale_session_id) ||
+        (mode === 'shop' && !!shop?.shop_id_company)),
   });
 
   const tabClasses = {
-    base: 'px-4 py-3 text-sm font-medium transition-colors duration-200 focus:outline-none flex-1 text-center',
-    active: 'border-b-2 border-orange-500 text-orange-500',
+    base: 'p-3 text-sm transition-colors duration-200 focus:outline-none flex mx-1 text-center',
+    active: ' rounded-lg text-white bg-blue-500',
     inactive: isDarkMode
-      ? 'text-gray-400 hover:text-gray-200 border-b-2 border-transparent'
-      : 'text-gray-600 hover:text-gray-800 border-b-2 border-transparent',
+      ? 'rounded-lg text-gray-400 hover:text-gray-200 border'
+      : 'rounded-lg text-gray-600 hover:text-gray-800 border',
   };
 
   // Determine available tabs based on mode
@@ -97,74 +106,41 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, caseData, mode =
       {/* Drawer */}
       <div
         className={clsx(
-          'fixed top-0 right-0 z-50 flex h-full w-2/5 flex-col bg-gray-800 text-white shadow-xl transition-transform duration-300 ease-in-out',
+          'fixed top-0 right-0 z-50 flex h-full w-1/3 flex-col bg-gray-800 text-white shadow-xl transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full'
         )}
       >
-        {/* Close Button */}
-        {/* <button
-          className='absolute top-4 right-4 z-10 rounded-full bg-gray-700 p-2 text-white transition-colors duration-200 hover:bg-gray-600'
-          onClick={onClose}
-        >
-          <svg
-            xmlns='http://www.w3.org/2000/svg'
-            className='h-6 w-6'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-            strokeWidth={2}
-          >
-            <path strokeLinecap='round' strokeLinejoin='round' d='M6 18L18 6M6 6l12 12' />
-          </svg>
-        </button> */}
+        <div className='flex-shrink-0'>
+          <div className='flex px-4 py-2'>
+            <button
+              className={clsx(
+                tabClasses.base,
+                activeTab === 'shopInfo' ? tabClasses.active : tabClasses.inactive
+              )}
+              onClick={() => setActiveTab('shopInfo')}
+            >
+              Shop Info
+            </button>
 
-        {/* Tabs Navigation */}
-        <div className='flex-shrink-0 border-b border-gray-700 bg-gray-800'>
-          <div className='flex'>
-            {availableTabs.includes('shopInfo') && (
-              <button
-                className={clsx(
-                  tabClasses.base,
-                  activeTab === 'shopInfo' ? tabClasses.active : tabClasses.inactive
-                )}
-                onClick={() => setActiveTab('shopInfo')}
-              >
-                Shop Info
-              </button>
-            )}
-            {availableTabs.includes('callSummary') && (
-              <button
-                className={clsx(
-                  tabClasses.base,
-                  activeTab === 'callSummary' ? tabClasses.active : tabClasses.inactive
-                )}
-                onClick={() => setActiveTab('callSummary')}
-              >
-                Call Summary
-              </button>
-            )}
-            {availableTabs.includes('createLead') && (
-              <button
-                className={clsx(
-                  tabClasses.base,
-                  activeTab === 'createLead' ? tabClasses.active : tabClasses.inactive
-                )}
-                onClick={() => setActiveTab('createLead')}
-              >
-                Create Lead
-              </button>
-            )}
-            {/* {availableTabs.includes('activity') && (
-              <button
-                className={clsx(
-                  tabClasses.base,
-                  activeTab === 'activity' ? tabClasses.active : tabClasses.inactive
-                )}
-                onClick={() => setActiveTab('activity')}
-              >
-                Activity History
-              </button>
-            )} */}
+            <button
+              className={clsx(
+                tabClasses.base,
+                activeTab === 'callSummary' ? tabClasses.active : tabClasses.inactive
+              )}
+              onClick={() => setActiveTab('callSummary')}
+            >
+              Call Summary
+            </button>
+
+            <button
+              className={clsx(
+                tabClasses.base,
+                activeTab === 'createLead' ? tabClasses.active : tabClasses.inactive
+              )}
+              onClick={() => setActiveTab('createLead')}
+            >
+              Create Lead
+            </button>
           </div>
         </div>
 
@@ -189,6 +165,8 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, caseData, mode =
                 isDrawer={true}
                 onClose={onClose}
                 onSessionCreated={setSessionId}
+                onCaseCreated={onCaseCreated} // Pass the handler
+                onTabChange={setActiveTab} // Pass the tab change handler
               />
             </div>
           )}

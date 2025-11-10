@@ -1,6 +1,5 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import CallHistory from '../components/CallHistory';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import shopIcon from '../images/shopicon.png';
 import addressIcon from '../images/Address.png';
 import timeIcon from '../images/TimeIcon.png';
@@ -30,13 +29,13 @@ const sanitizeString = (value, defaultValue = 'N/A') => {
 // Memoize opening hours parsing
 const parseOpeningHours = (openingHoursData) => {
   const defaultHours = {
-    Monday: 'N/A',
-    Tuesday: 'N/A',
-    Wednesday: 'N/A',
-    Thursday: 'N/A',
-    Friday: 'N/A',
-    Saturday: 'N/A',
-    Sunday: 'N/A',
+    Monday: { text: 'N/A', isClosed: false },
+    Tuesday: { text: 'N/A', isClosed: false },
+    Wednesday: { text: 'N/A', isClosed: false },
+    Thursday: { text: 'N/A', isClosed: false },
+    Friday: { text: 'N/A', isClosed: false },
+    Saturday: { text: 'N/A', isClosed: false },
+    Sunday: { text: 'N/A', isClosed: false },
   };
 
   if (typeof openingHoursData === 'object' && openingHoursData !== null) {
@@ -57,9 +56,15 @@ const parseOpeningHours = (openingHoursData) => {
           })
           .filter((slot) => slot !== 'N/A');
 
-        parsed[day] = timeSlots.length > 0 ? timeSlots.join(', ') : 'Closed';
+        parsed[day] = {
+          text: timeSlots.length > 0 ? timeSlots.join(', ') : 'Closed',
+          isClosed: timeSlots.length === 0,
+        };
       } else {
-        parsed[day] = 'Closed';
+        parsed[day] = {
+          text: 'Closed',
+          isClosed: true,
+        };
       }
     }
     return parsed;
@@ -74,13 +79,15 @@ const ShopInfo = ({
   shop: propShop,
   onSessionCreated,
   hideCreateCase = false,
+  onCaseCreated, // Add this prop to notify parent
+  onTabChange, // Add this prop to handle tab changes
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
-  const backTo = location.state?.from || `/shops${location.search || ''}`;
   const authToken = sessionStorage.getItem('authToken');
   const { data: user } = useUser();
+  const queryClient = useQueryClient(); // Add queryClient for cache invalidation
+  console.log(propShop);
 
   const [sessionId, setSessionId] = useState('');
   const [isCreatingCase, setIsCreatingCase] = useState(false);
@@ -91,6 +98,7 @@ const ShopInfo = ({
     isLoading,
     isError,
     error,
+    refetch, // Add refetch function
   } = useQuery({
     queryKey: ['singleShop', propShop?.shop_id_GB || id],
     queryFn: async () => {
@@ -171,14 +179,30 @@ const ShopInfo = ({
         onSessionCreated(newSessionId);
       }
 
+      // Notify parent that case was created
+      if (onCaseCreated) {
+        onCaseCreated(shop.shop_id_company);
+      }
+
+      // Invalidate and refetch the shop data to get updated case_created status
+      await queryClient.invalidateQueries(['singleShop', propShop?.shop_id_GB || id]);
+      await refetch();
+
+      // Redirect to call summary tab
+      if (onTabChange) {
+        onTabChange('callSummary');
+      }
+
       // Success message
       Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Case created successfully.',
+        text: 'Case created successfully. Redirecting to call summary...',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
+        timer: 4000,
+        showConfirmButton: false,
       });
 
       console.log('Case created with session ID:', newSessionId);
@@ -246,129 +270,107 @@ const ShopInfo = ({
   const parsedOpeningHours = parseOpeningHours(shop.opening_hours);
 
   return (
-    <div className='flex h-full w-full flex-col gap-6 p-4'>
-      <div className='flex flex-1 flex-col rounded-lg bg-gray-700 shadow-md'>
+    <div className='flex h-full w-full flex-col gap-4 px-6'>
+      {/* Conditionally render Create Case button */}
+      {!hideCreateCase && (
         <div className='p-4'>
-          <div className='flex items-center justify-between'>
-            <p className='mb-4 text-xl font-semibold text-gray-200'>Shop Details</p>
-            {/* Conditionally render Create Case button */}
-            {!hideCreateCase && (
-              <button
-                onClick={handleCreateCase}
-                disabled={isCreatingCase}
-                className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 ${
-                  isCreatingCase
-                    ? 'cursor-not-allowed bg-orange-400 text-white'
-                    : 'text-orange-500 hover:bg-orange-200'
-                }`}
-              >
-                {isCreatingCase ? 'Creating Case...' : 'Create Case'}
-              </button>
-            )}
-          </div>
-          <div className='mb-4 flex items-start'>
-            <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>Name</label>
-              <div className='flex items-center gap-2'>
-                <p className='text-lg font-bold text-gray-200'>{shop.shop_name}</p>
-                {shop.website && shop.website !== 'None' && (
-                  <a
-                    href={shop.website}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    className='text-xs text-blue-400 hover:underline'
-                  >
-                    visit website
-                  </a>
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className='mb-4 flex items-start'>
-            <img src={addressIcon} alt='Address Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>Address</label>
-              <p className='text-base text-gray-300'>{shop.address}</p>
-            </div>
-          </div>
-
-          <div className='mb-4 flex items-start'>
-            <img src={timeIcon} alt='Time Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>
-                Opening Hours
-              </label>
-              <ul className='space-y-1'>
-                {Object.entries(parsedOpeningHours).map(([day, hours]) => (
-                  <li key={day} className='text-sm text-gray-300'>
-                    <span className='font-medium'>{day}:</span> {hours}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className='mb-4 flex items-start'>
-            <img src={postcodeIcon} alt='Postcode Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>Postcode</label>
-              <p className='text-base text-gray-300'>{shop.postcode}</p>
-            </div>
-          </div>
-
-          <div className='mb-4 flex items-start'>
-            <img src={phoneIcon} alt='Phone Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>Phone</label>
-              <p className='text-base text-gray-300'>{shop.phone}</p>
-            </div>
-          </div>
-
-          <div className='mb-4 flex items-start'>
-            <img src={serviceTypeIcon} alt='Service Type Icon' className='mt-1 mr-3 h-5 w-5' />
-            <div>
-              <label className='block text-sm font-medium text-gray-400 opacity-70'>
-                Service Type
-              </label>
-              <p className='text-base text-gray-300'>{shop.category}</p>
-            </div>
-          </div>
-
-          <div className='pl-8'>
-            {Array.isArray(shop.providers) && shop.providers.length > 0 && (
-              <>
-                <label className='block text-sm font-medium text-gray-400 opacity-70'>
-                  List Of Providers
-                </label>
-                <ul className='space-y-1 pt-1'>
-                  {shop.providers.map((provider, index) => (
-                    <li key={index}>
-                      <a
-                        href={provider.provider_url}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                        className='text-blue-400 hover:underline'
-                      >
-                        {provider.provider_name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </>
-            )}
-          </div>
-
-          {/* Display session ID if case was created */}
-          {sessionId && (
-            <div className='mt-4 rounded-md bg-green-900 p-3'>
-              <p className='text-sm text-green-300'>
-                Case created successfully! Session ID: <strong>{sessionId}</strong>
-              </p>
-            </div>
+          {!shop.case_created ? (
+            <button
+              onClick={handleCreateCase}
+              disabled={isCreatingCase}
+              className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 ${
+                isCreatingCase
+                  ? 'cursor-not-allowed bg-orange-400 text-white'
+                  : 'text-orange-500 hover:bg-orange-200'
+              }`}
+            >
+              {isCreatingCase ? 'Creating Case...' : 'Create Case'}
+            </button>
+          ) : (
+            <p className='text-green-500'>Case Created</p>
           )}
         </div>
+      )}
+
+      <div className='mb-4 flex items-start'>
+        <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-5 w-5' />
+        <div className='flex items-center gap-2'>
+          <p className='text-lg font-semibold text-gray-200'>{shop.shop_name}</p>
+          {shop.website && shop.website !== 'None' && (
+            <a
+              href={shop.website}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='text-xs text-blue-400 hover:underline'
+            >
+              visit website
+            </a>
+          )}
+        </div>
+      </div>
+
+      <div className='mb-4 flex items-start'>
+        <img src={addressIcon} alt='Address Icon' className='mt-1 mr-3 h-5 w-5' />
+
+        <p className='text-lg text-gray-300'>{shop.address}</p>
+      </div>
+
+      <div className='mb-4 flex items-start'>
+        <img src={timeIcon} alt='Time Icon' className='mt-1 mr-3 h-5 w-5' />
+        <div className='w-full'>
+          {Object.entries(parsedOpeningHours).map(
+            (
+              [day, data] // ← Use parsedOpeningHours
+            ) => (
+              <div key={day} className='flex gap-4 text-lg'>
+                <span className='font-medium text-gray-300'>{day}:</span>
+                <span className={data.isClosed ? 'font-medium text-red-500' : 'text-gray-300'}>
+                  {data.text}
+                </span>
+              </div>
+            )
+          )}
+        </div>
+      </div>
+
+      <div className='mb-4 flex items-start'>
+        <img src={postcodeIcon} alt='Postcode Icon' className='mt-1 mr-3 h-5 w-5' />
+        <p className='text-lg text-gray-300'>{shop.postcode}</p>
+      </div>
+
+      <div className='mb-4 flex items-start'>
+        <img src={phoneIcon} alt='Phone Icon' className='mt-1 mr-3 h-5 w-5' />
+        <p className='text-lg text-gray-300'>{shop.phone}</p>
+      </div>
+
+      <div className='mb-4 flex items-start'>
+        <img src={serviceTypeIcon} alt='Service Type Icon' className='mt-1 mr-3 h-5 w-5' />
+        <p className='text-lg text-gray-300'>{shop.category}</p>
+      </div>
+
+      <div className='pl-8'>
+        {Array.isArray(shop.providers) && shop.providers.length > 0 && (
+          <>
+            <p
+             className='block text-lg font-medium text-gray-400 opacity-70'>
+              List Of Providers
+            </p>
+            <ul className='space-y-1 pt-1'>
+              {shop.providers.map((provider, index) => (
+                <li key={index}>
+                  <a
+                    href={provider.provider_url}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    className='text-blue-400 hover:underline'
+                  >
+                    {provider.provider_name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </>
+        )}
       </div>
     </div>
   );

@@ -369,7 +369,7 @@ const Shops = () => {
 
         {isSearchMode && (
           <div className='mb-4'>
-            <h2 className='mb-2 text-md font-semibold text-gray-200'>
+            <h2 className='text-md mb-2 font-semibold text-gray-200'>
               Search Results for "{debouncedSearchQuery}" in {getCategoryLabel(filters.category)}
             </h2>
           </div>
@@ -377,17 +377,14 @@ const Shops = () => {
 
         {/* Active Filters Summary */}
 
-        {(filters.category ||
-          filters.postcode ||
-          city ||
-          ordering.length > 0) && (
+        {(filters.category || filters.postcode || city || ordering.length > 0) && (
           <div className={`text-md px-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
             <span>Showing </span>
             <strong>{getCategoryLabel(filters.category)}</strong>
             <span> shops</span>
             {filters.postcode && <span> for</span>}
             {filters.postcode && <strong> {filters.postcode}</strong>}
-           
+
             {ordering.length > 0 && (
               <>
                 {' '}
@@ -418,18 +415,17 @@ const Shops = () => {
         ) : (
           <>
             <div className='space-y-8'>
-                <Table
-                  shops={displayShops}
-                  isDarkMode={isDarkMode}
-                  ordering={ordering}
-                  setOrdering={(o) => {
-                    setOrdering(o);
-                    setCurrentPage(1);
-                  }}
-                />
-              
+              <Table
+                shops={displayShops}
+                isDarkMode={isDarkMode}
+                ordering={ordering}
+                setOrdering={(o) => {
+                  setOrdering(o);
+                  setCurrentPage(1);
+                }}
+                onCaseCreated={refetch}
+              />
             </div>
-
             <div className='mt-12 mb-8'>
               <Pagination
                 currentPage={currentPage}

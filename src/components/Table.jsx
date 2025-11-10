@@ -1,12 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
 import ShopDrawer from './ShopDrawer';
 
-const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
+const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering, onCaseCreated }) => {
   const [selectedShop, setSelectedShop] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const location = useLocation();
+  const [updatedShops, setUpdatedShops] = useState(shops); // Local state for updated shops
+
+  // Update local state when shops prop changes
+  useEffect(() => {
+    setUpdatedShops(shops);
+  }, [shops]);
 
   const handleSort = (field) => {
     let newOrdering = [...ordering];
@@ -33,7 +38,25 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
     setSelectedShop(null);
   };
 
-  if (!shops.length) {
+  // Handle case creation from ShopDrawer
+  const handleCaseCreated = (shopId) => {
+    // Update the local shops state
+    setUpdatedShops((prevShops) =>
+      prevShops.map((shop) =>
+        shop.shop_id_company === shopId ? { ...shop, case_created: true } : shop
+      )
+    );
+
+    // Notify parent component if needed
+    if (onCaseCreated) {
+      onCaseCreated(shopId);
+    }
+  };
+
+  // Use updatedShops instead of shops for rendering
+  const displayShops = updatedShops;
+
+  if (!displayShops.length) {
     return (
       <div
         className={`rounded-lg border p-6 text-center shadow-sm ${
@@ -111,6 +134,12 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
                 >
                   Website
                 </th>
+                <th
+                  scope='col'
+                  className={`text-l px-6 py-3 text-center font-medium tracking-wider ${isDarkMode ? 'text-gray-300' : 'text-gray-500'}`}
+                >
+                  Status
+                </th>
               </tr>
             </thead>
             <tbody
@@ -120,7 +149,7 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
                   : 'divide-y divide-gray-200 bg-white'
               }
             >
-              {shops.map((shop, index) => (
+              {displayShops.map((shop, index) => (
                 <tr
                   key={shop.shop_id_GB}
                   onClick={() => handleRowClick(shop)}
@@ -164,6 +193,11 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
                       {shop.website && shop.website !== 'None' ? 'Visit' : ''}
                     </a>
                   </td>
+                  <td
+                    className={`px-6 py-4 text-center text-sm whitespace-nowrap ${shop.case_created ? 'text-green-500' : 'text-gray-400'}`}
+                  >
+                    {shop.case_created ? 'Case created' : 'No case'}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -176,6 +210,7 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering }) => {
         onClose={handleCloseDrawer}
         isDarkMode={isDarkMode}
         shop={selectedShop}
+        onCaseCreated={handleCaseCreated} // Pass the handler
       />
     </>
   );
