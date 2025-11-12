@@ -2,10 +2,8 @@ const ActivityHistory = ({ caseDetails, isDarkMode, isDrawer = false }) => {
   const history = caseDetails?.history || [];
 
   return (
-    <div
-      className={`flex-1 rounded-lg bg-gray-700 shadow-md flex h-full flex-col`}
-    >
-      <div className='custom-scrollbar flex-1 overflow-y-auto p-6'>
+    <div className="flex h-full flex-1 flex-col">
+      <div className='custom-scrollbar flex-1 overflow-y-auto'>
         <h2
           className={`mb-4 text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
         >
@@ -15,7 +13,7 @@ const ActivityHistory = ({ caseDetails, isDarkMode, isDrawer = false }) => {
         {history.length > 0 ? (
           <div className='space-y-4'>
             {history.map((item) => (
-              <div key={item.history_id} className='rounded-lg bg-gray-800 p-4'>
+              <div key={item.history_id} className='rounded-lg bg-gray-700 p-4'>
                 <div className='mb-2 flex items-start justify-between'>
                   <p className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                     {item.date}
