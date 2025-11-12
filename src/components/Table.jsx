@@ -205,13 +205,15 @@ const Table = ({ shops = [], isDarkMode, ordering = [], setOrdering, onCaseCreat
         </div>
       </div>
 
-      <ShopDrawer
-        isOpen={isDrawerOpen}
-        onClose={handleCloseDrawer}
-        isDarkMode={isDarkMode}
-        shop={selectedShop}
-        onCaseCreated={handleCaseCreated} // Pass the handler
-      />
+      <div className='w-1/2'>
+        <ShopDrawer
+          isOpen={isDrawerOpen}
+          onClose={handleCloseDrawer}
+          isDarkMode={isDarkMode}
+          shop={selectedShop}
+          onCaseCreated={handleCaseCreated} // Pass the handler
+        />
+      </div>
     </>
   );
 };

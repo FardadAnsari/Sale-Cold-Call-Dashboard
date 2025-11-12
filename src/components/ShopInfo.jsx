@@ -270,15 +270,15 @@ const ShopInfo = ({
   const parsedOpeningHours = parseOpeningHours(shop.opening_hours);
 
   return (
-    <div className='flex h-full w-full flex-col gap-4 px-6'>
+    <div className='flex h-full overflow-y-auto w-full flex-col gap-4 px-6 py-4'>
       {/* Conditionally render Create Case button */}
       {!hideCreateCase && (
-        <div className='p-4'>
+        <div>
           {!shop.case_created ? (
             <button
               onClick={handleCreateCase}
               disabled={isCreatingCase}
-              className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 ${
+              className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 my-2 ${
                 isCreatingCase
                   ? 'cursor-not-allowed bg-orange-400 text-white'
                   : 'text-orange-500 hover:bg-orange-200'
@@ -287,14 +287,13 @@ const ShopInfo = ({
               {isCreatingCase ? 'Creating Case...' : 'Create Case'}
             </button>
           ) : (
-            <p className='text-green-500'>Case Created</p>
+            <p className='text-green-500 my-2'>Case Created</p>
           )}
         </div>
       )}
-
       <div className='mb-4 flex items-start'>
         <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-5 w-5' />
-        <div className='flex items-center gap-2'>
+        <div className='flex gap-2'>
           <p className='text-lg font-semibold text-gray-200'>{shop.shop_name}</p>
           {shop.website && shop.website !== 'None' && (
             <a
@@ -308,13 +307,10 @@ const ShopInfo = ({
           )}
         </div>
       </div>
-
       <div className='mb-4 flex items-start'>
         <img src={addressIcon} alt='Address Icon' className='mt-1 mr-3 h-5 w-5' />
-
         <p className='text-lg text-gray-300'>{shop.address}</p>
       </div>
-
       <div className='mb-4 flex items-start'>
         <img src={timeIcon} alt='Time Icon' className='mt-1 mr-3 h-5 w-5' />
         <div className='w-full'>
@@ -332,22 +328,18 @@ const ShopInfo = ({
           )}
         </div>
       </div>
-
       <div className='mb-4 flex items-start'>
         <img src={postcodeIcon} alt='Postcode Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.postcode}</p>
       </div>
-
       <div className='mb-4 flex items-start'>
         <img src={phoneIcon} alt='Phone Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.phone}</p>
       </div>
-
       <div className='mb-4 flex items-start'>
         <img src={serviceTypeIcon} alt='Service Type Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.category}</p>
       </div>
-
       <div className='pl-8'>
         {Array.isArray(shop.providers) && shop.providers.length > 0 && (
           <>

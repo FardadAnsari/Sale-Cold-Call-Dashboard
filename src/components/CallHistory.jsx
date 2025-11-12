@@ -16,7 +16,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
     reset,
   } = useForm();
 
-  const [showAvailabilityForm, setShowAvailabilityForm] = useState(false);
+  const [showAvailabilityDrawer, setShowAvailabilityDrawer] = useState(false);
   const [availability, setAvailability] = useState({
     Monday: [],
     Tuesday: [],
@@ -56,7 +56,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
 
   const handleAvailabilitySubmit = () => {
     console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
-    setShowAvailabilityForm(false);
+    setShowAvailabilityDrawer(false);
     Swal.fire({
       icon: 'success',
       title: 'Availability Saved!',
@@ -67,8 +67,8 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
     });
   };
 
-  const toggleAvailabilityForm = () => {
-    setShowAvailabilityForm(!showAvailabilityForm);
+  const toggleAvailabilityDrawer = () => {
+    setShowAvailabilityDrawer(!showAvailabilityDrawer);
   };
 
   // Single submit handler for both forms
@@ -78,18 +78,18 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
     try {
       const authToken = sessionStorage.getItem('authToken');
 
-       if (!sessionId) {
-         Swal.fire({
-           icon: 'error',
-           title: 'Error!',
-           text: 'No active session found. Please create a case first.',
-           background: isDarkMode ? '#4A5568' : '#fff',
-           color: isDarkMode ? '#E2E8F0' : '#1A202C',
-           confirmButtonColor: '#A78BFA',
-         });
-         setLoading(false);
-         return;
-       }
+      if (!sessionId) {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'No active session found. Please create a case first.',
+          background: isDarkMode ? '#4A5568' : '#fff',
+          color: isDarkMode ? '#E2E8F0' : '#1A202C',
+          confirmButtonColor: '#A78BFA',
+        });
+        setLoading(false);
+        return;
+      }
 
       // Step 1: Update Sale Session (Case)
       const leadPayload = {
@@ -176,160 +176,47 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
 
   return (
     <div className='relative flex h-full flex-1 flex-col'>
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #374151;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #6b7280;
-          border-radius: 4px;
-          transition: background 0.2s ease;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9ca3af;
-        }
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: #6b7280 #374151;
-        }
-        .custom-scrollbar {
-          scroll-behavior: smooth;
-        }
-      `}</style>
-
-      {showAvailabilityForm ? (
-        <>
-          <h2 className='mb-3 text-lg font-semibold text-gray-200'>Set Owner Availability</h2>
-          <div className='custom-scrollbar flex-1 overflow-y-auto p-6'>
-            <div className='flex h-full flex-col'>
-              <div className='custom-scrollbar flex-1 overflow-y-auto pr-2'>
-                {daysOfWeek.map((day) => (
-                  <div key={day} className='mb-2 rounded-md bg-gray-800 p-3'>
-                    <div
-                      className='flex cursor-pointer items-center justify-between'
-                      onClick={() => setOpenDay(openDay === day ? null : day)}
-                    >
-                      <span className='font-medium text-gray-200'>{day}</span>
-                      <svg
-                        className={`h-5 w-5 transition-transform duration-200 ${openDay === day ? 'rotate-180' : ''}`}
-                        fill='currentColor'
-                        viewBox='0 0 20 20'
-                        xmlns='http://www.w3.org/2000/svg'
-                      >
-                        <path
-                          fillRule='evenodd'
-                          d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
-                          clipRule='evenodd'
-                        />
-                      </svg>
-                    </div>
-                    {openDay === day && (
-                      <div className='mt-3 space-y-2'>
-                        {availability[day].map((slot, slotIndex) => (
-                          <div key={slotIndex} className='flex items-center gap-2'>
-                            <div className='flex flex-1 items-center gap-2'>
-                              <input
-                                type='time'
-                                value={slot.start}
-                                onChange={(e) =>
-                                  handleTimeChange(day, slotIndex, 'start', e.target.value)
-                                }
-                                className='rounded border border-gray-500 bg-gray-600 px-2 py-1 text-sm text-white focus:border-orange-400 focus:outline-none'
-                              />
-                              <span className='text-sm text-gray-300'>To</span>
-                              <input
-                                type='time'
-                                value={slot.end}
-                                onChange={(e) =>
-                                  handleTimeChange(day, slotIndex, 'end', e.target.value)
-                                }
-                                className='rounded border border-gray-500 bg-gray-600 px-2 py-1 text-sm text-white focus:border-orange-400 focus:outline-none'
-                              />
-                            </div>
-                            <button
-                              type='button'
-                              onClick={() => removeTimeSlot(day, slotIndex)}
-                              className='rounded-md bg-gray-600 p-2 transition-colors duration-200 hover:bg-gray-500'
-                            >
-                              <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
-                            </button>
-                          </div>
-                        ))}
-                        <button
-                          type='button'
-                          onClick={() => addTimeSlot(day)}
-                          className='flex h-6 w-6 items-center justify-center rounded-sm bg-blue-500 transition-colors duration-200 hover:bg-blue-600'
-                        >
-                          <img src={plusIcon} alt='Add' className='h-3 w-3' />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              <div className='mt-auto flex justify-center border-t border-gray-600 pt-4'>
-                <button
-                  onClick={handleAvailabilitySubmit}
-                  className='rounded-md bg-blue-500 px-6 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-600'
-                >
-                  Save Availability
-                </button>
-              </div>
-              <div className='mt-6 flex justify-center'>
-                <button
-                  onClick={toggleAvailabilityForm}
-                  className='rounded-md bg-gray-500 px-6 py-2 font-medium text-white transition-colors duration-200 hover:bg-gray-600'
-                >
-                  Back to Call Summary
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      ) : (
-        <div className='custom-scrollbar flex flex-1 flex-col gap-6 overflow-y-auto'>
-          {/* Combined Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4 rounded-lg px-4'>
+      {/* Main Form Content */}
+      <div className='flex h-full flex-col'>
+        <div className='flex-1 overflow-y-auto'>
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             {/* Case Creation Section */}
-            <div className='space-y-4'>
-              <h2 className='text-sm font-medium text-gray-400'>Shop Information</h2>
+            <div className='space-y-6'>
+              <div className='border-b border-gray-600 pb-4'>
+                <span className='text-lg font-semibold text-gray-200'>Shop Information</span>
+              </div>
+
               <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
                 <div>
                   <label
                     htmlFor='shopOwnerName'
-                    className='mb-1 block text-sm font-medium text-gray-400'
+                    className='mb-2 block text-sm font-medium text-gray-400'
                   >
                     Shop Owner's Name
                   </label>
                   <input
                     type='text'
                     id='shopOwnerName'
-                    className='h-[36px] w-full rounded-md border border-gray-600 bg-gray-600 px-3 py-2 text-sm font-medium text-gray-100 placeholder-gray-400 placeholder:text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                    className='h-[42px] w-full rounded-lg border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
                     placeholder="Enter owner's name"
-                    {...register('shopOwnerName')} // Removed required validation
+                    {...register('shopOwnerName')}
                   />
-                  {/* Removed error display for shopOwnerName */}
                 </div>
 
                 <div>
                   <label
                     htmlFor='shopOwnerPhone'
-                    className='mb-1 block text-sm font-medium text-gray-400'
+                    className='mb-2 block text-sm font-medium text-gray-400'
                   >
                     Shop Owner's Phone
                   </label>
                   <input
                     type='tel'
                     id='shopOwnerPhone'
-                    className='h-[36px] w-full rounded-md border border-gray-600 bg-gray-600 px-3 py-2 text-sm font-medium text-gray-100 placeholder-gray-400 placeholder:text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                    className='h-[42px] w-full rounded-lg border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
                     placeholder="Enter owner's phone"
-                    {...register('shopOwnerPhone')} // Removed required validation
+                    {...register('shopOwnerPhone')}
                   />
-                  {/* Removed error display for shopOwnerPhone */}
                 </div>
               </div>
 
@@ -337,14 +224,14 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                 <div>
                   <label
                     htmlFor='gateKeeperName'
-                    className='mb-1 block text-sm font-medium text-gray-400'
+                    className='mb-2 block text-sm font-medium text-gray-400'
                   >
                     Gate Keeper's Name
                   </label>
                   <input
                     type='text'
                     id='gateKeeperName'
-                    className='h-[36px] w-full rounded-md border border-gray-600 bg-gray-600 px-3 py-2 text-sm font-medium text-gray-100 placeholder-gray-400 placeholder:text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                    className='h-[42px] w-full rounded-lg border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
                     placeholder="Enter gatekeeper's name"
                     {...register('gateKeeperName')}
                   />
@@ -353,14 +240,14 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                 <div>
                   <label
                     htmlFor='gateKeeperPhone'
-                    className='mb-1 block text-sm font-medium text-gray-400'
+                    className='mb-2 block text-sm font-medium text-gray-400'
                   >
                     Gate Keeper's Phone
                   </label>
                   <input
                     type='tel'
                     id='gateKeeperPhone'
-                    className='h-[36px] w-full rounded-md border border-gray-600 bg-gray-600 px-3 py-2 text-sm font-medium text-gray-100 placeholder-gray-400 placeholder:text-xs focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                    className='h-[42px] w-full rounded-lg border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
                     placeholder="Enter gatekeeper's phone"
                     {...register('gateKeeperPhone')}
                   />
@@ -370,18 +257,18 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
               <div>
                 <button
                   type='button'
-                  onClick={toggleAvailabilityForm}
-                  className='flex h-[28px] flex-1 items-center justify-center gap-1 rounded-md border border-white bg-gray-700 px-2 text-sm font-medium whitespace-nowrap text-white transition-colors duration-200 hover:bg-gray-800'
+                  onClick={toggleAvailabilityDrawer}
+                  className='flex items-center gap-2 rounded-lg border border-gray-500 bg-gray-700 px-4 py-2 text-sm text-gray-300 transition-colors duration-200 hover:bg-gray-600 hover:text-white'
                 >
-                  <img src={plusIcon} alt='Add' className='mr-1 h-4 w-4' />
+                  <img src={plusIcon} alt='Add' className='h-4 w-4' />
                   Add Owner Availability
                 </button>
               </div>
 
               {availability && (
-                <div className='mt-3 rounded-md bg-gray-900 p-3 text-sm text-gray-200'>
-                  <div className='mb-2 font-medium text-gray-300'>Current Availability:</div>
-                  <ul className='list-inside list-disc space-y-1'>
+                <div className='rounded-lg border border-gray-600 bg-gray-800 p-4'>
+                  <div className='mb-3 font-medium text-gray-300'>Current Availability:</div>
+                  <div className='grid grid-cols-1 gap-2 text-sm text-gray-200 md:grid-cols-2'>
                     {daysOfWeek.map((day) => {
                       const validSlots = availability[day]?.filter(
                         (slot) => slot.start !== '00:00' || slot.end !== '00:00'
@@ -391,35 +278,38 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                           .map((slot) => `${slot.start}-${slot.end}`)
                           .join(', ');
                         return (
-                          <li key={day}>
-                            <span className='font-semibold'>{day}</span>: {times}
-                          </li>
+                          <div key={day} className='flex items-center gap-2'>
+                            <span className='font-semibold text-gray-300'>{day}:</span>
+                            <span className='text-gray-400'>{times}</span>
+                          </div>
                         );
                       }
                       return null;
                     })}
-                  </ul>
+                  </div>
                 </div>
               )}
             </div>
 
             {/* Call Summary Section */}
-            <div className='space-y-4'>
-              <h2 className='text-sm font-medium text-gray-400'>Call Details</h2>
+            <div className='space-y-6'>
+              <div className='border-b border-gray-600 pb-4'>
+                <span className='text-lg font-semibold text-gray-200'>Call Details</span>
+              </div>
 
               <div>
                 <label
                   htmlFor='callResult'
-                  className='mb-1 block text-sm font-medium text-gray-400'
+                  className='mb-2 block text-sm font-medium text-gray-400'
                 >
                   Select Call Result<span className='ml-1 text-red-500'>*</span>
                 </label>
                 <select
                   id='callResult'
-                  className='h-[36px] w-full appearance-none rounded-md border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                  className='h-[42px] w-full rounded-lg border border-gray-600 bg-gray-600 px-3 py-2 text-sm text-gray-100 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
                   {...register('callResult', { required: true })}
                 >
-                  <option value=''>-- Select --</option>
+                  <option value=''>-- Select Call Result --</option>
                   <option value='Intrested'>Interested</option>
                   <option value='Appointment Is Set'>Appointment Is Set</option>
                   <option value='Not Interested'>Not Interested</option>
@@ -431,40 +321,176 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                   <option value='Voice Mail'>Voice Mail</option>
                   <option value='Wrong Number'>Wrong Number</option>
                 </select>
-                {errors.callResult && <span className='text-xs text-red-500'>Required</span>}
+                {errors.callResult && (
+                  <span className='mt-1 text-xs text-red-500'>This field is required</span>
+                )}
               </div>
 
               <div>
                 <label
                   htmlFor='callDescription'
-                  className='mb-1 block text-sm font-medium text-gray-400'
+                  className='mb-2 block text-sm font-medium text-gray-400'
                 >
                   Call Description<span className='ml-1 text-red-500'>*</span>
                 </label>
                 <textarea
                   id='callDescription'
                   rows='4'
-                  className='w-full resize-none rounded-md border border-gray-600 bg-gray-600 p-2 text-sm text-gray-100 placeholder-gray-400 placeholder:text-xs focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 focus:outline-none'
-                  placeholder='Enter call description...'
+                  className='w-full resize-none rounded-lg border border-gray-600 bg-gray-600 p-3 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                  placeholder='Enter detailed call description...'
                   {...register('callDescription', { required: true })}
                 ></textarea>
-                {errors.callDescription && <span className='text-xs text-red-500'>Required</span>}
+                {errors.callDescription && (
+                  <span className='mt-1 text-xs text-red-500'>This field is required</span>
+                )}
               </div>
-            </div>
-
-            {/* Single Submit Button */}
-            <div className='flex justify-center pt-4'>
-              <button
-                type='submit'
-                disabled={loading}
-                className='h-[36px] w-full rounded-md bg-orange-500 px-4 py-2 text-sm font-medium text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
-              >
-                {loading ? 'Submitting...' : 'Submit All'}
-              </button>
             </div>
           </form>
         </div>
-      )}
+
+        {/* Submit Button - Fixed at Bottom */}
+        
+          <button
+            type='submit'
+            onClick={handleSubmit(onSubmit)}
+            disabled={loading}
+            className='w-full rounded-lg bg-orange-500 py-3 text-sm text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
+          >
+            {loading ? 'Submitting...' : 'Submit All Information'}
+          </button>
+        
+      </div>
+
+      {/* Availability Drawer */}
+      <div
+        className={`fixed inset-0 z-50 transition-all duration-300 ${
+          showAvailabilityDrawer ? 'visible opacity-100' : 'pointer-events-none invisible opacity-0'
+        }`}
+      >
+        {/* Backdrop with fade-in animation */}
+        <div
+          className={`fixed inset-0 bg-black transition-opacity duration-300 ${
+            showAvailabilityDrawer ? 'bg-opacity-50' : 'bg-opacity-0'
+          }`}
+          onClick={toggleAvailabilityDrawer}
+        ></div>
+
+        {/* Drawer with slide-in animation */}
+        <div
+          className={`fixed inset-y-0 right-0 w-full transform transition-transform duration-300 ease-in-out ${
+            showAvailabilityDrawer ? 'translate-x-0' : 'translate-x-full'
+          }`}
+        >
+          <div className='flex h-full flex-col bg-gray-800 shadow-xl p-6'>
+              <div className='flex items-center justify-between'>
+                  <span className='text-lg text-gray-200'>Set Owner Availability</span>
+              </div>
+            <div className='flex-1 overflow-y-auto py-4'>
+              <div className='space-y-2'>
+                {daysOfWeek.map((day) => (
+                  <div
+                    key={day}
+                    className='rounded-lg border border-gray-600 bg-gray-700 p-4 shadow-sm'
+                  >
+                    <div
+                      className='flex cursor-pointer items-center justify-between'
+                      onClick={() => setOpenDay(openDay === day ? null : day)}
+                    >
+                      <span className='font-semibold text-gray-200'>{day}</span>
+                      <svg
+                        className={`h-5 w-5 transform transition-transform duration-200 ${
+                          openDay === day ? 'rotate-180' : ''
+                        }`}
+                        fill='currentColor'
+                        viewBox='0 0 20 20'
+                        xmlns='http://www.w3.org/2000/svg'
+                      >
+                        <path
+                          fillRule='evenodd'
+                          d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z'
+                          clipRule='evenodd'
+                        />
+                      </svg>
+                    </div>
+
+                    {openDay === day && (
+                      <div className='mt-4 space-y-2'>
+                        {availability[day].length === 0 ? (
+                          <p className='text-sm text-gray-400 italic'>No time slots added</p>
+                        ) : (
+                          availability[day].map((slot, slotIndex) => (
+                            <div
+                              key={slotIndex}
+                              className='flex items-center gap-3 rounded-lg bg-gray-600 p-2'
+                            >
+                              <div className='flex flex-1 items-center gap-3'>
+                                <div className='flex items-center gap-2'>
+                                  <label className='text-sm font-medium text-gray-300'>From:</label>
+                                  <input
+                                    type='time'
+                                    value={slot.start}
+                                    onChange={(e) =>
+                                      handleTimeChange(day, slotIndex, 'start', e.target.value)
+                                    }
+                                    className='rounded border border-gray-500 bg-gray-500 px-3 py-2 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                                  />
+                                </div>
+                                <div className='flex items-center gap-2'>
+                                  <label className='text-sm font-medium text-gray-300'>To:</label>
+                                  <input
+                                    type='time'
+                                    value={slot.end}
+                                    onChange={(e) =>
+                                      handleTimeChange(day, slotIndex, 'end', e.target.value)
+                                    }
+                                    className='rounded border border-gray-500 bg-gray-500 px-3 py-2 text-sm text-white focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                type='button'
+                                onClick={() => removeTimeSlot(day, slotIndex)}
+                                className='rounded-lg bg-red-500/20 p-2 transition-colors duration-200 hover:bg-red-500/30'
+                              >
+                                <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
+                              </button>
+                            </div>
+                          ))
+                        )}
+
+                        <button
+                          type='button'
+                          onClick={() => addTimeSlot(day)}
+                          className='flex items-center gap-2 rounded-lg border border-dashed border-gray-500 bg-gray-600 px-4 py-2 text-sm font-medium text-gray-300 transition-colors duration-200 hover:bg-gray-500 hover:text-white'
+                        >
+                          <img src={plusIcon} alt='Add' className='h-4 w-4' />
+                          Add
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Drawer Footer */}
+              <div className='flex gap-3'>
+                <button
+                  onClick={toggleAvailabilityDrawer}
+                  className='flex-1 rounded-lg border border-gray-500 bg-gray-700 px-4 py-2 font-medium text-gray-300 transition-colors duration-200 hover:bg-gray-600 hover:text-white'
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAvailabilitySubmit}
+                  className='flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-700'
+                >
+                  Save Availability
+                </button>
+              </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -82,16 +82,6 @@ const ShopDrawer = ({
       : 'rounded-lg text-gray-600 hover:text-gray-800 border',
   };
 
-  // Determine available tabs based on mode
-  const getAvailableTabs = () => {
-    if (mode === 'case') {
-      return ['activity', 'shopInfo', 'callSummary', 'createLead'];
-    }
-    return ['shopInfo', 'callSummary', 'createLead', 'activity'];
-  };
-
-  const availableTabs = getAvailableTabs();
-
   return (
     <>
       {/* Backdrop */}
@@ -173,7 +163,7 @@ const ShopDrawer = ({
 
           {/* Call Summary Tab */}
           {!isLoading && activeTab === 'callSummary' && detailedData && (
-            <div className='h-full overflow-y-auto p-4'>
+            <div className='h-full overflow-y-auto px-6 py-4'>
               <CallHistory
                 isDarkMode={isDarkMode}
                 shopId={
@@ -190,7 +180,7 @@ const ShopDrawer = ({
 
           {/* Create Lead Tab */}
           {!isLoading && activeTab === 'createLead' && detailedData && (
-            <div className='h-full overflow-y-auto p-4'>
+            <div className='h-full overflow-y-auto px-6 py-4'>
               <CreateLead
                 isDarkMode={isDarkMode}
                 shopId={
