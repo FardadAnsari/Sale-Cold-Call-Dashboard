@@ -88,7 +88,7 @@ const UserHistory = () => {
           user_id: id,
           page: currentPage,
           date: formattedDate || undefined,
-          search: debouncedSearchQuery || undefined,
+          shop_name: debouncedSearchQuery || undefined,
         },
       });
       console.log(res);
@@ -126,17 +126,7 @@ const UserHistory = () => {
     queryClient.invalidateQueries(['historyData']);
   };
 
-  const filteredResults = isSearchMode
-    ? historyData?.results.filter((item) => {
-        const search = debouncedSearchQuery.toLowerCase();
-        return (
-          item?.name?.toLowerCase().includes(search) ||
-          item?.postcode?.toLowerCase().includes(search) ||
-          item?.call_result?.toLowerCase().includes(search) ||
-          item?.call_date?.toLowerCase().includes(search)
-        );
-      })
-    : historyData?.results;
+  const filteredResults =  historyData?.results;
 
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
