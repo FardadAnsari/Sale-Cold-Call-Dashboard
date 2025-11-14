@@ -1,11 +1,13 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import shopIcon from '../images/shopicon.png';
-import addressIcon from '../images/Address.png';
-import timeIcon from '../images/TimeIcon.png';
-import postcodeIcon from '../images/Postcode.png';
-import serviceTypeIcon from '../images/Servicetype.png';
-import phoneIcon from '../images/phone2.png';
+import shopIcon from '../images/shopicon.svg';
+import ratingIcon from '../images/rating.svg';
+import reviewsIcon from '../images/reviews.svg';
+import addressIcon from '../images/Address.svg';
+import timeIcon from '../images/TimeIcon.svg';
+import postcodeIcon from '../images/Postcode.svg';
+import serviceTypeIcon from '../images/Servicetype.svg';
+import phoneIcon from '../images/phone2.svg';
 import sadMaskImg from '../images/sad-mask.png';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
@@ -79,17 +81,15 @@ const ShopInfo = ({
   shop: propShop,
   onSessionCreated,
   hideCreateCase = false,
-  onCaseCreated, // Add this prop to notify parent
-  onTabChange, // Add this prop to handle tab changes
+  onCaseCreated,
+  onTabChange,
 }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const authToken = sessionStorage.getItem('authToken');
   const { data: user } = useUser();
-  const queryClient = useQueryClient(); // Add queryClient for cache invalidation
-  console.log(propShop);
+  const queryClient = useQueryClient();
 
-  const [sessionId, setSessionId] = useState('');
   const [isCreatingCase, setIsCreatingCase] = useState(false);
 
   // Use prop shop if provided (from drawer), otherwise fetch by ID
@@ -98,12 +98,13 @@ const ShopInfo = ({
     isLoading,
     isError,
     error,
-    refetch, // Add refetch function
+    refetch,
   } = useQuery({
     queryKey: ['singleShop', propShop?.shop_id_GB || id],
     queryFn: async () => {
       // If shop is provided via props, use it directly
       if (propShop) {
+        // console.log('Using prop shop data:', propShop);
         return propShop;
       }
 
@@ -121,11 +122,15 @@ const ShopInfo = ({
         });
 
         const data = response.data;
+        // console.log('Shop data fetched from API:', data);
 
         if (data.results && Array.isArray(data.results) && data.results.length > 0) {
-          return data.results[0];
+          const shopData = data.results[0];
+          // console.log('Shop sale_session_id:', shopData.sale_session_id);
+          // console.log('Shop case_created:', shopData.case_created);
+          return shopData;
         } else {
-          throw new Error(`Shop details not found or invalid response format for ID: ${id}`);
+          throw new Error(`Shop details not found for ID: ${id}`);
         }
       } catch (err) {
         throw new Error(`Axios error: ${err.response?.status || 'unknown'} for ID: ${id}`);
@@ -160,6 +165,8 @@ const ShopInfo = ({
         },
       };
 
+      // console.log('Creating case with payload:', leadPayload);
+
       const sessionResponse = await axios.post(
         `${API_BASE_URL}/history/create-sale-session/`,
         leadPayload,
@@ -172,10 +179,16 @@ const ShopInfo = ({
       );
 
       const newSessionId = sessionResponse?.data?.sale_session_id;
-      setSessionId(newSessionId);
 
-      // Pass session ID to parent
+      if (!newSessionId) {
+        throw new Error('No session ID returned from server');
+      }
+
+      // console.log('New session created with ID:', newSessionId);
+
+      // Pass session ID to parent - THIS IS CRITICAL
       if (onSessionCreated) {
+        // console.log('Calling onSessionCreated with:', newSessionId);
         onSessionCreated(newSessionId);
       }
 
@@ -186,10 +199,12 @@ const ShopInfo = ({
 
       // Invalidate and refetch the shop data to get updated case_created status
       await queryClient.invalidateQueries(['singleShop', propShop?.shop_id_GB || id]);
-      await refetch();
+      const updatedShop = await refetch();
+      // console.log('Shop data after refetch:', updatedShop);
 
       // Redirect to call summary tab
       if (onTabChange) {
+        // console.log('Redirecting to call summary tab');
         onTabChange('callSummary');
       }
 
@@ -204,14 +219,12 @@ const ShopInfo = ({
         timer: 4000,
         showConfirmButton: false,
       });
-
-      console.log('Case created with session ID:', newSessionId);
     } catch (error) {
       console.error('Create Case Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error!',
-        text: 'An error occurred while creating the case.',
+        text: error.response?.data?.message || 'An error occurred while creating the case.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
@@ -270,7 +283,7 @@ const ShopInfo = ({
   const parsedOpeningHours = parseOpeningHours(shop.opening_hours);
 
   return (
-    <div className='flex h-full overflow-y-auto w-full flex-col gap-4 px-6 py-4'>
+    <div className='flex h-full w-full flex-col gap-4 overflow-y-auto px-6 py-4'>
       {/* Conditionally render Create Case button */}
       {!hideCreateCase && (
         <div>
@@ -278,7 +291,7 @@ const ShopInfo = ({
             <button
               onClick={handleCreateCase}
               disabled={isCreatingCase}
-              className={`rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 my-2 ${
+              className={`my-2 rounded-md border border-orange-500 p-2 text-sm font-medium transition-colors duration-200 ${
                 isCreatingCase
                   ? 'cursor-not-allowed bg-orange-400 text-white'
                   : 'text-orange-500 hover:bg-orange-200'
@@ -287,12 +300,15 @@ const ShopInfo = ({
               {isCreatingCase ? 'Creating Case...' : 'Create Case'}
             </button>
           ) : (
-            <p className='text-green-500 my-2'>Case Created</p>
+            <div className='my-2 flex items-center gap-2'>
+              <p className='text-green-500'>Case Created</p>
+            </div>
           )}
         </div>
       )}
-      <div className='mb-4 flex items-start'>
-        <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-5 w-5' />
+
+      <div className='mb-2 flex items-start'>
+        <img src={shopIcon} alt='Shop Icon' className='mt-1 mr-3 h-6 w-6' />
         <div className='flex gap-2'>
           <p className='text-lg font-semibold text-gray-200'>{shop.shop_name}</p>
           {shop.website && shop.website !== 'None' && (
@@ -307,46 +323,52 @@ const ShopInfo = ({
           )}
         </div>
       </div>
+
+      <div className='mb-4 flex items-center rounded-lg bg-gray-700 px-4 py-2'>
+        <p className='text-md text-gray-200'>{shop.rating}</p>
+        <img src={ratingIcon} alt='Shop Icon' className='mr-2 h-5 w-5' />
+        <img src={reviewsIcon} alt='Shop Icon' className='mr-2 h-5 w-5' />
+        <p className='text-md text-gray-200'>{`${shop.reviews} reviews`}</p>
+      </div>
+
       <div className='mb-4 flex items-start'>
-        <img src={addressIcon} alt='Address Icon' className='mt-1 mr-3 h-5 w-5' />
+        <img src={addressIcon} alt='Address Icon' className='mt-1 mr-3 h-6 w-6' />
         <p className='text-lg text-gray-300'>{shop.address}</p>
       </div>
+
       <div className='mb-4 flex items-start'>
         <img src={timeIcon} alt='Time Icon' className='mt-1 mr-3 h-5 w-5' />
         <div className='w-full'>
-          {Object.entries(parsedOpeningHours).map(
-            (
-              [day, data] // ← Use parsedOpeningHours
-            ) => (
-              <div key={day} className='flex gap-4 text-lg'>
-                <span className='font-medium text-gray-300'>{day}:</span>
-                <span className={data.isClosed ? 'font-medium text-red-500' : 'text-gray-300'}>
-                  {data.text}
-                </span>
-              </div>
-            )
-          )}
+          {Object.entries(parsedOpeningHours).map(([day, data]) => (
+            <div key={day} className='flex gap-4 text-lg'>
+              <span className='font-medium text-gray-300'>{day}:</span>
+              <span className={data.isClosed ? 'font-medium text-red-500' : 'text-gray-300'}>
+                {data.text}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
+
       <div className='mb-4 flex items-start'>
         <img src={postcodeIcon} alt='Postcode Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.postcode}</p>
       </div>
+
       <div className='mb-4 flex items-start'>
         <img src={phoneIcon} alt='Phone Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.phone}</p>
       </div>
+
       <div className='mb-4 flex items-start'>
         <img src={serviceTypeIcon} alt='Service Type Icon' className='mt-1 mr-3 h-5 w-5' />
         <p className='text-lg text-gray-300'>{shop.category}</p>
       </div>
+
       <div className='pl-8'>
         {Array.isArray(shop.providers) && shop.providers.length > 0 && (
           <>
-            <p
-             className='block text-lg font-medium text-gray-400 opacity-70'>
-              List Of Providers
-            </p>
+            <p className='block text-lg font-medium text-gray-400 opacity-70'>List Of Providers</p>
             <ul className='space-y-1 pt-1'>
               {shop.providers.map((provider, index) => (
                 <li key={index}>
