@@ -12,7 +12,7 @@ console.log(usersHistory);
     <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
       {usersHistory.map((item, index) => (
         <div
-          key={item.id || index}
+          key={index}
           className='flex h-full w-full flex-col justify-between rounded-lg bg-gray-800 p-4 shadow-lg'
         >
           <div className='mb-4'>
