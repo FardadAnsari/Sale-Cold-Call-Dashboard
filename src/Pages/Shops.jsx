@@ -414,7 +414,6 @@ const Shops = () => {
           </div>
         ) : (
           <>
-            <div className='space-y-8'>
               <Table
                 shops={displayShops}
                 isDarkMode={isDarkMode}
@@ -425,15 +424,12 @@ const Shops = () => {
                 }}
                 onCaseCreated={refetch}
               />
-            </div>
-            <div className='mt-12 mb-8'>
               <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={handlePageChange}
                 isDarkMode={isDarkMode}
               />
-            </div>
           </>
         )}
       </main>
