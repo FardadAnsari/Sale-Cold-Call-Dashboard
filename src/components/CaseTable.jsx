@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { TbSortAscending, TbSortDescending } from 'react-icons/tb';
-import ShopDrawer from './ShopDrawer'; // Import the ShopDrawer
 import CaseDrawer from './CaseDrawer';
 
 const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
+  
   const [selectedCase, setSelectedCase] = useState(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
@@ -162,7 +162,7 @@ const CaseTable = ({ cases = [], isDarkMode, ordering = [], setOrdering }) => {
         </div>
       </div>
 
-      {/* Shop Drawer */}
+      {/* Case Drawer */}
       <CaseDrawer
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}
