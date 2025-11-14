@@ -1,8 +1,9 @@
 const ActivityHistory = ({ caseDetails, isDarkMode, isDrawer = false }) => {
   const history = caseDetails?.history || [];
+  // console.log(history);
 
   return (
-    <div className="flex h-full flex-1 flex-col">
+    <div className='flex h-full flex-1 flex-col'>
       <div className='custom-scrollbar flex-1 overflow-y-auto'>
         <h2
           className={`mb-4 text-lg font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}
@@ -15,24 +16,35 @@ const ActivityHistory = ({ caseDetails, isDarkMode, isDrawer = false }) => {
             {history.map((item) => (
               <div key={item.history_id} className='rounded-lg bg-gray-700 p-4'>
                 <div className='mb-2 flex items-start justify-between'>
-                  <p className={`font-semibold ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                  <p className={`${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
                     {item.date}
                   </p>
-                  <span className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    {item.call_time}
-                  </span>
-                </div>
-                <p className={`mb-2 text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  <strong>Description:</strong> {item.description || 'No description provided.'}
-                </p>
-                <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  <strong>User:</strong> {item.user_name || 'Unknown User'}
-                </p>
-                {item.stage && (
-                  <p className={`mt-1 text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                    <strong>Stage:</strong> {item.stage}
+                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    Stage: {item.stage}
                   </p>
-                )}
+                </div>
+
+                {/* Description as paragraph */}
+                <div className='mb-3'>
+                  <strong
+                    className={`mb-1 block text-md ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}
+                  >
+                    Description:
+                  </strong>
+                  <p
+                    className={`text-sm break-words whitespace-pre-wrap ${
+                      isDarkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}
+                  >
+                    {item.description || 'No description provided.'}
+                  </p>
+                </div>
+
+                <div className='flex flex-wrap gap-4'>
+                  <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                    User: {item.user_name || 'Unknown User'}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
