@@ -1,11 +1,11 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import onboardingPng from '../images/Sale.png';
-import historyPng from '../images/History.png';
-import usersHistoryPng from '../images/UsersHistory.png';
-import casesPng from '../images/cases.png';
-import leadsPng from '../images/leadside.png';
-import profilePng from '../images/Profile.png';
+import onboardingPng from '../images/Sale.svg';
+import historyPng from '../images/History.svg';
+import usersHistoryPng from '../images/UsersHistory.svg';
+import casesPng from '../images/cases.svg';
+import leadsPng from '../images/leadside.svg';
+import profilePng from '../images/Profile.svg';
 import logoutPng from '../images/logout.png';
 import ChangePassword from '../images/ChangePassword.png';
 import useUser from 'src/useUser';
@@ -90,7 +90,7 @@ const Sidebar = ({ isDarkMode }) => {
               className={linkStyle(isActiveLink('/users-histories'), isDarkMode)}
             >
               <img src={usersHistoryPng} alt='UsersHistories' className='h-6 w-6' />
-              <span>Users Histories</span>
+              <span>Colleagues Activities</span>
             </Link>
           </li>
           <li>
