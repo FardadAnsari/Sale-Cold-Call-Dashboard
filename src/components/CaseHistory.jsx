@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import plusIcon from '../images/Plus.png';
-import deleteContainerImg from '../images/DeleteContainer.png';
+import deleteIcon from '../images/trash.svg';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
 import useUser from 'src/useUser';
+import { useQueryClient } from '@tanstack/react-query';
 
 const normalizeAvailability = (rawAvailability) => {
   const defaultStructure = {
@@ -24,9 +25,10 @@ const normalizeAvailability = (rawAvailability) => {
   };
 };
 
-const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
+const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
   const { data: user } = useUser();
-  console.log(caseDetails);
+  const queryClient = useQueryClient();
+  console.log('Case details:', caseDetails);
 
   // Single form for both case update and call summary
   const {
@@ -34,13 +36,14 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm({
     defaultValues: {
-      shopOwnerName: caseDetails.customer.customer_name,
-      shopOwnerPhone: caseDetails.customer.customer_phone,
-      gateKeeperName: caseDetails.customer.customer_assistant_name,
-      gateKeeperPhone: caseDetails.customer.customer_assistant_phone,
-      availability: caseDetails.customer.customer_availability,
+      shopOwnerName: caseDetails?.customer?.customer_name || '',
+      shopOwnerPhone: caseDetails?.customer?.customer_phone || '',
+      gateKeeperName: caseDetails?.customer?.customer_assistant_name || '',
+      gateKeeperPhone: caseDetails?.customer?.customer_assistant_phone || '',
       callResult: '',
       callDescription: '',
     },
@@ -53,13 +56,91 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
   );
   const [openDay, setOpenDay] = useState('Monday');
   const [loading, setLoading] = useState(false);
+  const [showDefaultContainer, setShowDefaultContainer] = useState(true);
+  const [previousCallResult, setPreviousCallResult] = useState('');
 
+  // Watch the callResult field
+  const callResult = watch('callResult');
+  const callDescription = watch('callDescription');
+
+  // Default suggestions based on call result
+  const callResultSuggestions = {
+    'Appointment Is Set':
+      'Successfully scheduled an appointment with the shop owner. The meeting is set for discussing service details and next steps.',
+
+    'Not Interested': 'The shop owner expressed that they are not interested in our services.',
+
+    'Follow Up':
+      'The shop owner requested a follow-up call. They need more time to consider the proposal or discuss with partners.',
+
+    'Hung Up':
+      'The call was disconnected abruptly. The shop owner hung up during the conversation.',
+
+    'No Answer': 'Called multiple times but no answer.',
+
+    'Invalid Number':
+      'The phone number appears to be invalid or disconnected. No successful connection made.',
+
+    'Voice Mail':
+      'Left a voicemail giving a brief explanation about us and shared our phone number in case they would like to call back.',
+
+    'Wrong Number':
+      'Reached someone who confirmed this is not the correct number for the business.',
+  };
+
+  // Call results that should NOT show default descriptions
+  const noDefaultResults = ['Intrested', 'Fourth Action'];
+
+  // Check if current call result should show default container
+  const shouldShowDefaultContainer = () => {
+    if (!callResult) return false;
+
+    // Don't show for "Intrested" and "Fourth Action"
+    if (noDefaultResults.includes(callResult)) return false;
+
+    // Only show if there's a default suggestion for this result
+    if (!callResultSuggestions[callResult]) return false;
+
+    // Only show if description is empty
+    return callDescription === '';
+  };
+
+  // Update form when caseDetails changes
   useEffect(() => {
-    if (caseDetails?.customer?.customer_availability) {
-      setAvailability(normalizeAvailability(caseDetails.customer.customer_availability));
+    if (caseDetails) {
+      setValue('shopOwnerName', caseDetails.customer?.customer_name || '');
+      setValue('shopOwnerPhone', caseDetails.customer?.customer_phone || '');
+      setValue('gateKeeperName', caseDetails.customer?.customer_assistant_name || '');
+      setValue('gateKeeperPhone', caseDetails.customer?.customer_assistant_phone || '');
+      setAvailability(normalizeAvailability(caseDetails.customer?.customer_availability));
+      setSessionId(caseDetails?.sale_session?.sale_session_id);
     }
-    setSessionId(caseDetails?.sale_session?.sale_session_id);
-  }, [caseDetails]);
+  }, [caseDetails, setValue]);
+
+  // Reset when callResult changes
+  useEffect(() => {
+    if (callResult && callResult !== previousCallResult) {
+      // Update the description when call result changes
+      if (callResultSuggestions[callResult]) {
+        setValue('callDescription', callResultSuggestions[callResult]);
+      } else {
+        // For results without defaults, clear the field
+        setValue('callDescription', '');
+      }
+
+      // Update default container visibility
+      const shouldShow = shouldShowDefaultContainer();
+      setShowDefaultContainer(shouldShow);
+
+      setPreviousCallResult(callResult);
+    }
+  }, [callResult, previousCallResult]);
+
+  // Show default container only when description is empty and result should show defaults
+  useEffect(() => {
+    const shouldShow = shouldShowDefaultContainer();
+    setShowDefaultContainer(shouldShow);
+  }, [callDescription, callResult]);
 
   const handleTimeChange = (day, index, field, value) => {
     setAvailability((prev) => ({
@@ -82,6 +163,12 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
     }));
   };
 
+  // Click handler for default text
+  const handleDefaultTextClick = (text) => {
+    setValue('callDescription', text);
+    setShowDefaultContainer(false);
+  };
+
   const handleAvailabilitySubmit = () => {
     console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
     setShowAvailabilityDrawer(false);
@@ -99,12 +186,36 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
     setShowAvailabilityDrawer(!showAvailabilityDrawer);
   };
 
+  // Refetch data function
+  const refetchAllData = async () => {
+    try {
+      // Invalidate and refetch cases data
+      await queryClient.invalidateQueries(['sale-sessions']);
+
+      // Invalidate and refetch specific case details if needed
+      if (caseDetails?.sale_session?.sale_session_id) {
+        await queryClient.invalidateQueries([
+          'case-details',
+          caseDetails.sale_session.sale_session_id,
+        ]);
+      }
+
+      console.log('Data refetched successfully');
+    } catch (error) {
+      console.error('Error refetching data:', error);
+    }
+  };
+
   // Single submit handler for both case update and call summary
   const onSubmit = async (formData) => {
     setLoading(true);
 
     try {
       const authToken = sessionStorage.getItem('authToken');
+
+      if (!caseDetails?.sale_session?.sale_session_id) {
+        throw new Error('No sale session ID available');
+      }
 
       // Step 1: Update Sale Session (Case)
       const leadPayload = {
@@ -151,11 +262,19 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
         },
       });
 
+      // Step 3: Refetch all data
+      await refetchAllData();
+
+      // Step 4: Notify parent component about the update
+      if (onCaseUpdated) {
+        onCaseUpdated();
+      }
+
       // Success message
       Swal.fire({
         icon: 'success',
         title: 'Success!',
-        text: 'Case and call summary have been submitted successfully.',
+        text: 'Case and call summary have been submitted successfully. Data has been updated.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
@@ -170,12 +289,14 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
         callResult: '',
         callDescription: '',
       });
+      setShowDefaultContainer(true);
+      setPreviousCallResult('');
     } catch (error) {
       console.error('Submission Error:', error);
       Swal.fire({
         icon: 'error',
         title: 'Error!',
-        text: 'An error occurred while submitting the form.',
+        text: error.response?.data?.message || 'An error occurred while submitting the form.',
         background: isDarkMode ? '#4A5568' : '#fff',
         color: isDarkMode ? '#E2E8F0' : '#1A202C',
         confirmButtonColor: '#A78BFA',
@@ -192,7 +313,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
       {/* Main Form Content */}
       <div className='flex h-full flex-col'>
         <div className='flex-1 overflow-y-auto'>
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6 p-4'>
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-6'>
             {/* Case Information Section */}
             <div className='space-y-6'>
               <div className='border-b border-gray-600 pb-4'>
@@ -214,9 +335,6 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                     placeholder="Enter owner's name"
                     {...register('shopOwnerName')}
                   />
-                  {errors.shopOwnerName && (
-                    <span className='mt-1 text-xs text-red-500'>This field is required</span>
-                  )}
                 </div>
 
                 <div>
@@ -233,9 +351,6 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                     placeholder="Enter owner's phone"
                     {...register('shopOwnerPhone')}
                   />
-                  {errors.shopOwnerPhone && (
-                    <span className='mt-1 text-xs text-red-500'>This field is required</span>
-                  )}
                 </div>
               </div>
 
@@ -352,11 +467,47 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                 >
                   Call Description<span className='ml-1 text-red-500'>*</span>
                 </label>
+
+                {/* Default Text Container - Only show for specific results when description is empty */}
+                {showDefaultContainer && callResultSuggestions[callResult] && (
+                  <div className='mb-4 translate-y-0 transform opacity-100 transition-all duration-300 ease-in-out'>
+                    <p className='mb-2 text-xs text-gray-400'>
+                      Quick start with default description:
+                    </p>
+                    <div
+                      className='cursor-pointer rounded-lg border-2 border-dashed border-blue-500 bg-blue-500/10 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-500/20'
+                      onClick={() => handleDefaultTextClick(callResultSuggestions[callResult])}
+                    >
+                      <div className='flex items-start gap-3'>
+                        <div>
+                          <p className='mb-1 text-sm font-medium text-gray-200'>
+                            Default Description for "{callResult}"
+                          </p>
+                          <p className='text-sm leading-relaxed text-gray-300'>
+                            {callResultSuggestions[callResult]}
+                          </p>
+                          <p className='mt-2 text-xs text-blue-400'>
+                            Click to use this description
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <textarea
                   id='callDescription'
                   rows='4'
                   className='w-full resize-none rounded-lg border border-gray-600 bg-gray-600 p-3 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
-                  placeholder='Enter detailed call description...'
+                  placeholder={
+                    callResult
+                      ? noDefaultResults.includes(callResult)
+                        ? 'Please provide detailed description...'
+                        : showDefaultContainer
+                          ? 'Or type your own description below...'
+                          : 'Type your description here...'
+                      : 'Select a call result first...'
+                  }
                   {...register('callDescription', { required: true })}
                 ></textarea>
                 {errors.callDescription && (
@@ -368,16 +519,14 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
         </div>
 
         {/* Submit Button - Fixed at Bottom */}
-        <div className='border-t border-gray-600 bg-gray-800 p-4'>
-          <button
-            type='submit'
-            onClick={handleSubmit(onSubmit)}
-            disabled={loading}
-            className='w-full rounded-lg bg-orange-500 py-3 text-sm text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
-          >
-            {loading ? 'Submitting...' : 'Submit All Information'}
-          </button>
-        </div>
+        <button
+          type='submit'
+          onClick={handleSubmit(onSubmit)}
+          disabled={loading}
+          className='w-full rounded-lg bg-orange-500 py-3 text-sm text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
+        >
+          {loading ? 'Submitting...' : 'Submit All Information'}
+        </button>
       </div>
 
       {/* Availability Drawer */}
@@ -485,7 +634,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails }) => {
                                 onClick={() => removeTimeSlot(day, slotIndex)}
                                 className='rounded-lg bg-red-500/20 p-2 transition-colors duration-200 hover:bg-red-500/30'
                               >
-                                <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
+                                <img src={deleteIcon} alt='Delete' className='h-4 w-4' />
                               </button>
                             </div>
                           ))

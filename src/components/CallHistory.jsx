@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import plusIcon from '../images/Plus.png';
-import deleteContainerImg from '../images/DeleteContainer.png';
+import deleteIcon from '../images/trash.svg';
 import Swal from 'sweetalert2';
 import axios from 'axios';
 import { API_BASE_URL } from 'src/api';
 import useUser from 'src/useUser';
 
 const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
+
   const { data: user } = useUser();
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
+    setValue,
   } = useForm();
 
   const [showAvailabilityDrawer, setShowAvailabilityDrawer] = useState(false);
@@ -28,9 +31,82 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
   });
   const [openDay, setOpenDay] = useState('Monday');
   const [loading, setLoading] = useState(false);
+  const [showDefaultContainer, setShowDefaultContainer] = useState(true);
+  const [previousCallResult, setPreviousCallResult] = useState('');
+
+  // Watch the callResult field
+  const callResult = watch('callResult');
+  const callDescription = watch('callDescription');
+
+  // Default suggestions based on call result
+  const callResultSuggestions = {
+    'Appointment Is Set':
+      'Successfully scheduled an appointment with the shop owner. The meeting is set for discussing service details and next steps.',
+
+    'Not Interested': 'The shop owner expressed that they are not interested in our services.',
+
+    'Follow Up':
+      'The shop owner requested a follow-up call. They need more time to consider the proposal or discuss with partners.',
+
+    'Hung Up':
+      'The call was disconnected abruptly. The shop owner hung up during the conversation.',
+
+    'No Answer': 'Called multiple times but no answer.',
+
+    'Invalid Number':
+      'The phone number appears to be invalid or disconnected. No successful connection made.',
+
+    'Voice Mail':
+      'Left a voicemail giving a brief explanation about us and shared our phone number in case they would like to call back.',
+
+    'Wrong Number':
+      'Reached someone who confirmed this is not the correct number for the business.',
+  };
+
+  // Call results that should NOT show default descriptions
+  const noDefaultResults = ['Intrested', 'Fourth Action'];
+
+  // Check if current call result should show default container
+  const shouldShowDefaultContainer = () => {
+    if (!callResult) return false;
+
+    // Don't show for "Intrested" and "Fourth Action"
+    if (noDefaultResults.includes(callResult)) return false;
+
+    // Only show if there's a default suggestion for this result
+    if (!callResultSuggestions[callResult]) return false;
+
+    // Only show if description is empty
+    return callDescription === '';
+  };
+
+  // Reset when callResult changes
+  useEffect(() => {
+    if (callResult && callResult !== previousCallResult) {
+      // Update the description when call result changes
+      if (callResultSuggestions[callResult]) {
+        setValue('callDescription', callResultSuggestions[callResult]);
+      } else {
+        // For results without defaults (Intrested, Fourth Action), clear the field
+        setValue('callDescription', '');
+      }
+
+      // Update default container visibility
+      const shouldShow = shouldShowDefaultContainer();
+      setShowDefaultContainer(shouldShow);
+
+      setPreviousCallResult(callResult);
+    }
+  }, [callResult, previousCallResult]);
+
+  // Show default container only when description is empty and result should show defaults
+  useEffect(() => {
+    const shouldShow = shouldShowDefaultContainer();
+    setShowDefaultContainer(shouldShow);
+  }, [callDescription, callResult]);
 
   useEffect(() => {
-    console.log('Received shopId in CallHistory:', shopId);
+    // console.log('Received shopId in CallHistory:', shopId);
   }, [shopId]);
 
   const handleTimeChange = (day, index, field, value) => {
@@ -54,8 +130,14 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
     }));
   };
 
+  // Click handler for default text
+  const handleDefaultTextClick = (text) => {
+    setValue('callDescription', text);
+    setShowDefaultContainer(false);
+  };
+
   const handleAvailabilitySubmit = () => {
-    console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
+    // console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
     setShowAvailabilityDrawer(false);
     Swal.fire({
       icon: 'success',
@@ -114,7 +196,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
           },
         }
       );
-      console.log('Session created:', sessionResponse);
+      // console.log('Session created:', sessionResponse);
 
       // Step 2: Create History (Call Summary)
       const now = new Date();
@@ -157,6 +239,8 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
         Saturday: [],
         Sunday: [],
       });
+      setShowDefaultContainer(true);
+      setPreviousCallResult('');
     } catch (error) {
       console.error('Submission Error:', error);
       Swal.fire({
@@ -333,11 +417,47 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                 >
                   Call Description<span className='ml-1 text-red-500'>*</span>
                 </label>
+
+                {/* Default Text Container - Only show for specific results when description is empty */}
+                {showDefaultContainer && callResultSuggestions[callResult] && (
+                  <div className='mb-4 translate-y-0 transform opacity-100 transition-all duration-300 ease-in-out'>
+                    <p className='mb-2 text-xs text-gray-400'>
+                      Quick start with default description:
+                    </p>
+                    <div
+                      className='cursor-pointer rounded-lg border-2 border-dashed border-blue-500 bg-blue-500/10 p-4 transition-all duration-200 hover:border-blue-400 hover:bg-blue-500/20'
+                      onClick={() => handleDefaultTextClick(callResultSuggestions[callResult])}
+                    >
+                      <div className='flex items-start gap-3'>
+                        <div>
+                          <p className='mb-1 text-sm font-medium text-gray-200'>
+                            Default Description for "{callResult}"
+                          </p>
+                          <p className='text-sm leading-relaxed text-gray-300'>
+                            {callResultSuggestions[callResult]}
+                          </p>
+                          <p className='mt-2 text-xs text-blue-400'>
+                            Click to use this description
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <textarea
                   id='callDescription'
                   rows='4'
                   className='w-full resize-none rounded-lg border border-gray-600 bg-gray-600 p-3 text-sm text-gray-100 placeholder-gray-400 transition-colors focus:border-orange-400 focus:ring-1 focus:ring-orange-400 focus:outline-none'
-                  placeholder='Enter detailed call description...'
+                  placeholder={
+                    callResult
+                      ? noDefaultResults.includes(callResult)
+                        ? 'Please provide detailed description...'
+                        : showDefaultContainer
+                          ? 'Or type your own description below...'
+                          : 'Type your description here...'
+                      : 'Select a call result first...'
+                  }
                   {...register('callDescription', { required: true })}
                 ></textarea>
                 {errors.callDescription && (
@@ -349,16 +469,15 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
         </div>
 
         {/* Submit Button - Fixed at Bottom */}
-        
-          <button
-            type='submit'
-            onClick={handleSubmit(onSubmit)}
-            disabled={loading}
-            className='w-full rounded-lg bg-orange-500 py-3 text-sm text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
-          >
-            {loading ? 'Submitting...' : 'Submit All Information'}
-          </button>
-        
+
+        <button
+          type='submit'
+          onClick={handleSubmit(onSubmit)}
+          disabled={loading}
+          className='w-full rounded-lg bg-orange-500 py-3 text-sm text-white transition-colors duration-200 hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-50'
+        >
+          {loading ? 'Submitting...' : 'Submit All Information'}
+        </button>
       </div>
 
       {/* Availability Drawer */}
@@ -381,10 +500,10 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
             showAvailabilityDrawer ? 'translate-x-0' : 'translate-x-full'
           }`}
         >
-          <div className='flex h-full flex-col bg-gray-800 shadow-xl p-6'>
-              <div className='flex items-center justify-between'>
-                  <span className='text-lg text-gray-200'>Set Owner Availability</span>
-              </div>
+          <div className='flex h-full flex-col bg-gray-800 p-6 shadow-xl'>
+            <div className='flex items-center justify-between'>
+              <span className='text-lg text-gray-200'>Set Owner Availability</span>
+            </div>
             <div className='flex-1 overflow-y-auto py-4'>
               <div className='space-y-2'>
                 {daysOfWeek.map((day) => (
@@ -452,7 +571,7 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
                                 onClick={() => removeTimeSlot(day, slotIndex)}
                                 className='rounded-lg bg-red-500/20 p-2 transition-colors duration-200 hover:bg-red-500/30'
                               >
-                                <img src={deleteContainerImg} alt='Delete' className='h-4 w-4' />
+                                <img src={deleteIcon} alt='Delete' className='h-4 w-4' />
                               </button>
                             </div>
                           ))
@@ -474,20 +593,20 @@ const CallHistory = ({ isDarkMode = true, shopId, sessionId }) => {
             </div>
 
             {/* Drawer Footer */}
-              <div className='flex gap-3'>
-                <button
-                  onClick={toggleAvailabilityDrawer}
-                  className='flex-1 rounded-lg border border-gray-500 bg-gray-700 px-4 py-2 font-medium text-gray-300 transition-colors duration-200 hover:bg-gray-600 hover:text-white'
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAvailabilitySubmit}
-                  className='flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-700'
-                >
-                  Save Availability
-                </button>
-              </div>
+            <div className='flex gap-3'>
+              <button
+                onClick={toggleAvailabilityDrawer}
+                className='flex-1 rounded-lg border border-gray-500 bg-gray-700 px-4 py-2 font-medium text-gray-300 transition-colors duration-200 hover:bg-gray-600 hover:text-white'
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAvailabilitySubmit}
+                className='flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors duration-200 hover:bg-blue-700'
+              >
+                Save Availability
+              </button>
+            </div>
           </div>
         </div>
       </div>
