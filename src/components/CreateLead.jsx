@@ -16,6 +16,7 @@ import useUser from 'src/useUser';
 import { API_BASE_URL } from 'src/api';
 import axios from 'axios';
 import City from './City';
+import Swal from 'sweetalert2';
 
 // AccordionSection component
 const AccordionSection = ({ title, children, isOpen, onToggle }) => (
@@ -48,7 +49,7 @@ const validateEmail = (email) => {
 
 const CreateLead = () => {
   const { data: user } = useUser();
-  console.log(user);
+  // console.log(user);
 
   const methods = useForm({
     defaultValues: {
@@ -105,15 +106,44 @@ const CreateLead = () => {
     setValue(field, '', { shouldValidate: true });
   };
 
+  const showErrorAlert = (errorMessage) => {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      html: errorMessage,
+      background: '#1F2937', // gray-800
+      color: '#E5E7EB', // gray-200
+      confirmButtonColor: '#F97316', // orange-500
+      confirmButtonText: 'OK',
+      width: '500px',
+      customClass: {
+        popup: 'rounded-lg',
+        title: 'text-xl font-semibold',
+        htmlContainer: 'text-left',
+      },
+    });
+  };
+
+  const showSuccessAlert = () => {
+    Swal.fire({
+      icon: 'success',
+      title: 'Success!',
+      text: 'Lead has been created successfully!',
+      background: '#1F2937', // gray-800
+      color: '#E5E7EB', // gray-200
+      confirmButtonColor: '#F97316', // orange-500
+      confirmButtonText: 'OK',
+    });
+  };
+
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     setSubmitStatus({ error: null, success: null });
     const authToken = sessionStorage.getItem('authToken');
     if (!authToken) {
-      setSubmitStatus({
-        error: 'Authentication token not found. Please log in again.',
-        success: null,
-      });
+      const errorMessage = 'Authentication token not found. Please log in again.';
+      setSubmitStatus({ error: errorMessage, success: null });
+      showErrorAlert(errorMessage);
       setIsSubmitting(false);
       return;
     }
@@ -176,7 +206,7 @@ const CreateLead = () => {
       trigger: [],
     };
 
-    console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
+    // console.log('JSON Payload:', JSON.stringify(leadPayload, null, 2));
 
     try {
       const headers = {
@@ -185,8 +215,8 @@ const CreateLead = () => {
         Authorization: `Bearer ${authToken}`,
       };
 
-      console.log('Request headers:', headers);
-      console.log(leadPayload);
+      // console.log('Request headers:', headers);
+      // console.log(leadPayload);
 
       const response = await axios.post(`${API_BASE_URL}/zoho/create-lead/`, leadPayload, {
         headers: headers,
@@ -194,7 +224,9 @@ const CreateLead = () => {
 
       if (response.status === 200) {
         const result = response.data;
-        console.log('Lead created successfully:', result);
+        // console.log('Lead created successfully:', result);
+
+        showSuccessAlert();
         setSubmitStatus({ error: null, success: 'Lead created successfully!' });
         reset();
         setSections({
@@ -228,10 +260,12 @@ const CreateLead = () => {
             errorData.data[0].details
           ) {
             const fieldErrors = errorData.data[0].details;
-            errorMessage = 'Validation Error: ';
+            errorMessage =
+              '<div class="text-left"><strong>Validation Error:</strong><ul class="mt-2 list-disc list-inside">';
             for (const field in fieldErrors) {
-              errorMessage += `${field}: ${fieldErrors[field].join(', ')}. `;
+              errorMessage += `<li><strong>${field}:</strong> ${fieldErrors[field].join(', ')}</li>`;
             }
+            errorMessage += '</ul></div>';
           } else {
             errorMessage = 'Bad Request: Please check your form data.';
           }
@@ -239,12 +273,18 @@ const CreateLead = () => {
           errorMessage = 'Unauthorized: Please check your authentication token.';
         } else if (status === 403) {
           errorMessage = 'Forbidden: You do not have permission to perform this action.';
+        } else if (status === 500) {
+          errorMessage = 'Server Error: Please try again later.';
         } else {
           errorMessage = `Error ${status}: ${error.response.statusText}`;
         }
+      } else if (error.request) {
+        errorMessage =
+          'Network Error: Could not connect to the server. Please check your internet connection.';
       }
 
       setSubmitStatus({ error: errorMessage, success: null });
+      showErrorAlert(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -260,7 +300,7 @@ const CreateLead = () => {
         <form onSubmit={handleSubmit(onSubmit)} className='flex h-full flex-col'>
           {/* Legal Information Section */}
           <div className='flex-1 space-y-6 overflow-y-auto'>
-            <div className='rounded-lg bg-gray-800 mx-2'>
+            <div className='mx-2 rounded-lg bg-gray-800'>
               {/* Lead Information */}
               <AccordionSection
                 title='Lead Information'
@@ -474,24 +514,22 @@ const CreateLead = () => {
             </div>
 
             {/* Status Messages */}
-            
-              {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
-              {submitStatus.success && (
-                <p className='text-sm text-green-400'>{submitStatus.success}</p>
-              )}
-            
+
+            {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
+            {submitStatus.success && (
+              <p className='text-sm text-green-400'>{submitStatus.success}</p>
+            )}
           </div>
 
           {/* Submit Button - Fixed at the bottom */}
-          
-            <button
-              type='submit'
-              disabled={isSubmitting}
-              className='w-full rounded-lg bg-orange-500 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-orange-600 focus:ring-2 focus:ring-orange-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit'}
-            </button>
-          
+
+          <button
+            type='submit'
+            disabled={isSubmitting}
+            className='w-full rounded-lg bg-orange-500 py-3 text-sm font-medium text-white transition-colors duration-200 hover:bg-orange-600 focus:ring-2 focus:ring-orange-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
+          >
+            {isSubmitting ? 'Submitting...' : 'Submit'}
+          </button>
         </form>
       </div>
     </FormProvider>
