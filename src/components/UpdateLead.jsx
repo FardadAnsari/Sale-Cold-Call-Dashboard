@@ -44,7 +44,7 @@ const validateEmail = (email) => {
   return emailRegex.test(email) ? true : 'Invalid email address. Please try again.';
 };
 
-const UpdateLead = ({ leadData = {} }) => {
+const UpdateLead = ({ leadData = {}, isDarkMode = true }) => {
   const { data: user } = useUser();
   // console.log(user);
   // console.log(leadData);
@@ -533,10 +533,10 @@ const UpdateLead = ({ leadData = {} }) => {
 
             {/* Status Messages */}
 
-            {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
+            {/* {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
             {submitStatus.success && (
               <p className='text-sm text-green-400'>{submitStatus.success}</p>
-            )}
+            )} */}
           </div>
 
           {/* Submit Button - Fixed at the bottom */}

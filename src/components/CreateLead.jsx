@@ -47,7 +47,7 @@ const validateEmail = (email) => {
   return emailRegex.test(email) ? true : 'Invalid email address. Please try again.';
 };
 
-const CreateLead = () => {
+const CreateLead = ({isDarkMode = true}) => {
   const { data: user } = useUser();
   // console.log(user);
 
@@ -150,7 +150,7 @@ const CreateLead = () => {
 
     const leadData = {
       Owner: {
-        email: "austin.a@mealzo.co.uk",
+        email: 'austin.a@mealzo.co.uk',
       },
       Tag: [
         {
@@ -515,10 +515,10 @@ const CreateLead = () => {
 
             {/* Status Messages */}
 
-            {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
+            {/* {submitStatus.error && <p className='text-sm text-red-400'>{submitStatus.error}</p>}
             {submitStatus.success && (
               <p className='text-sm text-green-400'>{submitStatus.success}</p>
-            )}
+            )} */}
           </div>
 
           {/* Submit Button - Fixed at the bottom */}
