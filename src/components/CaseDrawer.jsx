@@ -32,7 +32,7 @@ const CaseDrawer = ({ isOpen, onClose, isDarkMode = true, caseData }) => {
             Authorization: `Bearer ${authToken}`,
           },
         });
-        console.log('sale-session-detail', response.data);
+        // console.log('sale-session-detail', response.data);
         return response.data;
       } catch (err) {
         throw new Error(`Error fetching case details: ${err.response?.status || 'unknown'}`);
@@ -43,7 +43,7 @@ const CaseDrawer = ({ isOpen, onClose, isDarkMode = true, caseData }) => {
 
   // Handle case update from CaseHistory component
   const handleCaseUpdated = async () => {
-    console.log('Case updated, refetching data...');
+    // console.log('Case updated, refetching data...');
 
     // Refetch the current case details
     await refetch();
@@ -54,7 +54,7 @@ const CaseDrawer = ({ isOpen, onClose, isDarkMode = true, caseData }) => {
     // Invalidate activity history queries if they exist
     await queryClient.invalidateQueries(['activity-history']);
 
-    console.log('Data refetched successfully');
+    // console.log('Data refetched successfully');
   };
 
   const tabClasses = {

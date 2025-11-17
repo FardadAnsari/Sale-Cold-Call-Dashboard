@@ -34,8 +34,8 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, onCaseCreated })
         const data = response.data;
         if (data.results && Array.isArray(data.results) && data.results.length > 0) {
           const shopData = data.results[0];
-          console.log('Shop data fetched in drawer:', shopData);
-          console.log('Sale session ID from API:', shopData.sale_session_id);
+          // console.log('Shop data fetched in drawer:', shopData);
+          // console.log('Sale session ID from API:', shopData.sale_session_id);
           return shopData;
         } else {
           throw new Error('Shop details not found');
@@ -50,14 +50,14 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, onCaseCreated })
   // Update sessionId when detailedData is loaded or changes
   useEffect(() => {
     if (detailedData?.sale_session_id) {
-      console.log('Setting sessionId from detailedData:', detailedData.sale_session_id);
+      // console.log('Setting sessionId from detailedData:', detailedData.sale_session_id);
       setSessionId(detailedData.sale_session_id);
     }
   }, [detailedData]);
 
   // Handle session creation from ShopInfo
   const handleSessionCreated = (newSessionId) => {
-    console.log('Session created callback received:', newSessionId);
+    // console.log('Session created callback received:', newSessionId);
     setSessionId(newSessionId);
 
     // Refetch shop data to get updated sale_session_id and case_created status
@@ -66,7 +66,7 @@ const ShopDrawer = ({ isOpen, onClose, isDarkMode = true, shop, onCaseCreated })
 
   // Handle case creation from ShopInfo
   const handleCaseCreated = (shopId) => {
-    console.log('Case created for shop:', shopId);
+    // console.log('Case created for shop:', shopId);
     if (onCaseCreated) {
       onCaseCreated(shopId);
     }

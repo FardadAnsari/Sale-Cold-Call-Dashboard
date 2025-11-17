@@ -5,7 +5,7 @@ const UserHistoryContent = ({ usersHistory }) => {
   if (!usersHistory || usersHistory.length === 0) {
     return null;
   }
-console.log(usersHistory);
+// console.log(usersHistory);
 
 
   return (

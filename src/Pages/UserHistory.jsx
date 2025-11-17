@@ -52,7 +52,7 @@ const UserHistory = () => {
 
   // Add handlers for CaseDrawer
   const handleOpenCase = (caseItem) => {
-    console.log('Opening case:', caseItem);
+    // console.log('Opening case:', caseItem);
     setSelectedCase(caseItem);
     setIsCaseDrawerOpen(true);
   };
@@ -91,7 +91,7 @@ const UserHistory = () => {
           shop_name: debouncedSearchQuery || undefined,
         },
       });
-      console.log(res);
+      // console.log(res);
 
       return res.data; // { results, totalPages, currentPage }
     },

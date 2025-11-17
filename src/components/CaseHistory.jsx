@@ -28,7 +28,7 @@ const normalizeAvailability = (rawAvailability) => {
 const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
   const { data: user } = useUser();
   const queryClient = useQueryClient();
-  console.log('Case details:', caseDetails);
+  // console.log('Case details:', caseDetails);
 
   // Single form for both case update and call summary
   const {
@@ -170,7 +170,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
   };
 
   const handleAvailabilitySubmit = () => {
-    console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
+    // console.log('Owner Availability Submitted:', JSON.stringify(availability, null, 2));
     setShowAvailabilityDrawer(false);
     Swal.fire({
       icon: 'success',
@@ -200,7 +200,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
         ]);
       }
 
-      console.log('Data refetched successfully');
+      // console.log('Data refetched successfully');
     } catch (error) {
       console.error('Error refetching data:', error);
     }
@@ -228,7 +228,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
           customer_availability: availability,
         },
       };
-      console.log('Lead Payload', leadPayload);
+      // console.log('Lead Payload', leadPayload);
 
       const sessionResponse = await axios.patch(
         `${API_BASE_URL}/history/sale-sessions-update/${caseDetails.sale_session.sale_session_id}/`,
@@ -240,7 +240,7 @@ const CaseHistory = ({ isDarkMode = true, caseDetails, onCaseUpdated }) => {
           },
         }
       );
-      console.log('Session updated:', sessionResponse);
+      // console.log('Session updated:', sessionResponse);
 
       // Step 2: Create History (Call Summary)
       const now = new Date();

@@ -29,7 +29,7 @@ const YourHistory = () => {
   const [isCaseDrawerOpen, setIsCaseDrawerOpen] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
 
-  console.log(user);
+  // console.log(user);
 
   const debounceTimer = useRef(null);
   useEffect(() => {
@@ -56,7 +56,7 @@ const YourHistory = () => {
 
   // Add handlers for CaseDrawer
   const handleOpenCase = (caseItem) => {
-    console.log('Opening case:', caseItem);
+    // console.log('Opening case:', caseItem);
     setSelectedCase(caseItem);
     setIsCaseDrawerOpen(true);
   };
@@ -145,7 +145,7 @@ const YourHistory = () => {
           shop_name: debouncedSearchQuery || undefined,
         },
       });
-      console.log(res);
+      // console.log(res);
 
       return res.data; // { results, totalPages, currentPage }
     },
