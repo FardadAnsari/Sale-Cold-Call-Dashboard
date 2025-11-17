@@ -32,19 +32,19 @@ const LeadDrawer = ({ leadId, isOpen, onClose, isDarkMode = true }) => {
       <div
         className={clsx(
           'fixed inset-0 z-40 transition-opacity duration-300',
-          isOpen ? 'bg-black/40' : 'pointer-events-none opacity-0'
+          isOpen ? 'bg-black/40 h-full' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
       />
 
       <div
-        className={clsx(
-          'fixed top-0 right-0 z-50 h-full w-1/3 overflow-y-auto bg-gray-800 text-white shadow-xl transition-transform duration-300',
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        )}
+         className={clsx(
+                  'fixed top-0 right-0 z-50 flex h-full w-1/3 flex-col bg-gray-800 text-white shadow-xl transition-transform duration-300 ease-in-out',
+                  isOpen ? 'translate-x-0' : 'translate-x-full'
+                )}
       >
         
-          <div className={`h-full overflow-y-auto px-6 py-4`}>
+          <div className="h-full overflow-y-auto px-6 py-4">
             <UpdateLead isDarkMode={isDarkMode} leadData={lead?.[0] || {}} />
           </div>
         
