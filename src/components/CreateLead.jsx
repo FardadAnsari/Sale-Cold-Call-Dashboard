@@ -111,9 +111,9 @@ const CreateLead = () => {
       icon: 'error',
       title: 'Error!',
       html: errorMessage,
-      background: '#1F2937', // gray-800
-      color: '#E5E7EB', // gray-200
-      confirmButtonColor: '#F97316', // orange-500
+      background: isDarkMode ? '#4A5568' : '#fff',
+      color: isDarkMode ? '#E2E8F0' : '#1A202C',
+      confirmButtonColor: '#A78BFA',
       confirmButtonText: 'OK',
       width: '500px',
       customClass: {
@@ -129,9 +129,9 @@ const CreateLead = () => {
       icon: 'success',
       title: 'Success!',
       text: 'Lead has been created successfully!',
-      background: '#1F2937', // gray-800
-      color: '#E5E7EB', // gray-200
-      confirmButtonColor: '#F97316', // orange-500
+      background: isDarkMode ? '#4A5568' : '#fff',
+      color: isDarkMode ? '#E2E8F0' : '#1A202C',
+      confirmButtonColor: '#A78BFA',
       confirmButtonText: 'OK',
     });
   };
@@ -150,7 +150,7 @@ const CreateLead = () => {
 
     const leadData = {
       Owner: {
-        email: user.email,
+        email: "austin.a@mealzo.co.uk",
       },
       Tag: [
         {
