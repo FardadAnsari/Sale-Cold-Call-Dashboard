@@ -27,7 +27,6 @@ const LeadsTable = ({ shops = [], isDarkMode, onRowClick }) => {
         isDarkMode ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
       }`}
     >
-      {/* Desktop Table */}
       <div className='hidden overflow-x-auto md:block'>
         <table
           className={`min-w-full divide-y ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'}`}
@@ -109,31 +108,7 @@ const LeadsTable = ({ shops = [], isDarkMode, onRowClick }) => {
           </tbody>
         </table>
       </div>
-
-      {/* Mobile View */}
-      <div
-        className={`divide-y md:hidden ${isDarkMode ? 'divide-gray-700 text-gray-300' : 'divide-gray-200 text-gray-600'}`}
-      >
-        {shops.map((shop) => (
-          <div
-            key={shop.id}
-            onClick={() => onRowClick(shop.id)}
-            className={`space-y-3 px-6 py-4 ${isDarkMode ? 'bg-gray-700/30' : 'bg-gray-50'}`}
-          >
-            <div className='flex items-center justify-between'>
-              <h3 className={`font-medium ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>
-                {shop.shopName}
-              </h3>
-            </div>
-            <div className='flex justify-between'>
-              <p className='text-sm'>{shop.createdTime}</p>
-              <p className='text-sm'>{shop.createdBy}</p>
-            </div>
-            <div className='text-right'>{shop.state}</div>
-            <div className='text-right'>{shop.leadStatus}</div>
-          </div>
-        ))}
-      </div>
+      
     </div>
   );
 };

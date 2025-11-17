@@ -11,6 +11,7 @@ import { API_BASE_URL } from 'src/api';
 import { useParams } from 'react-router-dom';
 import DateFilter from '@components/DateFilter';
 import { BsCalendar2Date } from 'react-icons/bs';
+import CaseDrawer from '../components/CaseDrawer'; // Import CaseDrawer
 
 const UserHistory = () => {
   const { id } = useParams();
@@ -21,6 +22,10 @@ const UserHistory = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const isDarkMode = true;
+
+  // Add state for CaseDrawer
+  const [isCaseDrawerOpen, setIsCaseDrawerOpen] = useState(false);
+  const [selectedCase, setSelectedCase] = useState(null);
 
   const debounceTimer = useRef(null);
   useEffect(() => {
@@ -44,6 +49,18 @@ const UserHistory = () => {
   }, [filters.selectedDate, queryClient]);
 
   const authToken = sessionStorage.getItem('authToken');
+
+  // Add handlers for CaseDrawer
+  const handleOpenCase = (caseItem) => {
+    // console.log('Opening case:', caseItem);
+    setSelectedCase(caseItem);
+    setIsCaseDrawerOpen(true);
+  };
+
+  const handleCloseCaseDrawer = () => {
+    setIsCaseDrawerOpen(false);
+    setSelectedCase(null);
+  };
 
   const {
     data: historyData,
@@ -71,10 +88,10 @@ const UserHistory = () => {
           user_id: id,
           page: currentPage,
           date: formattedDate || undefined,
-          search: debouncedSearchQuery || undefined,
+          shop_name: debouncedSearchQuery || undefined,
         },
       });
-      console.log(res);
+      // console.log(res);
 
       return res.data; // { results, totalPages, currentPage }
     },
@@ -109,17 +126,7 @@ const UserHistory = () => {
     queryClient.invalidateQueries(['historyData']);
   };
 
-  const filteredResults = isSearchMode
-    ? historyData?.results.filter((item) => {
-        const search = debouncedSearchQuery.toLowerCase();
-        return (
-          item?.name?.toLowerCase().includes(search) ||
-          item?.postcode?.toLowerCase().includes(search) ||
-          item?.call_result?.toLowerCase().includes(search) ||
-          item?.call_date?.toLowerCase().includes(search)
-        );
-      })
-    : historyData?.results;
+  const filteredResults =  historyData?.results;
 
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
@@ -148,7 +155,7 @@ const UserHistory = () => {
                 disabled={overallLoading}
                 className={`flex items-center gap-2 rounded border bg-gray-700 p-2 text-gray-200 transition-colors hover:bg-gray-600 ${overallLoading ? 'cursor-not-allowed opacity-50' : ''}`}
               >
-             <BsCalendar2Date size={25} fill={'white'} />
+                <BsCalendar2Date size={25} fill={'white'} />
               </button>
               {showDatePicker && (
                 <>
@@ -207,7 +214,10 @@ const UserHistory = () => {
         {!overallLoading && !error && filteredResults?.length > 0 && (
           <>
             <div className='space-y-8'>
-              <HistoryContent historyItems={filteredResults} />
+              <HistoryContent
+                historyItems={filteredResults}
+                onOpenCase={handleOpenCase} // Pass the handler
+              />
             </div>
             <div className='mt-12 mb-8'>
               <Pagination
@@ -219,6 +229,15 @@ const UserHistory = () => {
             </div>
           </>
         )}
+
+        {/* CaseDrawer Component */}
+        <CaseDrawer
+          isOpen={isCaseDrawerOpen}
+          onClose={handleCloseCaseDrawer}
+          caseData={selectedCase}
+          mode='case'
+          isDarkMode={isDarkMode}
+        />
       </main>
     </div>
   );

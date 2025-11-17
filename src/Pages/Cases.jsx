@@ -384,7 +384,7 @@ const isSearchMode = debouncedSearchQuery.trim().length > 0;
           </div>
         ) : (
           <>
-            <div className='rounded bg-gray-800 p-4'>
+            
               <CaseTable
                 cases={data?.results || []}
                 isDarkMode={isDarkMode}
@@ -394,7 +394,7 @@ const isSearchMode = debouncedSearchQuery.trim().length > 0;
                   setCurrentPage(1);
                 }}
               />
-            </div>
+            
             <Pagination
               currentPage={currentPage}
               totalPages={data.totalPages}

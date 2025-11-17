@@ -53,7 +53,7 @@ const UsersHistories = () => {
           search: debouncedSearchQuery || undefined,
         },
       });
-      console.log(res);
+      // console.log(res);
 
       return res.data;
     },

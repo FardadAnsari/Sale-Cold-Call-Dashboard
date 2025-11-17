@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Search from '../components/Search';
 import Pagination from '../components/Pagination';
-import { FilterIcon } from '../Icons';
+import { FaFileExport } from 'react-icons/fa6';
 
 import sadMaskImg from '../images/sad-mask.png';
 import HistoryContent from '../components/HistoryContent';
@@ -11,9 +11,12 @@ import { API_BASE_URL } from 'src/api';
 import useUser from 'src/useUser';
 import DateFilter from '@components/DateFilter';
 import { BsCalendar2Date } from 'react-icons/bs';
+import CaseDrawer from '../components/CaseDrawer'; // Import CaseDrawer
+
 
 const YourHistory = () => {
-  const { data: user} = useUser();
+  const { data: user } = useUser();
+  const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
   const [searchInput, setSearchInput] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -21,7 +24,12 @@ const YourHistory = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const isDarkMode = true;
-  console.log(user);
+
+  // Add state for CaseDrawer
+  const [isCaseDrawerOpen, setIsCaseDrawerOpen] = useState(false);
+  const [selectedCase, setSelectedCase] = useState(null);
+
+  // console.log(user);
 
   const debounceTimer = useRef(null);
   useEffect(() => {
@@ -45,6 +53,68 @@ const YourHistory = () => {
   }, [filters.selectedDate, queryClient]);
 
   const authToken = sessionStorage.getItem('authToken');
+
+  // Add handlers for CaseDrawer
+  const handleOpenCase = (caseItem) => {
+    // console.log('Opening case:', caseItem);
+    setSelectedCase(caseItem);
+    setIsCaseDrawerOpen(true);
+  };
+
+  const handleCloseCaseDrawer = () => {
+    setIsCaseDrawerOpen(false);
+    setSelectedCase(null);
+  };
+
+  // Enhanced handleExport function with proper authorization
+  const handleExport = async () => {
+    setLoading(true);
+
+    try {
+      const authToken = sessionStorage.getItem('authToken');
+
+      const response = await axios.get(`${API_BASE_URL}/history/export_history/`, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      const data = response.data;
+
+      // Get the results array
+      const historyData = data.results;
+
+      // Convert to CSV
+      const headers = Object.keys(historyData[0]);
+      const csvRows = [
+        headers.join(','),
+        ...historyData.map((row) =>
+          headers
+            .map((header) => {
+              const value = row[header] || '';
+              return `"${String(value).replace(/"/g, '""')}"`;
+            })
+            .join(',')
+        ),
+      ];
+
+      const csvString = csvRows.join('\n');
+
+      // Download file
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `history-${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Export failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const {
     data: historyData,
@@ -72,14 +142,15 @@ const YourHistory = () => {
           user_id: user.id,
           page: currentPage,
           date: formattedDate || undefined,
-          search: debouncedSearchQuery || undefined,
+          shop_name: debouncedSearchQuery || undefined,
         },
       });
-      console.log(res);
-      
+      // console.log(res);
+
       return res.data; // { results, totalPages, currentPage }
     },
     keepPreviousData: true,
+    enabled: !!authToken && !!user?.id, // Only run query if authenticated and user data is available
   });
 
   const totalPages = historyData?.totalPages || 1;
@@ -110,19 +181,8 @@ const YourHistory = () => {
     queryClient.invalidateQueries(['historyData']);
   };
 
-  const filteredResults = isSearchMode
-    ? historyData?.results.filter((item) => {
-        const search = debouncedSearchQuery.toLowerCase();
-        return (
-          item?.name?.toLowerCase().includes(search) ||
-          item?.postcode?.toLowerCase().includes(search) ||
-          item?.call_result?.toLowerCase().includes(search) ||
-          item?.call_date?.toLowerCase().includes(search)
-        );
-      })
-    : historyData?.results;
+  const filteredResults = historyData?.results;
 
-    
   return (
     <div className='min-h-screen bg-gray-900 text-white'>
       <main className='container mx-auto space-y-6 px-4 py-6'>
@@ -150,7 +210,7 @@ const YourHistory = () => {
                 disabled={overallLoading}
                 className={`flex items-center gap-2 rounded border bg-gray-700 p-2 text-gray-200 transition-colors hover:bg-gray-600 ${overallLoading ? 'cursor-not-allowed opacity-50' : ''}`}
               >
-                 <BsCalendar2Date size={25} fill={'white'} />
+                <BsCalendar2Date size={25} fill={'white'} />
               </button>
               {showDatePicker && (
                 <>
@@ -168,6 +228,25 @@ const YourHistory = () => {
                   </div>
                 </>
               )}
+            </div>
+            <div>
+              <button
+                onClick={handleExport}
+                disabled={loading || !authToken || !user?.id}
+                className={`export-button flex items-center gap-2 rounded bg-orange-500 px-4 py-2 text-white transition-colors hover:bg-orange-600 ${loading || !authToken || !user?.id ? 'cursor-not-allowed opacity-50' : ''}`}
+              >
+                {loading ? (
+                  <>
+                    <div className='h-4 w-4 animate-spin rounded-full border-b-2 border-white'></div>
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Export CSV</span>
+                    <FaFileExport className='text-sm' />
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
@@ -209,7 +288,10 @@ const YourHistory = () => {
         {!overallLoading && !error && filteredResults?.length > 0 && (
           <>
             <div className='space-y-8'>
-              <HistoryContent historyItems={filteredResults} />
+              <HistoryContent
+                historyItems={filteredResults}
+                onOpenCase={handleOpenCase} // Pass the handler
+              />
             </div>
             <div className='mt-12 mb-8'>
               <Pagination
@@ -221,6 +303,15 @@ const YourHistory = () => {
             </div>
           </>
         )}
+
+        {/* CaseDrawer Component */}
+        <CaseDrawer
+          isOpen={isCaseDrawerOpen}
+          onClose={handleCloseCaseDrawer}
+          caseData={selectedCase}
+          mode='case'
+          isDarkMode={isDarkMode}
+        />
       </main>
     </div>
   );
